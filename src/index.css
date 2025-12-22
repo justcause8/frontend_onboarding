@@ -134,6 +134,10 @@ body {
     margin-right: 12px;
 }
 
+.stage-section {
+  margin-bottom: 32px;
+}
+
 /* --- Карточки --- */
 .card {
     background-color: var(--card-bg);
@@ -189,7 +193,7 @@ body {
 
 .step {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     position: relative;
 }
 

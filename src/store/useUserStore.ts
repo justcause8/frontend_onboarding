@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-// Настраиваем axios, чтобы он всегда отправлял куки
-const api = axios.create({
-    baseURL: 'https://localhost:7054', // Укажите URL вашего бэкенда
+// Экспортируем api, чтобы использовать в других компонентах
+export const api = axios.create({
+    baseURL: 'https://localhost:7054',
     withCredentials: true 
 });
 
@@ -25,7 +25,6 @@ export const useUserStore = create<UserState>((set) => ({
     user: null,
     isLoading: true,
 
-    // Метод WhoAmI (автоматический вход)
     fetchUser: async () => {
         try {
             const res = await api.get('/auth/whoami');
@@ -36,13 +35,11 @@ export const useUserStore = create<UserState>((set) => ({
         }
     },
 
-    // Метод LoginAs
     loginAs: async (login: string) => {
         try {
             set({ isLoading: true });
             const res = await api.post(`/auth/login-as?login=${login}`);
             set({ user: res.data, isLoading: false });
-            // Перезагружаем страницу, чтобы обновить все данные
             window.location.reload();
         } catch (err) {
             set({ isLoading: false });
@@ -50,13 +47,11 @@ export const useUserStore = create<UserState>((set) => ({
         }
     },
 
-    // Метод выхода
     logout: async () => {
         try {
             set({ isLoading: true });
             await api.post('/auth/logout');
             set({ user: null, isLoading: false });
-            // Перенаправляем на главную или перезагружаем
             window.location.href = '/'; 
         } catch (err) {
             set({ isLoading: false });
