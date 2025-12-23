@@ -2,8 +2,16 @@ import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { api } from '../api/api';
+import { useNavigate } from 'react-router-dom';
 
 // Типы
+interface CourseShort {
+  id: number;
+  title: string;
+  orderIndex: number;
+  status?: string;
+}
+
 interface StageProgressItem {
   stageId: number;
   status: 'completed' | 'failed' | 'current';
@@ -14,78 +22,42 @@ interface UserProgress {
   completedCourses: number;
   totalStages: number;
   completedStages: number;
-  stageProgress: StageProgressItem[]; // ← обязательно!
-}
-
-interface CourseShort {
-  id: number;
-  title: string;
-  orderIndex: number;
-}
-
-interface AssignedEmployee {
-  id: number;
-  name: string;
-  status: string;
+  stageProgress: StageProgressItem[];
 }
 
 interface Stage {
   id: number;
   title: string;
-  description: string;
+  description: string; // Добавлено описание этапа
   orderIndex: number;
   courses: CourseShort[];
-  assignedEmployees: AssignedEmployee[];
 }
 
 interface OnboardingRoute {
   id: number;
   title: string;
-  description: string;
   stages: Stage[];
 }
 
 const AdaptationPage = () => {
-  // Прогресс — инициализируем с stageProgress!
+  const navigate = useNavigate();
   const [progress, setProgress] = useState<UserProgress>({
     totalCourses: 0,
     completedCourses: 0,
     totalStages: 0,
     completedStages: 0,
-    stageProgress: [], // ← добавлено
+    stageProgress: [],
   });
-
   const [route, setRoute] = useState<OnboardingRoute | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const routeIdRes = await api.get<{ routeId: number | null }>('/onboarding/my-route');
-        const routeId = routeIdRes.data.routeId;
+  // Функция для обновления данных
+  const loadData = async () => {
+    try {
+      const routeIdRes = await api.get<{ routeId: number | null }>('onboarding/route/my-route');
+      const routeId = routeIdRes.data.routeId;
 
-        if (routeId === null) {
-          // Убедитесь, что структура соответствует типу!
-          setProgress({
-            totalCourses: 0,
-            completedCourses: 0,
-            totalStages: 0,
-            completedStages: 0,
-            stageProgress: [], // ← обязательно
-          });
-          setRoute(null);
-          setLoading(false);
-          return;
-        }
-
-        const progressRes = await api.get<UserProgress>('/onboarding/course/user-progress');
-        setProgress(progressRes.data);
-
-        const routeRes = await api.get<OnboardingRoute>(`/onboarding/route/${routeId}`);
-        setRoute(routeRes.data);
-      } catch (error) {
-        console.error('Ошибка загрузки данных адаптации:', error);
-        // На случай ошибки — тоже соблюдаем тип
+      if (routeId === null) {
         setProgress({
           totalCourses: 0,
           completedCourses: 0,
@@ -93,20 +65,84 @@ const AdaptationPage = () => {
           completedStages: 0,
           stageProgress: [],
         });
-      } finally {
+        setRoute(null);
         setLoading(false);
+        return;
       }
-    };
 
+      // Загружаем прогресс с обычного эндпоинта
+      const progressRes = await api.get<UserProgress>('/onboarding/user-progress');
+      setProgress(progressRes.data);
+
+      const routeRes = await api.get<OnboardingRoute>(`/onboarding/route/${routeId}`);
+      setRoute(routeRes.data);
+    } catch (error) {
+      console.error('Ошибка загрузки данных адаптации:', error);
+      setProgress({
+        totalCourses: 0,
+        completedCourses: 0,
+        totalStages: 0,
+        completedStages: 0,
+        stageProgress: [],
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleStartStage = async (stageId: number) => {
+    try {
+      const stage = route?.stages.find(s => s.id === stageId);
+      if (!stage || !stage.courses.length) {
+        alert('В этом этапе нет доступных курсов');
+        return;
+      }
+
+      // Сортируем и берем первый курс
+      const firstCourse = [...stage.courses].sort((a, b) => a.orderIndex - b.orderIndex)[0];
+      
+      console.log('Начинаем курс:', firstCourse.title);
+
+      // Отправляем запрос на начало курса
+      const startResponse = await api.post(`/onboarding/course/${firstCourse.id}/start`);
+      
+      if (startResponse.data.status === 'success' || startResponse.data.status === 'info') {
+        // Вызываем ручной пересчет статусов
+        try {
+          await api.post('/onboarding/recalculate-statuses');
+        } catch (recalcError) {
+          console.log('Пересчет статусов не требуется или недоступен:', recalcError);
+        }
+        
+        // ПЕРЕЗАГРУЖАЕМ ДАННЫЕ ПОСЛЕ НАЧАЛА КУРСА
+        await loadData();
+        
+        // Переходим на страницу курса
+        navigate(`/course/${firstCourse.id}`);
+      } else {
+        alert('Не удалось начать курс. Попробуйте еще раз.');
+      }
+    } catch (error) {
+      console.error('Ошибка начала этапа:', error);
+      alert('Произошла ошибка при начале этапа');
+    }
+  };
+
+  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' => {
+    const item = progress.stageProgress.find(sp => sp.stageId === stageId);
+    return item ? item.status : 'current';
+  };
 
   if (loading) {
     return (
       <div className="dashboard-container">
         <Sidebar />
         <main className="main-content">
-          <Header title="Мой план адаптации" />
+          <Header title="Ваш план адаптации" />
           <p>Загрузка данных...</p>
         </main>
       </div>
@@ -120,16 +156,11 @@ const AdaptationPage = () => {
     ? Math.round((progress.completedStages / progress.totalStages) * 100) 
     : 0;
 
-  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' => {
-    const item = progress.stageProgress.find(sp => sp.stageId === stageId);
-    return item ? item.status : 'current';
-  };
-
   return (
     <div className="dashboard-container">
       <Sidebar />
       <main className="main-content">
-        <Header title="Мой план адаптации" />
+        <Header title="Ваш план адаптации" />
 
         {/* Прогресс */}
         <section className="card progress-card">
@@ -165,13 +196,13 @@ const AdaptationPage = () => {
                   if (status === 'completed') iconContent = '✓';
                   else if (status === 'failed') iconContent = '!';
 
-                  let description = '';
+                  let statusText = '';
                   if (status === 'completed') {
-                    description = 'Этап завершён';
+                    statusText = 'Этап завершён';
                   } else if (status === 'failed') {
-                    description = 'Этап начат, но не завершён. Продолжите обучение.';
+                    statusText = 'Этап начат, но не завершён. Продолжите обучение.';
                   } else {
-                    description = 'Этап ещё не начат';
+                    statusText = 'Этап ещё не начат';
                   }
 
                   return (
@@ -181,11 +212,55 @@ const AdaptationPage = () => {
                       </div>
                       <div className="step-content">
                         <h4>{stage.title}</h4>
-                        <p>{description}</p>
+                        
+                        {/* Описание этапа */}
+                        {stage.description && (
+                          <p className="stage-description">{stage.description}</p>
+                        )}
+                        
+                        <p className="stage-info">
+                          {stage.courses.length} {stage.courses.length === 1 ? 'курс' : 
+                            stage.courses.length > 1 && stage.courses.length < 5 ? 'курса' : 'курсов'}
+                        </p>
+                        
+                        <div className="courses-list">
+                          {stage.courses
+                            .sort((a, b) => a.orderIndex - b.orderIndex)
+                            .map((course) => (
+                              <div key={course.id} className="course-item">
+                                <span className="course-title">{course.title}</span>
+                                {course.status && (
+                                  <span className={`course-status ${course.status}`}>
+                                    {course.status === 'completed' ? '✓' : 
+                                     course.status === 'in_progress' ? '▶' : '○'}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                        
+                        <p className="stage-status">{statusText}</p>
                       </div>
+                      
                       {status === 'current' && (
                         <div className="step-actions">
-                          <button className="btn btn-primary">Начать этап</button>
+                          <button 
+                            className="btn btn-primary"
+                            onClick={() => handleStartStage(stage.id)}
+                          >
+                            Начать этап
+                          </button>
+                        </div>
+                      )}
+                      
+                      {status === 'failed' && (
+                        <div className="step-actions">
+                          <button 
+                            className="btn btn-secondary"
+                            onClick={() => handleStartStage(stage.id)}
+                          >
+                            Продолжить этап
+                          </button>
                         </div>
                       )}
                     </div>

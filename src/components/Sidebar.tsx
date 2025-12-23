@@ -8,8 +8,7 @@ const Sidebar = () => {
       </div>
       <nav className="sidebar-nav">
         <ul>
-          <li><NavLink to="/dashboard">Личный кабинет</NavLink></li>
-          <li><NavLink to="/">Мой план адаптации</NavLink></li>
+          <li><NavLink to="/">Ваш план адаптации</NavLink></li>
           <li><NavLink to="/courses">Обучение и тестирование</NavLink></li>
           <li><NavLink to="/docs">Документы и ресурсы</NavLink></li>
         </ul>
