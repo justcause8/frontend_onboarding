@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import { api } from '../api/api';
+import Sidebar from '../../components/sidebar/Sidebar';
+import Header from '../../components/header/Header';
+import { api } from '../../api/api';
 import { useNavigate } from 'react-router-dom';
 
 // Типы

@@ -1,11 +1,9 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
-import AdaptationPage from './pages/AdaptationPage';
-import CoursesPage from './pages/CoursesPage';
-import CoursePage from './pages/CoursePage';
+import { CoursePage, CoursesPage, AdaptationPage } from "./pages";
 
-function App() {
+export const App = () => {
   const fetchUser = useUserStore((state) => state.fetchUser);
   const isLoading = useUserStore((state) => state.isLoading);
 
@@ -16,7 +14,6 @@ function App() {
   if (isLoading) {
     return <div style={{ padding: '20px' }}>Загрузка системы...</div>;
   }
-
   return (
     <BrowserRouter>
       <Routes>
@@ -25,7 +22,7 @@ function App() {
         <Route path="/course/:courseId" element={<CoursePage />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
 export default App;

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import { api } from '../api/api';
+import Sidebar from '../../components/sidebar/Sidebar';
+import Header from '../../components/header/Header';
+import { api } from '../../api/api';
 
 // Типы
 interface Course {
@@ -404,7 +404,7 @@ const CoursesPage = () => {
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                         {course.tests.slice(0, 2).map(test => (
                           <div key={test.id} style={{ marginTop: '4px' }}>
-                            📝 {test.title}
+                            {test.title}
                           </div>
                         ))}
                         {course.tests.length > 2 && (

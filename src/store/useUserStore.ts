@@ -1,21 +1,12 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import { authService } from '../services/auth.service';
+import type { UserDto } from '../services/auth.service';
 
-// Экспортируем api, чтобы использовать в других компонентах
-export const api = axios.create({
-    baseURL: 'https://localhost:7054',
-    withCredentials: true 
-});
-
-interface User {
-    name: string;
-    login: string;
-    role: string;
-}
 
 interface UserState {
-    user: User | null;
+    user: UserDto | null;
     isLoading: boolean;
+    
     fetchUser: () => Promise<void>;
     loginAs: (login: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -27,36 +18,33 @@ export const useUserStore = create<UserState>((set) => ({
 
     fetchUser: async () => {
         try {
-            const res = await api.get('/auth/whoami');
-            set({ user: res.data, isLoading: false });
-        } catch (err) {
+            const user = await authService.whoAmI();
+            set({ user, isLoading: false });
+        } catch {
             set({ user: null, isLoading: false });
-            console.error("Ошибка авторизации:", err);
         }
     },
 
-    loginAs: async (login: string) => {
-        try {
+    loginAs: async (login) => {
+        try{
             set({ isLoading: true });
-            const res = await api.post(`/auth/login-as?login=${login}`);
-            set({ user: res.data, isLoading: false });
-            window.location.reload();
-        } catch (err) {
+            const user = await authService.loginAs(login);
+            set({ user, isLoading: false });
+        } catch {
             set({ isLoading: false });
-            alert("Пользователь не найден");
+            alert('Пользователь не найден');
         }
     },
 
     logout: async () => {
-        try {
+        try{
             set({ isLoading: true });
-            await api.post('/auth/logout');
+            await authService.logout();
             set({ user: null, isLoading: false });
-            window.location.href = '/'; 
-        } catch (err) {
+            window.location.href = '/';
+        } catch {
             set({ isLoading: false });
-            console.error("Ошибка при выходе:", err);
-            alert("Не удалось выйти из системы");
+            alert('Ошибка входа');
         }
-    }
+    },
 }));

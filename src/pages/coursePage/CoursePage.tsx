@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import { api } from '../api/api';
+import Sidebar from '../../components/sidebar/Sidebar';
+import Header from '../../components/header/Header';
+import { api } from '../../api/api';
 
 // Типы
 interface Course {
@@ -210,7 +210,7 @@ const CoursePage = () => {
                       marginRight: '12px',
                       fontSize: '20px'
                     }}>
-                      📄
+                    
                     </div>
                     <div style={{ flex: '1' }}>
                       <div style={{
@@ -274,7 +274,7 @@ const CoursePage = () => {
                         marginRight: '12px',
                         fontSize: '20px'
                       }}>
-                        📝
+                      
                       </div>
                       <div>
                         <div style={{
