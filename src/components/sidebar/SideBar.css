@@ -1,5 +1,4 @@
 .sidebar {
-    width: 260px;
     background-color: var(--card-bg);
     padding: 15px;
     display: flex;
@@ -8,10 +7,10 @@
 }
 
 .sidebar-header img {
-    max-width: 75%;   /* никогда не шире родителя */
-    height: auto;      /* сохраняем пропорции */
-    display: block;    /* убираем лишние отступы под inline-block */
-    padding: 0px 0px 0px 5px;    /* по центру горизонтально */
+    max-width: 65%;
+    height: auto;
+    display: block;
+    padding: 0px 0px 0px 5px;
 }
 
 .sidebar-nav {
@@ -29,14 +28,13 @@
     padding: 10px;
     border-radius: 5px;
     text-decoration: none;
-    color: #333333;
     font-weight: 500;
     margin-bottom: 5px;
     transition: background-color 0.2s, color 0.2s;
 }
 
 .sidebar-nav li a .icon {
-    margin-right: 12px;
+    margin-right: 6px;
     width: 20px;
     text-align: center;
 }
@@ -56,4 +54,32 @@
     height: 2px;
     background-color: var(--border-color);
     margin: 10px 0;
+}
+
+.edit-button {
+    margin-top: auto;
+    width: 100%;
+    height: 42px;
+
+    border-radius: 8px;
+    border: 1px solid #f04923;
+
+    background-color: #ffffff;
+    color: #f04923;
+
+    font-weight: 600;
+    font-size: 14px;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+    background-color: #f04923;
+    color: #ffffff;
+}
+
+.edit-button.active {
+    background-color: #f04923;
+    color: #ffffff;
 }

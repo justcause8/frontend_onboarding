@@ -1,28 +1,33 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
-import { CoursePage, CoursesPage, AdaptationPage } from "./pages";
+import { AdaptationPage, CoursePage, CoursesPage, EditAdaptationPage } from "./pages";
+import MainLayout from './layout/mainLayout/MainLayout';
+import EditLayout from './layout/editLayout/EditLayout';
 
 export const App = () => {
-  const fetchUser = useUserStore((state) => state.fetchUser);
-  const isLoading = useUserStore((state) => state.isLoading);
+  const fetchUser = useUserStore((s) => s.fetchUser);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  if (isLoading) {
-    return <div style={{ padding: '20px' }}>Загрузка системы...</div>;
-  }
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AdaptationPage />} />
-        <Route path="/courses" element={<CoursesPage />} />
-        <Route path="/course/:courseId" element={<CoursePage />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<AdaptationPage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/course/:courseId" element={<CoursePage />} />
+        </Route>
+
+        <Route element={<EditLayout />}>
+          <Route path="/edit" element={<EditAdaptationPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
-  )
-}
+  );
+};
+
 
 export default App;

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { authService } from '../services/auth.service';
 import type { UserDto } from '../services/auth.service';
 
-
 interface UserState {
     user: UserDto | null;
     isLoading: boolean;

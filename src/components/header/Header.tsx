@@ -1,11 +1,21 @@
 import { useUserStore } from '../../store/useUserStore';
+import { Link, useLocation } from 'react-router-dom';
+import './Header.css';
 
 interface HeaderProps {
   title: string;
 }
 
+const PAGE_TITLES: Record<string, string> = {
+  '': 'Мой адаптационный маршут',
+  'courses': 'Курсы',
+  'course': 'Курс',
+  'edit': 'Редактирование',
+};
+
 const Header = ({ title }: HeaderProps) => {
-  const { user, loginAs, logout } = useUserStore(); // fetchUser здесь больше не нужен для кнопки
+  const { user, loginAs, logout } = useUserStore();
+  const location = useLocation();
 
   const handleLoginAs = () => {
     const login = prompt("Введите логин сотрудника (например, ivanov_ii):");
@@ -14,82 +24,61 @@ const Header = ({ title }: HeaderProps) => {
     }
   };
 
+  const pathSegments = location.pathname.split('/').filter(Boolean);
+  const breadcrumbs = pathSegments.map((seg, idx) => {
+    const path = '/' + pathSegments.slice(0, idx + 1).join('/');
+    const name = PAGE_TITLES[seg] || seg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return { name, path };
+  });
+
   return (
-    <header className="main-header" style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '0 20px',
-      backgroundColor: '#f8f9fa',
-      borderBottom: '1px solid #ddd'
-    }}>
-      <h1>{title}</h1>
-
-      <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {/* Кнопка "Войти как" остается для режима разработки/тестирования */}
-          <button 
-            onClick={handleLoginAs}
-            style={{ 
-              fontSize: '12px', 
-              padding: '6px 12px',
-              cursor: 'pointer',
-              border: '1px dashed #F97316',
-              borderRadius: '4px',
-              background: 'none',
-              color: '#F97316'
-            }}
-          >
-            Войти как...
-          </button>
-        </div>
-
-        {/* ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderLeft: '1px solid #ccc', paddingLeft: '15px' }}>
-          <div className="avatar" style={{
-            width: '35px',
-            height: '35px',
-            borderRadius: '50%',
-            backgroundColor: '#e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 'bold',
-            fontSize: '12px'
-          }}>
-            {user && user.role !== 'None' 
-              ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() 
-              : '??'}
+    <>
+      <div className="header-wrapper">
+        <header className="header">
+          <div className="header-left">
+            <h1 className="header-title">{title}</h1>
           </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span className="user-name" style={{ fontSize: '14px', fontWeight: '500' }}>
-              {user && user.role !== 'None' ? user.name : 'Гость'}
-            </span>
-            
-            {/* Кнопка Выход появляется только если пользователь реально авторизован */}
-            {user && user.role !== 'None' && (
-              <button 
-                onClick={logout}
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  color: '#EF4444', 
-                  padding: 0, 
-                  fontSize: '11px', 
-                  textAlign: 'left', 
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-              >
-                Выйти
-              </button>
+
+          <div className="header-user">
+            <div className="dev-buttons">
+              <button onClick={handleLoginAs}>Войти как...</button>
+              {user && user.role !== 'None' && (
+                <button className="logout-btn" onClick={logout}>Выйти</button>
+              )}
+            </div>
+
+            {user && user.role !== 'None' ? (
+              <div className="user-profile">
+                <div className="avatar">
+                  {user.name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase() || '??'}
+                </div>
+                <div className="user-info">
+                  <span className="user-name">{user.name}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="user-profile-guest">Гость</div>
             )}
           </div>
-        </div>
+        </header>
+        
+        {breadcrumbs.length > 0 && (
+          <nav className="breadcrumbs">
+            {breadcrumbs.map((bc, idx) => (
+              <span key={bc.path}>
+                <Link to={bc.path}>{bc.name}</Link>
+                {idx < breadcrumbs.length - 1 && <span className="separator">/</span>}
+              </span>
+            ))}
+          </nav>
+        )}
       </div>
-    </header>
+    </>
   );
 };
 

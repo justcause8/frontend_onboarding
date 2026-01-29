@@ -1,0 +1,32 @@
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 275px;
+  background-color: var(--card-bg);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;    /* Чтобы оставался на месте при скролле */
+  top: 0;
+  overflow: hidden;    /* Контент Sidebar не скролится */
+}
+
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}

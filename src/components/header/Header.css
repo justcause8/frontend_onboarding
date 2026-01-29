@@ -1,0 +1,110 @@
+.header-wrapper {
+  position: sticky;
+  background-color: var(--bg-light);
+}
+
+.header {
+  background-color: var(--bg-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 10px 0;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Хедер пользователя */
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Кнопки для разработки */
+.dev-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.dev-buttons button {
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px dashed #f04923;
+  border-radius: 4px;
+  background: none;
+  color: #f04923;
+}
+
+/* Профиль пользователя */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 1px solid #ccc;
+  padding-left: 15px;
+}
+
+.avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #f04923;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  color: var(--bg-light);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logout-btn {
+  font-size: 12px;
+  color: #EF4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.user-profile-guest {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Хлебные крошки */
+.breadcrumbs {
+  background-color: var(--bg-light);
+  font-size: 12px;
+  padding: 0 0 5px;
+  color: var(--text-secondary);
+}
+
+
+.breadcrumbs a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumbs .separator {
+  margin: 0 4px;
+}
