@@ -39,3 +39,51 @@ button {
   font-family: inherit;
   cursor: pointer;
 }
+
+/* Базовая кнопка */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 20px;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+
+    cursor: pointer;
+    border: none;
+
+    transition: opacity 0.2s, background-color 0.2s;
+}
+
+/* Hover */
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* Disabled */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Основная кнопка */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/* Вторичная кнопка */
+.btn-secondary {
+    background-color: var(--bg-light);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Кнопка без отступа слева (например в карточках) */
+.btn-no-margin {
+    margin-left: 0;
+}

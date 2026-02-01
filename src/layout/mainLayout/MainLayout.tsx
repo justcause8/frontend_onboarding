@@ -9,17 +9,20 @@ const MainLayout = () => {
   console.log(isLoading);
 
   return (
-    <div className="dashboard-container">
+    <div className="container">
       <Sidebar />
 
-      <div className="main-content">
-        <Header title='Нужно изменить'/>
-
-        <div className="page-content">
-          <Outlet />
+      <div className="main">
+        <div className="main-header">
+          <Header title="Нужно изменить" />
         </div>
+
+        <main className="main-content">
+            <Outlet />
+        </main>
       </div>
     </div>
+
   );
 };
 

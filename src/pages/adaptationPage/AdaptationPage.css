@@ -1,15 +1,16 @@
-/* --- Карточки --- */
 .card {
-    background-color: var(--card-bg);
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-    margin-bottom: 24px;
+  background-color: var(--card-bg);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05),
+              0 2px 4px -1px rgba(0,0,0,0.03);
+  margin-bottom: 24px;
 }
 
 .card h2 {
-    font-size: 20px;
-    margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
 }
 
 .progress-items {
@@ -20,35 +21,25 @@
 .progress-item {
     display: flex;
     align-items: center;
+    gap: 16px;
 }
 
 .progress-circle {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background-color: var(--bg-light);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--green-color);
-    margin-right: 16px;
 }
 
-.progress-info h3 {
-    font-size: 16px;
-    color: var(--text-primary);
-}
-
-.progress-info p {
-    color: var(--text-secondary);
-}
-
-/* --- Степпер (План адаптации) --- */
 .stepper {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
 .step {
@@ -57,46 +48,79 @@
     position: relative;
 }
 
+/* Иконка шага */
 .step-icon {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     color: white;
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 700;
     flex-shrink: 0;
     margin-right: 20px;
     z-index: 2;
 }
 
-/* Соединительная линия */
-.step:not(:last-child)::before {
-    content: '';
-    position: absolute;
-    left: 20px;
-    top: 40px;
-    bottom: -24px;
-    width: 2px;
-    background-color: var(--border-color);
-    z-index: 1;
-}
-
 .step-content {
     flex-grow: 1;
-    padding-top: 8px;
+    padding: 16px 20px;
+    background-color: var(--bg-light);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .step-content h4 {
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
 }
 
 .step-content p {
-    color: var(--text-secondary);
     font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.step-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.course-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 13px;
+}
+
+.course-title {
+    color: var(--text-primary);
+}
+
+.course-status {
+    font-size: 14px;
+}
+
+.course-status.completed { color: var(--green-color); }
+.course-status.in_progress { color: var(--blue-color); }
+.course-status.not_started { color: var(--text-secondary); }
+
+.stage-status {
     margin-top: 4px;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .step-actions {
@@ -104,28 +128,27 @@
     align-self: center;
 }
 
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
+.step.completed .step-icon {
+    background-color: var(--green-color);
 }
 
-.btn:hover {
-    opacity: 0.9;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.btn-secondary {
-    background-color: var(--bg-light);
+.step.completed h4 {
     color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+    text-decoration: line-through;
 }
 
+.step.failed .step-icon {
+    background-color: var(--red-color);
+}
+
+.step.failed .stage-status {
+    color: var(--red-color);
+}
+
+.step.current .step-icon {
+    background-color: var(--blue-color);
+}
+
+.step.current h4 {
+    font-weight: 700;
+}
