@@ -14,7 +14,7 @@ const MainLayout = () => {
 
       <div className="main">
         <div className="main-header">
-          <Header title="Нужно изменить" />
+          <Header/>
         </div>
 
         <main className="main-content">

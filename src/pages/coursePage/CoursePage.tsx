@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseService } from '../../services/coursePage.services';
 import type { Course } from '../../services/coursePage.services';
+import { usePageTitle } from '../../contexts/PageTitleContext'; 
 import './CoursePage.css';
 
 const CoursePage = () => {
@@ -10,6 +11,7 @@ const CoursePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { setDynamicTitle } = usePageTitle();
 
   useEffect(() => {
   const loadCourse = async () => {
@@ -21,6 +23,7 @@ const CoursePage = () => {
 
       const data = await courseService.getCourseById(Number(courseId));
       setCourse(data);
+      setDynamicTitle(data.title);
     } catch (e) {
       console.error(e);
       setError('Не удалось загрузить информацию о курсе');
@@ -30,7 +33,12 @@ const CoursePage = () => {
   };
 
   loadCourse();
-  }, [courseId]);
+    
+    // Очищаем при размонтировании компонента
+    return () => {
+      setDynamicTitle('');
+    };
+  }, [courseId, setDynamicTitle]);
 
   if (loading) {
     return <div className="course-state">Загрузка информации о курсе…</div>;

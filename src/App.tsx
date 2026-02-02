@@ -4,6 +4,7 @@ import { useUserStore } from './store/useUserStore';
 import { AdaptationPage, CoursePage, CoursesPage, EditAdaptationPage } from "./pages";
 import MainLayout from './layout/mainLayout/MainLayout';
 import EditLayout from './layout/editLayout/EditLayout';
+import { PageTitleProvider  } from './contexts/PageTitleContext';
 
 export const App = () => {
   const fetchUser = useUserStore((s) => s.fetchUser);
@@ -13,19 +14,21 @@ export const App = () => {
   }, [fetchUser]);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<AdaptationPage />} />
-          <Route path="/courses" element={<CoursesPage />} />
-          <Route path="/course/:courseId" element={<CoursePage />} />
-        </Route>
+    <PageTitleProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<AdaptationPage />} />
+            <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/courses/course/:courseId" element={<CoursePage />} />
+          </Route>
 
-        <Route element={<EditLayout />}>
-          <Route path="/edit" element={<EditAdaptationPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route element={<EditLayout />}>
+            <Route path="/edit" element={<EditAdaptationPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </PageTitleProvider>
   );
 };
 

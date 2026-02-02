@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './AdaptationPage.css';
 import { adaptationService } from '../../services/adaptationRoute.service';
 import type { OnboardingRoute, UserProgress } from '../../services/adaptationRoute.service';
+import { usePageTitle } from '../../contexts/PageTitleContext';
 
 const emptyProgress: UserProgress = {
   totalCourses: 0,
@@ -14,10 +15,17 @@ const emptyProgress: UserProgress = {
 
 const AdaptationPage = () => {
   const navigate = useNavigate();
+  const { setDynamicTitle } = usePageTitle();
 
   const [route, setRoute] = useState<OnboardingRoute | null>(null);
   const [progress, setProgress] = useState<UserProgress>(emptyProgress);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setDynamicTitle('');
+    
+    return () => setDynamicTitle('');
+  }, [setDynamicTitle]);
 
   const loadData = async () => {
     setLoading(true);
@@ -67,7 +75,7 @@ const AdaptationPage = () => {
     await adaptationService.recalcStatuses();
     await loadData();
 
-    navigate(`/course/${firstCourse.id}`);
+    navigate(`/courses/course/${firstCourse.id}`);
   };
 
   const getStageStatus = (stageId: number) => {
@@ -98,107 +106,96 @@ const AdaptationPage = () => {
 
   return (
     <div>
-      <section className="card progress-card">
-        <h2>Ваш общий прогресс</h2>
-          <div className="progress-items">
-            <div className="progress-item">
-              <div className="progress-circle">{percentStages}%</div>
-              <div>
-                Этапы: {progress.completedStages} /{' '}
-                {progress.totalStages}
-              </div>
-            </div>
-
-            <div className="progress-item">
-              <div className="progress-circle">{percent}%</div>
-              <div>
-                Курсы: {progress.completedCourses} /{' '}
-                {progress.totalCourses}
-              </div>
-            </div>
-          </div>
-      </section>
-
-      {/* Динамические этапы */}
       {route ? (
-        <section className="card plan-card">
-          <h2>Этапы вашего маршрута</h2>
-          <div className="stepper">
-            {[...route.stages]
-              .sort((a, b) => a.orderIndex - b.orderIndex)
-              .map((stage) => {
+        <>
+          {/* Секция прогресса теперь внутри условия */}
+          <section className="card progress-card text">
+            <h2>Ваш общий прогресс</h2>
+            <div className="progress-items">
+              <div className="progress-item">
+                <div className="progress-circle">{percentStages}%</div>
+                <div>
+                  <p>Этапы: {progress.completedStages} / {progress.totalStages}</p>
+                </div>
+              </div>
 
-                const sortedCourses = [...stage.courses].sort(
-                  (a, b) => a.orderIndex - b.orderIndex
-                );
-                const status = getStageStatus(stage.id);
-                let iconContent: string | number = stage.orderIndex;
-                if (status === 'completed') iconContent = '✓';
-                else if (status === 'failed') iconContent = '!';
+              <div className="progress-item">
+                <div className="progress-circle">{percent}%</div>
+                <div>
+                  <p>Курсы: {progress.completedCourses} / {progress.totalCourses}</p>
+                </div>
+              </div>
+            </div>
+          </section>
 
-                let statusText = '';
-                if (status === 'completed') {
-                  statusText = 'Этап завершён';
-                } else if (status === 'failed') {
-                  statusText = 'Этап начат, но не завершён. Продолжите обучение.';
-                } else {
-                  statusText = 'Этап ещё не начат';
-                }
+          {/* Динамические этапы */}
+          <section className="card plan-card text">
+            <h2>Этапы вашего маршрута</h2>
+            <div className="stepper">
+              {[...route.stages]
+                .sort((a, b) => a.orderIndex - b.orderIndex)
+                .map((stage) => {
+                  const sortedCourses = [...stage.courses].sort(
+                    (a, b) => a.orderIndex - b.orderIndex
+                  );
+                  const status = getStageStatus(stage.id);
+                  
+                  let iconContent: string | number = stage.orderIndex;
+                  if (status === 'completed') iconContent = '✓';
+                  else if (status === 'failed') iconContent = '!';
 
-                return (
-                  <div key={stage.id} className={`step ${status}`}>
-                    <div className="step-icon">
-                      {iconContent}
-                    </div>
-                    <div className="step-content">
-                      <h4>{stage.title}</h4>
-
-                      {stage.description && <p>{stage.description}</p>}
-
-                      {sortedCourses.map(course => (
-                        <div key={course.id} className="course-item">
-                          <span className="course-title">{course.title}</span>
-                          {course.status && (
-                            <span className={`course-status ${course.status}`}>
-                              {course.status === 'completed' ? '✓' :
-                              course.status === 'in_progress' ? '▶' : '○'}
-                            </span>
-                          )}
+                  return (
+                    <div key={stage.id} className={`step ${status}`}>
+                      <div className="step-icon">
+                        {iconContent}
+                      </div>
+                      <div className="step-content">
+                        <div className="step-header">
+                          <h4>{stage.title}</h4>
+                          <span className={`stage-badge ${status}`}>
+                            {status === 'completed' && 'Завершён'}
+                            {status === 'current' && 'Текущий'}
+                            {status === 'failed' && 'Начат'}
+                            {!status && 'Не начат'}
+                          </span>
                         </div>
-                      ))}
-
-                      <div className="step-footer">
-                        <p className="stage-status">{statusText}</p>
-
-                        {status === 'current' && (
-                          <button
-                            className="btn btn-primary"
-                            onClick={() => handleStartStage(stage.id)}
-                          >
-                            Начать этап
-                          </button>
-                        )}
-
-                        {status === 'failed' && (
-                          <button
-                            className="btn btn-secondary"
-                            onClick={() => handleStartStage(stage.id)}
-                          >
-                            Продолжить этап
-                          </button>
+                        
+                        {stage.description && <p>{stage.description}</p>}
+                        
+                        {sortedCourses.map(course => (
+                          <div key={course.id} className="course-item">
+                            <span className="course-title">{course.title}</span>
+                            {course.status && (
+                              <span className={`course-status ${course.status}`}>
+                                {course.status === 'completed' ? '✓' : 
+                                course.status === 'in_progress' ? '▶' : '○'}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                        
+                        {(status === 'current' || status === 'failed') && (
+                          <div className="step-footer">
+                            <button 
+                              className={`btn ${status === 'current' ? 'btn-primary' : 'btn-secondary'}`}
+                              onClick={() => handleStartStage(stage.id)}
+                            >
+                              {status === 'current' ? 'Начать этап' : 'Продолжить этап'}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-          </div>
-        </section>
+                  );
+                })}
+            </div>
+          </section>
+        </>
       ) : (
-        <section className="card plan-card">
-          <h2>Маршрут адаптации не назначен</h2>
+        <div className="empty-state">
+          <h4>Маршрут адаптации не назначен</h4>
           <p>Обратитесь к HR-специалисту или Наставнику.</p>
-        </section>
+        </div>
       )}
     </div>
   );

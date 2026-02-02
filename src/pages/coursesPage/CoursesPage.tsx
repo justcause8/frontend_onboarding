@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { coursesService } from '../../services/coursesPage.service';
 import type { Course } from '../../services/coursesPage.service';
+import { usePageTitle } from '../../contexts/PageTitleContext';
 import './CoursesPage.css';
 
 const CoursesPage = () => {
@@ -11,6 +12,7 @@ const CoursesPage = () => {
   const [hasRoute, setHasRoute] = useState<boolean>(false);
   const [loadingCourseId, setLoadingCourseId] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { setDynamicTitle } = usePageTitle();
 
   useEffect(() => {
     const load = async () => {
@@ -26,13 +28,16 @@ const CoursesPage = () => {
       }
     };
     load();
-  }, []);
+    setDynamicTitle('');
+    
+    return () => setDynamicTitle('');
+  }, [setDynamicTitle]);
 
   const handleStartCourse = async (courseId: number) => {
     try {
       setLoadingCourseId(courseId);
       await coursesService.startCourse(courseId);
-      navigate(`/course/${courseId}`);
+      navigate(`/courses/course/${courseId}`);
     } catch {
       alert('Не удалось начать курс');
     } finally {
@@ -57,7 +62,7 @@ const CoursesPage = () => {
       {!hasRoute ? (
         <div className="empty-state">
           <h4>Маршрут адаптации не назначен</h4>
-          <p>Обратитесь к HR или ментору для назначения плана адаптации.</p>
+          <p>Обратитесь к HR-специалисту или Наставнику.</p>
         </div>
       ) : courses.length === 0 ? (
         <div className="empty-state">
@@ -69,7 +74,7 @@ const CoursesPage = () => {
           {courses.map(course => (
             <article key={course.id} className="courses-card">
               <div className="card-image">{getImagePlaceholder(course.id)}</div>
-              <div className="card-content">
+              <div className="card-content text">
                 <h4>{course.title}</h4>
                 <p>{course.description || 'Описание отсутствует'}</p>
 

@@ -92,18 +92,34 @@
 }
 
 /* Хлебные крошки */
+/* Header.css */
 .breadcrumbs {
-  background-color: var(--bg-light);
-  font-size: 12px;
-  padding: 0 0 5px;
+  padding: 8px 0;
+  font-size: 14px;
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
-.breadcrumbs a {
+.breadcrumb-link {
   color: var(--text-secondary);
   text-decoration: none;
+  transition: color 0.2s;
 }
 
-.breadcrumbs .separator {
+.breadcrumb-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.separator {
   margin: 0 4px;
+  color: var(--text-tertiary);
 }

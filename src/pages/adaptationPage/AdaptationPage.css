@@ -7,12 +7,6 @@
   margin-bottom: 24px;
 }
 
-.card h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 15px;
-}
-
 .progress-items {
     display: flex;
     gap: 32px;
@@ -74,18 +68,6 @@
     gap: 8px;
 }
 
-.step-content h4 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.step-content p {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
 .step-footer {
     display: flex;
     align-items: center;
@@ -132,9 +114,13 @@
     background-color: var(--green-color);
 }
 
-.step.completed h4 {
-    color: var(--text-secondary);
-    text-decoration: line-through;
+.step.completed .step-content {
+  color: var(--text-secondary);
+}
+
+.step.completed .stage-title {
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .step.failed .step-icon {
@@ -151,4 +137,59 @@
 
 .step.current h4 {
     font-weight: 700;
+}
+
+/* Заголовок со статусом */
+.step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.step-header h4 {
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Бейдж статуса */
+.stage-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.step.completed .stage-badge {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--green-color);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.step.current .stage-badge {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--blue-color);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.step.failed .stage-badge {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--red-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Блок всего этапа меняет цвет текста */
+.step.completed .step-content {
+  color: var(--text-secondary) !important;
+}
+
+.step.completed .course-title,
+.step.completed .course-status,
+.step.completed p {
+  color: var(--text-secondary);
+}
+
+.step:not(.completed) .step-content {
+  color: var(--text-primary);
 }
