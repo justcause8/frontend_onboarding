@@ -5,7 +5,7 @@ export interface Course {
   title: string;
   description: string;
   orderIndex: number;
-  status: string;
+  status: 'not_started' | 'in_process' | 'completed' | 'failed';
   stageId: number | null;
   materials: Material[];
   tests: TestShort[];
@@ -41,18 +41,32 @@ export const coursesService = {
     return res.data;
   },
 
+  // Получить статус курса для текущего пользователя
+  async getUserCourseStatus(courseId: number): Promise<string> {
+    try {
+      const res = await api.get<{ courseId: number, status: string }>(
+        `/onboarding/course/${courseId}/status`
+      );
+      return res.data.status;
+    } catch (error) {
+      console.error(`Ошибка получения статуса курса ${courseId}:`, error);
+      return 'not_started'; // По умолчанию
+    }
+  },
+
   // Начать курс
   async startCourse(courseId: number): Promise<void> {
     await api.post(`/onboarding/course/${courseId}/start`);
   },
 
-  // Получить все курсы пользователя
+  // Получить все курсы пользователя с правильными статусами
   async getAllCourses(): Promise<Course[]> {
     const routeId = await coursesService.getMyRouteId();
     if (!routeId) return [];
 
     const route = await coursesService.getRoute(routeId);
 
+    // Создаем массив курсов без статусов
     const allCourses: Course[] = [];
     route?.stages?.forEach((stage: any) => {
       stage.courses?.forEach((c: any) => {
@@ -61,7 +75,7 @@ export const coursesService = {
           title: c.title,
           description: '',
           orderIndex: c.orderIndex,
-          status: 'Active',
+          status: 'not_started',
           stageId: stage.id,
           materials: [],
           tests: []
@@ -69,22 +83,43 @@ export const coursesService = {
       });
     });
 
-    const detailedCourses = await Promise.all(
+    // Загружаем статусы для каждого курса параллельно
+    const coursesWithStatus = await Promise.all(
       allCourses.map(async (course) => {
         try {
-          const details = await coursesService.getCourse(course.id);
+          // Получаем реальный статус пользователя для этого курса
+          const userStatus = await this.getUserCourseStatus(course.id);
+          
+          // Загружаем детали курса
+          const details = await this.getCourse(course.id);
+          
           return {
             ...course,
             description: details.description || 'Описание отсутствует',
             materials: details.materials || [],
-            tests: details.tests || []
+            tests: details.tests || [],
+            status: (userStatus as any) || 'not_started' // Используем статус пользователя
           };
-        } catch {
-          return { ...course, description: 'Не удалось загрузить описание', materials: [], tests: [] };
+        } catch (error) {
+          console.error(`Ошибка загрузки курса ${course.id}:`, error);
+          return {
+            ...course,
+            description: 'Не удалось загрузить описание',
+            materials: [],
+            tests: [],
+            status: 'not_started'
+          };
         }
       })
     );
 
-    return detailedCourses.sort((a, b) => a.orderIndex - b.orderIndex);
+    // Сортируем по порядку
+    return coursesWithStatus.sort((a, b) => a.orderIndex - b.orderIndex);
+  },
+
+  // Получить прогресс пользователя
+  async getUserProgress(): Promise<{ courseProgress: Array<{ courseId: number, status: string }> }> {
+    const res = await api.get('/onboarding/progress/user');
+    return res.data;
   }
 };

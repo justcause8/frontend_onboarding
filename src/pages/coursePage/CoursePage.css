@@ -18,30 +18,39 @@
   cursor: pointer;
 }
 
-.material-link {
+.card-item.material-item:hover {
+  color: var(--primary-color);
+}
+
+.card-item.material-item a {
   display: block;
   width: 100%;
-  height: 100%;
-  color: var(--text-primary);
+  color: inherit;
   text-decoration: none;
-  transition: all 0.2s ease;
 }
 
-/* Добавляем индикатор ссылки (стрелочку) */
-.material-link::after {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 14px;
-  color: var(--text-secondary);
+.material-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.material-content p {
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.material-content img {
   opacity: 0;
-  transition: all 0.2s ease;
   transform: translateX(-5px);
+  transition: all 0.2s ease;
+  width: 16px;
+  height: 16px;
 }
 
-.material-link:hover::after {
+.card-item.material-item:hover img {
   opacity: 1;
-  color: var(--primary-color);
   transform: translateX(0);
 }
 

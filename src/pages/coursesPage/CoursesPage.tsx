@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { coursesService } from '../../services/coursesPage.service';
 import type { Course } from '../../services/coursesPage.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
+import ErrorState from '../../components/error/ErrorState';
+import EmptyState from '../../components/empty/EmptyState';
 import './CoursesPage.css';
 
 const CoursesPage = () => {
@@ -33,6 +36,24 @@ const CoursesPage = () => {
     return () => setDynamicTitle('');
   }, [setDynamicTitle]);
 
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    const load = async () => {
+      try {
+        const allCourses = await coursesService.getAllCourses();
+        setCourses(allCourses);
+        setHasRoute(allCourses.length > 0);
+      } catch {
+        setError('Не удалось загрузить курсы. Попробуйте позже.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  };
+
   const handleStartCourse = async (courseId: number) => {
     try {
       setLoadingCourseId(courseId);
@@ -45,8 +66,13 @@ const CoursesPage = () => {
     }
   };
 
-  const handleTakeTest = (testId: number) => {
-    navigate(`/test/${testId}`);
+  const handleTakeTest = (course: Course) => {
+    if (course.status === 'not_started') {
+      alert('Сначала начните курс, чтобы пройти тест');
+      return;
+    }
+    
+    navigate(`/test/${course.tests[0].id}`);
   };
 
   const getImagePlaceholder = (courseId: number): string => {
@@ -54,27 +80,35 @@ const CoursesPage = () => {
     return images[courseId % images.length];
   };
 
-  if (loading) return <div className="loading-container">Загрузка курсов...</div>;
-  if (error) return <div className="error-container">{error}</div>;
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorState message={error} onRetry={handleRetry} />;
 
   return (
     <div>
       {!hasRoute ? (
-        <div className="empty-state">
-          <h4>Маршрут адаптации не назначен</h4>
-          <p>Обратитесь к HR-специалисту или Наставнику.</p>
-        </div>
+        <EmptyState
+          title="Маршрут адаптации не назначен"
+          description="Обратитесь к HR-специалисту или Наставнику."
+        />
       ) : courses.length === 0 ? (
-        <div className="empty-state">
-          <h4>Курсы пока не назначены</h4>
-          <p>В вашем маршруте адаптации пока нет назначенных курсов.</p>
-        </div>
+        <EmptyState
+          title="Курсы пока не назначены"
+          description="В вашем маршруте адаптации пока нет назначенных курсов."
+        />
       ) : (
         <section className="courses-grid">
           {courses.map(course => (
             <article key={course.id} className="courses-card">
               <div className="card-image">{getImagePlaceholder(course.id)}</div>
               <div className="card-content text">
+                {/* Статус курса */}
+                <div className={`course-status status-${course.status}`}>
+                  {course.status === 'not_started' && 'Не начат'}
+                  {course.status === 'in_process' && 'В процессе'}
+                  {course.status === 'completed' && 'Завершен'}
+                  {course.status === 'failed' && 'Не пройден'}
+                </div>
+                
                 <h4>{course.title}</h4>
                 <p>{course.description || 'Описание отсутствует'}</p>
 
@@ -91,7 +125,9 @@ const CoursesPage = () => {
                   {course.tests.length > 0 && (
                     <button
                       className="btn btn-secondary"
-                      onClick={() => handleTakeTest(course.tests[0].id)}
+                      onClick={() => handleTakeTest(course)}
+                      disabled={course.status === 'not_started'}
+                      title={course.status === 'not_started' ? 'Сначала начните курс' : 'Пройти тест'}
                     >
                       Пройти тест
                     </button>
@@ -102,7 +138,7 @@ const CoursesPage = () => {
                     disabled={loadingCourseId === course.id}
                     onClick={() => handleStartCourse(course.id)}
                   >
-                    Изучить курс
+                    {loadingCourseId === course.id ? 'Загрузка...' : 'Изучить курс'}
                   </button>
                 </div>
               </div>
@@ -115,3 +151,90 @@ const CoursesPage = () => {
 };
 
 export default CoursesPage;
+
+
+
+
+
+
+
+
+  // useEffect(() => {
+  //   const load = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const allCourses = await coursesService.getAllCourses();
+        
+  //       // Добавляем искусственные курсы для тестирования
+  //       const mockCourses: Course[] = [
+  //         {
+  //           id: 5,
+  //           title: "Основы корпоративной безопасности",
+  //           description: "В этом курсе вы узнаете правила работы с данными и паролями.",
+  //           orderIndex: 1,
+  //           status: "not_started",
+  //           stageId: 11,
+  //           materials: [
+  //             {
+  //               id: 5,
+  //               urlDocument: "https://storage.yandexcloud.net/onboarding/основы_корпоративной_безопасности_v1.pdf"
+  //             },
+  //             {
+  //               id: 6,
+  //               urlDocument: "https://storage.yandexcloud.net/onboarding/основы_корпоративной_безопасности_v2.pdf"
+  //             },
+  //             {
+  //               id: 7,
+  //               urlDocument: "https://storage.yandexcloud.net/onboarding/основы_корпоративной_безопасности_v3.pdf"
+  //             }
+  //           ],
+  //           tests: [
+  //             {
+  //               id: 6,
+  //               title: "Тест по курсу Основы корпоративной безопасности",
+  //               passingScore: 0.00
+  //             }
+  //           ]
+  //         },
+  //         {
+  //           id: 6,
+  //           title: "Введение в корпоративную этику",
+  //           description: "Изучите основы этикета и делового общения в компании.",
+  //           orderIndex: 2,
+  //           status: "not_started",
+  //           stageId: 11,
+  //           materials: [
+  //             {
+  //               id: 8,
+  //               urlDocument: "https://storage.yandexcloud.net/onboarding/корпоративная_этика_v1.pdf"
+  //             },
+  //             {
+  //               id: 9,
+  //               urlDocument: "https://storage.yandexcloud.net/onboarding/корпоративная_этика_v2.pdf"
+  //             }
+  //           ],
+  //           tests: [
+  //             {
+  //               id: 7,
+  //               title: "Тест по корпоративной этике",
+  //               passingScore: 75.00
+  //             }
+  //           ]
+  //         }
+  //       ];
+
+  //       // Объединяем реальные курсы с тестовыми
+  //       const combinedCourses = [...allCourses, ...mockCourses];
+  //       setCourses(combinedCourses);
+  //       setHasRoute(combinedCourses.length > 0);
+  //     } catch {
+  //       setError('Не удалось загрузить курсы. Попробуйте позже.');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   load();
+  //   setDynamicTitle('');
+    
+  //   return () => setDynamicTitle('');
+  // }, [setDynamicTitle]);

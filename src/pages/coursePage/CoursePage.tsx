@@ -4,6 +4,8 @@ import { courseService } from '../../services/coursePage.services';
 import type { Course } from '../../services/coursePage.services';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { extractFileNameFromUrl } from '../../utils/fileUtils';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
+import ErrorState from '../../components/error/ErrorState';
 import './CoursePage.css';
 import link from '@/assets/link.svg';
 
@@ -41,6 +43,29 @@ const CoursePage = () => {
     };
   }, [courseId, setDynamicTitle]);
 
+
+const handleRetry = () => {
+  const loadCourse = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!courseId) throw new Error('ID курса не указан');
+
+      const data = await courseService.getCourseById(Number(courseId));
+      setCourse(data);
+      setDynamicTitle(data.title);
+    } catch (e) {
+      console.error(e);
+      setError('Не удалось загрузить информацию о курсе');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadCourse();
+};
+
 const getMaterialTitle = (
     urlDocument: string | undefined,
     fallbackTitle: string | undefined, 
@@ -60,22 +85,16 @@ const getMaterialTitle = (
   };
 
   if (loading) {
-    return <div className="course-state">Загрузка информации о курсе…</div>;
+    return <LoadingSpinner />;
   }
 
   if (error || !course) {
     return (
-      <div className="course-error">
-        <p>{error || 'Курс не найден'}</p>
-        <div className="course-error-actions">
-          <button className="btn btn-primary" onClick={() => location.reload()}>
-            Попробовать снова
-          </button>
-          <button className="btn btn-secondary" onClick={() => navigate('/courses')}>
-            Вернуться к курсам
-          </button>
-        </div>
-      </div>
+      <ErrorState 
+        message={error || 'Курс не найден'} 
+        onRetry={handleRetry}
+        showBackButton={true}
+      />
     );
   }
 
@@ -96,18 +115,15 @@ const getMaterialTitle = (
               
               return (
                 <div key={material.id} className="card-item material-item">
-                  <a 
+                  <a
                     href={material.urlDocument} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="material-link"
                     title={`Открыть ${fileName}`}
                   >
                     <div className="material-content">
-                      <div className="material-header">
-                        <p>{fileName}</p>
-                        <img src={link} alt='Открыть'/>
-                      </div>
+                      <p>{fileName}</p>
+                      <img src={link} alt='Открыть'/>
                     </div>
                   </a>
                 </div>

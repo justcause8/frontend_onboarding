@@ -1,8 +1,12 @@
 .courses-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* grid-template-columns: repeat(3, 1fr);  */
   gap: 24px;
   margin-top: 5px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .courses-card {
@@ -14,6 +18,11 @@
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
   transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid var(--border-color);
+  width: 100%; /* Занимает всю ширину ячейки */
+  /* min-width: 300px;  */
+  max-width: 315px;
+  position: relative;
+  box-sizing: border-box; /* Учитываем padding в ширине */
 }
 
 .courses-card:hover {
@@ -29,6 +38,7 @@
   font-size: 48px;
   color: var(--text-secondary);
   background-color: var(--border-color);
+  position: relative;
 }
 
 .card-content {
@@ -72,6 +82,47 @@
 
 .card-actions.has-test {
   grid-template-columns: 1fr 1fr;
+}
+
+/* CoursesPage.css дополнение */
+.course-status {  
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+  z-index: 10;
+  backdrop-filter: blur(2px);
+  background-color: rgba(255, 255, 255, 0.85);
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+.status-not_started {
+  background-color: var(--bg-light);
+  color: var(--text-secondary);
+}
+
+.status-in_process {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--blue-color);
+}
+
+.status-completed {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--green-color);
+}
+
+.status-failed {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--red-color);
+}
+
+/* Стили для заблокированных кнопок */
+.card-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

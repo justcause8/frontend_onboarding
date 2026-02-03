@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './AdaptationPage.css';
 import { adaptationService } from '../../services/adaptationRoute.service';
 import type { OnboardingRoute, UserProgress } from '../../services/adaptationRoute.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
+import ErrorState from '../../components/error/ErrorState';
+import EmptyState from '../../components/empty/EmptyState';
+import './AdaptationPage.css';
+import done from '@/assets/done.svg';
+import exclamationmark from '@/assets/exclamation-mark.png';
 
 const emptyProgress: UserProgress = {
   totalCourses: 0,
@@ -20,6 +25,7 @@ const AdaptationPage = () => {
   const [route, setRoute] = useState<OnboardingRoute | null>(null);
   const [progress, setProgress] = useState<UserProgress>(emptyProgress);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setDynamicTitle('');
@@ -29,6 +35,7 @@ const AdaptationPage = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
 
     try {
       const routeId = await adaptationService.getMyRouteId();
@@ -48,7 +55,7 @@ const AdaptationPage = () => {
       setRoute(routeData);
     } catch (e) {
       console.error('Ошибка загрузки адаптации', e);
-      setProgress(emptyProgress);
+      setError('Не удалось загрузить данные адаптации');
     } finally {
       setLoading(false);
     }
@@ -57,6 +64,24 @@ const AdaptationPage = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={loadData} />;
+  }
+
+  if (!route) {
+    return (
+      <EmptyState
+        title="Маршрут адаптации не назначен"
+        description="Обратитесь к HR-специалисту или Наставнику."
+      />
+    );
+  }
+
 
   const handleStartStage = async (stageId: number) => {
     if (!route) return;
@@ -84,11 +109,6 @@ const AdaptationPage = () => {
       'current'
     );
   };
-
-  if (loading) {
-    return <div className="main-content">Загрузка...</div>;
-  }
-  // console.log(loading);
   
   const percent =
     progress.totalCourses > 0
@@ -139,9 +159,14 @@ const AdaptationPage = () => {
                   );
                   const status = getStageStatus(stage.id);
                   
-                  let iconContent: string | number = stage.orderIndex;
-                  if (status === 'completed') iconContent = '✓';
-                  else if (status === 'failed') iconContent = '!';
+                  let iconContent: React.ReactNode;
+                  if (status === 'completed') {
+                    iconContent = <img src={done} className="step-icon-img" />;
+                  } else if (status === 'failed') {
+                    iconContent = <img src={exclamationmark} className="step-icon-img" />;
+                  } else {
+                    iconContent = stage.orderIndex;
+                  }
 
                   return (
                     <div key={stage.id} className={`step ${status}`}>
@@ -152,7 +177,7 @@ const AdaptationPage = () => {
                         <div className="step-header">
                           <h4>{stage.title}</h4>
                           <span className={`stage-badge ${status}`}>
-                            {status === 'completed' && 'Завершён'}
+                            {status === 'completed' && 'Завершен'}
                             {status === 'current' && 'Текущий'}
                             {status === 'failed' && 'Начат'}
                             {!status && 'Не начат'}
