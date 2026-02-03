@@ -108,7 +108,6 @@ const AdaptationPage = () => {
     <div>
       {route ? (
         <>
-          {/* Секция прогресса теперь внутри условия */}
           <section className="card progress-card text">
             <h2>Ваш общий прогресс</h2>
             <div className="progress-items">
@@ -149,7 +148,7 @@ const AdaptationPage = () => {
                       <div className="step-icon">
                         {iconContent}
                       </div>
-                      <div className="step-content">
+                      <div className="card-item step-item">
                         <div className="step-header">
                           <h4>{stage.title}</h4>
                           <span className={`stage-badge ${status}`}>
