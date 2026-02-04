@@ -54,8 +54,8 @@ const AdaptationPage = () => {
       setProgress(progressData);
       setRoute(routeData);
     } catch (e) {
-      console.error('Ошибка загрузки адаптации', e);
-      setError('Не удалось загрузить данные адаптации');
+      console.error('Ошибка загрузки', e);
+      setError('Не удалось загрузить данные');
     } finally {
       setLoading(false);
     }

@@ -72,7 +72,7 @@ const CoursesPage = () => {
       return;
     }
     
-    navigate(`/test/${course.tests[0].id}`);
+    navigate(`/courses/course/${course.id}/test/${course.tests[0].id}`);
   };
 
   const getImagePlaceholder = (courseId: number): string => {

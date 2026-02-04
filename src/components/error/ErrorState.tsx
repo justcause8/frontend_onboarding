@@ -6,18 +6,13 @@ interface ErrorStateProps {
   showBackButton?: boolean;
 }
 
-const ErrorState = ({ message, onRetry, showBackButton = true }: ErrorStateProps) => {
+const ErrorState = ({ message, onRetry }: ErrorStateProps) => {
   const handleRetry = () => {
     if (onRetry) onRetry();
     else window.location.reload();
   };
-
-  const handleBack = () => {
-    window.history.back();
-  };
-
   return (
-    <div className="error-state">
+    <div className="error-state text">
       <h4>Произошла ошибка</h4>
       <p>{message}</p>
       
@@ -25,12 +20,6 @@ const ErrorState = ({ message, onRetry, showBackButton = true }: ErrorStateProps
         {onRetry && (
           <button className="btn btn-primary" onClick={handleRetry}>
             Попробовать снова
-          </button>
-        )}
-        
-        {showBackButton && (
-          <button className="btn btn-secondary" onClick={handleBack}>
-            Назад
           </button>
         )}
       </div>

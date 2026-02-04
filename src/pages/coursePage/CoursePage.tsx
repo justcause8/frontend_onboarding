@@ -35,9 +35,8 @@ const CoursePage = () => {
       setLoading(false);
     }
   };
-
   loadCourse();
-    
+  
   return () => {
       setDynamicTitle('');
     };
@@ -147,7 +146,7 @@ const getMaterialTitle = (
                 </div>
                 <button
                   className="btn btn-secondary"
-                  onClick={() => navigate(`/test/${test.id}`)}
+                  onClick={() => navigate(`/courses/course/${courseId}/test/${test.id}`)}
                 >
                   Пройти тест
                 </button>
@@ -166,7 +165,7 @@ const getMaterialTitle = (
       {course.tests.length > 0 && (
         <button
           className="btn btn-primary"
-          onClick={() => navigate(`/test/${course.tests[0].id}`)}
+          onClick={() => navigate(`/courses/course/${courseId}/test/${course.tests[0].id}`)}
         >
           Пройти тест
         </button>

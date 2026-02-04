@@ -1,4 +1,3 @@
-// contexts/PageTitleContext.tsx
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
 interface PageTitleContextType {
@@ -21,7 +20,7 @@ export const PageTitleProvider = ({ children }: { children: ReactNode }) => {
 export const usePageTitle = () => {
   const context = useContext(PageTitleContext);
   if (!context) {
-    throw new Error('usePageTitle must be used within PageTitleProvider');
+    throw new Error('usePageTitle должен использоваться в PageTitleProvider');
   }
   return context;
 };
