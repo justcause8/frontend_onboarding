@@ -100,33 +100,3 @@
   font-weight: 400;
   color: var(--text-secondary);
 }
-
-/* .loading-container,
-.error-container,
-.empty-state {
-  padding: 60px 40px;
-  text-align: center;
-  background-color: var(--bg-light);
-  border-radius: 12px;
-  margin-top: 20px;
-}
-
-.empty-state h4 {
-  font-size: 18px;
-}
-
-.empty-state p {
-  color: var(--text-secondary);
-  font-size: 16px;
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto 30px;
-}
-
-.empty-state .btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-} */
