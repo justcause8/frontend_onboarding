@@ -99,8 +99,8 @@ const getMaterialTitle = (
 
   return (
     <>
-    <div className="card text">
-      <section className="course-section">
+    <div className="text">
+      <section className="card course-section">
         <h2>Основная информация</h2>
         <p>Тут очень большой текст Тут очень большой текст Тут очень большой текст
            Тут очень большой текст Тут очень большой текст Тут очень большой текст
@@ -118,9 +118,9 @@ const getMaterialTitle = (
       </section>
 
       {course.materials.length > 0 && (
-        <section className="course-section">
+        <section className="card course-section">
           <h2>Дополнительная информация</h2>
-          <div className="materials-list">
+          <div className="card-item-list">
             {course.materials.map((material, index) => {
               const fileName = getMaterialTitle(material.urlDocument, material.title, index);
               
@@ -145,14 +145,14 @@ const getMaterialTitle = (
       )}
 
       {course.tests.length > 0 && (
-        <section className="course-section">
+        <section className="card course-section">
           <h2>Тесты по курсу</h2>
-          <div className="tests-list">
+          <div className="card-item-list">
             {course.tests.map(test => (
               <div key={test.id} className="card-item test-item">
                 <div>
                   <h4>{test.title}</h4>
-                  <div className="test-score">
+                  <div className="text-info">
                     Проходной балл: {test.passingScore}
                   </div>
                 </div>
@@ -169,7 +169,7 @@ const getMaterialTitle = (
       )}
     </div>
 
-    <div className="course-footer">
+    <div className="card-footer">
       <button className="btn btn-secondary" onClick={() => navigate('/courses')}>
         Вернуться к курсам
       </button>

@@ -1,7 +1,6 @@
 .container {
   display: flex;
-  min-height: 100vh;
-  
+  min-height: 100vh; 
 }
 
 .sidebar {
@@ -60,6 +59,11 @@
   overflow: hidden; /* Скрываем выходящий контент */
 }
 
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+}
+
 .card-item {
   display: flex;
   flex-grow: 1;
@@ -69,34 +73,15 @@
   border: 1px solid var(--border-color);
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.card-item-list {
+  display: grid;
+  gap: 12px;
 }
 
 .card-item:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
-}
-
-.text h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-}
-
-.text h4 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 5px;
-}
-
-.text p {
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
-.text-info {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-secondary);
 }

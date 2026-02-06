@@ -7,17 +7,6 @@
   border-bottom: 2px solid var(--primary-color);
 }
 
-.materials-list,
-.tests-list {
-  display: grid;
-  gap: 12px;
-}
-
-/* Для материалов (ссылки) */
-.card-item.material-item {
-  cursor: pointer;
-}
-
 .card-item.material-item:hover {
   color: var(--primary-color);
 }
@@ -57,16 +46,6 @@
 .test-item {
   justify-content: space-between;
   align-items: center;
-}
-
-.test-score {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.course-footer {
-  display: flex;
-  justify-content: space-between;
 }
 
 .course-state,

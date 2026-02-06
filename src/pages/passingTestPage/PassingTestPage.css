@@ -1,15 +1,5 @@
-.test-passing-container {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
 .test-header {
-  margin-bottom: 30px;
   border-left: 5px solid var(--primary-color, #4a90e2);
-}
-
-.question-card {
-  margin-bottom: 24px;
 }
 
 .question-number {
@@ -20,10 +10,11 @@
   margin-bottom: 8px;
 }
 
-.question-text {
-  font-size: 18px;
-  margin-bottom: 20px;
-  line-height: 1.4;
+.type-hint {
+  text-transform: lowercase;
+  font-weight: 400;
+  margin-left: 8px;
+  opacity: 0.7;
 }
 
 .options-list {
@@ -37,28 +28,20 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  transition: all 0.2s ease;
-  border: 1px solid var(--border-color);
 }
 
-.option-item:hover {
-  background-color: var(--bg-hover);
-}
-
-.option-item.selected {
-  border-color: var(--primary-color, #4a90e2);
-  background-color: rgba(74, 144, 226, 0.05);
-}
-
-/* Кастомные радио и чекбоксы */
+/* Базовый контейнер контрола (19-20px) */
 .control {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border-color);
+  width: 19px;
+  height: 19px;
+  border: 1.5px solid #d1d5db;
+  background-color: #fff;
   flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;    /* Центрирование контента по вертикали */
+  justify-content: center; /* Центрирование контента по горизонтали */
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .control.radio {
@@ -66,155 +49,37 @@
 }
 
 .control.checkbox {
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
-.option-item.selected .control {
-  border-color: var(--primary-color, #4a90e2);
+/* --- СОСТОЯНИЕ ВЫБРАНО ДЛЯ ЧЕКБОКСА (Заливка) --- */
+.option-item.selected .control.checkbox {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
-.control-inner {
-  width: 10px;
-  height: 10px;
-  background-color: var(--primary-color, #4a90e2);
+/* --- СОСТОЯНИЕ ВЫБРАНО ДЛЯ РАДИО (Полый стиль) --- */
+.option-item.selected .control.radio {
+  background-color: #fff; /* Оставляем фон белым */
+  border-color: var(--primary-color); /* Красим только границу */
 }
 
+/* Стили для иконки done (белая на синем фоне) */
+.control-icon {
+  width: 11px;
+  height: 11px;
+  display: block;
+}
+
+/* Стили для точки внутри радиокнопки */
 .control.radio .control-inner {
+  width: 9px;   /* Размер точки */
+  height: 9px;
+  background-color: var(--primary-color); /* Точка цвета primary */
   border-radius: 50%;
+  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-.control.checkbox .control-inner {
-  border-radius: 2px;
-}
-
-.test-footer {
-  display: flex;
-  justify-content: space-between;
-  padding: 40px 0;
-}
-
-.test-info-badge {
-  display: inline-block;
-  padding: 6px 12px;
-  background: var(--bg-light);
-  border-radius: 20px;
-  font-size: 13px;
-  margin-top: 10px;
-}
-
-
-
-/* Модальное окно */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(4px); /* Размытие фона для современности */
-  animation: fadeIn 0.3s ease-out;
-}
-
-.modal-content.success-card {
-  max-width: 500px;
-  width: 90%;
-  text-align: center;
-  padding: 40px;
-  transform: translateY(0);
-  animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.success-icon {
-  width: 80px;
-  height: 80px;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
-}
-
-.success-icon svg {
-  width: 40px;
-  height: 40px;
-}
-
-.modal-content h2 {
-  font-size: 24px;
-  margin-bottom: 15px;
-  color: var(--text-primary);
-}
-
-.modal-content p {
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin-bottom: 30px;
-  line-height: 1.5;
-}
-
-.modal-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Анимации */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Сделаем подсказки типа вопроса потише */
-.type-hint {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 400;
-  margin-left: 8px;
-  opacity: 0.7;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-
-/* Цвет для иконки при провале */
-.failed-card .result-icon {
-  background-color: #f44336;
-  box-shadow: 0 10px 20px rgba(244, 67, 54, 0.3);
-}
-
-.result-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  color: white;
-}
-
-/* Стили для кнопки "Попробовать снова" */
-.failed-card .btn-primary {
-  background-color: #f44336;
-  border-color: #d32f2f;
-}
-
-.failed-card .btn-primary:hover {
-  background-color: #d32f2f;
+/* Ховер на контрол */
+.option-item:hover .control {
+  border-color: var(--primary-color);
 }

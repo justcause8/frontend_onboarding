@@ -9,28 +9,31 @@ export const BREADCRUMB_NAMES: Record<string, string> = {
   '': 'Главная',
   'courses': 'Курсы',
   'course': 'Курс',
+  'test': 'Тест',
   'edit': 'Редактирование'
+};
+
+const truncate = (text: string, maxLength: number = 25): string => {
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
 
 // Функция для получения заголовка страницы
 export const getPageTitle = (pathname: string, dynamicTitle?: string): string => {
+  // Проверяем статические заголовки
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
 
+  // Если есть динамический заголовок
   if (dynamicTitle) {
-    // Если мы на тесте, берем только вторую часть (название теста)
-    if (pathname.includes('/test/')) {
-      return dynamicTitle.split(' | ')[1] || dynamicTitle;
+    const parts = dynamicTitle.split(' | ');
+    
+    // Если мы в пути курса ИЛИ теста — всегда возвращаем название курса (первая часть)
+    if (pathname.includes('/course/') || pathname.includes('/test/')) {
+      return parts[0]; 
     }
-    // Если на курсе, берем первую часть
-    return dynamicTitle.split(' | ')[0];
+    
+    return dynamicTitle;
   }
-  
-  if (pathname.includes('/course/')) return 'Просмотр курса';
   return 'Система онбординга';
-};
-
-const truncate = (text: string, maxLength: number = 10): string => {
-  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
 
 export const getBreadcrumbs = (pathname: string, dynamicTitle?: string): Array<{name: string, path: string}> => {
@@ -77,46 +80,3 @@ export const getBreadcrumbs = (pathname: string, dynamicTitle?: string): Array<{
   
   return breadcrumbs;
 };
-
-// // Вспомогательная функция для обрезки
-// const truncate = (text: string, maxLength: number = 10): string => {
-//   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-// };
-
-// export const getBreadcrumbs = (pathname: string, dynamicTitle?: string): Array<{name: string, path: string}> => {
-//   const segments = pathname.split('/').filter(Boolean);
-//   const breadcrumbs: Array<{name: string, path: string}> = [{ name: 'Главная', path: '/' }];
-  
-//   let currentPath = '';
-  
-//   for (let i = 0; i < segments.length; i++) {
-//     const segment = segments[i];
-//     currentPath += `/${segment}`;
-    
-//     // Обработка курса
-//     if (segment === 'course' && segments[i + 1]) {
-//       const name = dynamicTitle ? truncate(dynamicTitle) : BREADCRUMB_NAMES[segment];
-//       breadcrumbs.push({ 
-//         name: name || segment, 
-//         path: `/courses/course/${segments[i + 1]}` 
-//       });
-//       i++; continue;
-//     }
-
-//     // Добавляем обработку сегмента теста
-//     if (segment === 'test' && segments[i + 1]) {
-//       // Здесь dynamicTitle будет названием теста, если мы на странице теста
-//       const name = dynamicTitle ? truncate(dynamicTitle) : 'Тест';
-//       breadcrumbs.push({ 
-//         name: name, 
-//         path: currentPath + `/${segments[i + 1]}` 
-//       });
-//       i++; continue;
-//     }
-    
-//     let name = BREADCRUMB_NAMES[segment] || segment;
-//     breadcrumbs.push({ name: truncate(name), path: currentPath });
-//   }
-  
-//   return breadcrumbs;
-// };

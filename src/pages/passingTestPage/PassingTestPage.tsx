@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { testService  } from '../../services/passingTestPage.service';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
+import { courseService } from '../../services/coursePage.services';
+import TestResultModal from '../../components/modals/TestResultModal';
 import './PassingTestPage.css';
+import done from '@/assets/done.svg';
 
 type UserAnswers = Record<number, number[]>;
 
@@ -26,20 +29,22 @@ const PassingTestPage = () => {
     const fetchTestData = async () => {
       try {
         setLoading(true);
-        const testData = await testService.getTestById(Number(testId));
+        const [testData, courseData] = await Promise.all([
+          testService.getTestById(Number(testId)),
+          courseService.getCourseById(Number(courseId))
+        ]);
         setTest(testData);
-        setDynamicTitle(testData.title);
+        setDynamicTitle(`${courseData.title} | ${testData.title}`);
       } catch (error) {
-        console.error("Ошибка загрузки теста:", error);
-        setDynamicTitle('Ошибка');
+        console.error("Ошибка загрузки данных:", error);
+        setDynamicTitle('Ошибка | Тест');
       } finally {
         setLoading(false);
       }
     };
-
     fetchTestData();
     return () => setDynamicTitle('');
-  }, [testId, setDynamicTitle]);
+  }, [testId, courseId, setDynamicTitle]);
 
   const handleOptionSelect = (questionId: number, optionId: number, isMultiple: boolean) => {
     setUserAnswers(prev => {
@@ -59,13 +64,11 @@ const PassingTestPage = () => {
     try {
       setLoading(true);
       if (!testId) return;
-
       const response = await testService.submitTestResults(Number(testId), userAnswers);
-      
       setTestResult({
         isPassed: response.isPassed,
         message: response.message,
-        isCourseCompleted: response.isCourseCompleted // Сохраняем из ответа
+        isCourseCompleted: response.isCourseCompleted
       });
       setIsSubmitted(true);
     } catch (error) {
@@ -75,77 +78,31 @@ const PassingTestPage = () => {
     }
   };
 
+  const handleRetry = () => {
+    setIsSubmitted(false);
+    setTestResult(null);
+    setUserAnswers({});
+  };
+
   if (loading && !isSubmitted) return <LoadingSpinner />;
   if (!test) return <div className="card">Тест не найден</div>;
 
   return (
     <div className="test-passing-container">
-      {isSubmitted && testResult && (
-        <div className="modal-overlay">
-          <div className={`card modal-content ${testResult.isPassed ? 'success-card' : 'failed-card'}`}>
-            <div className="result-icon">
-              {testResult.isPassed ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              )}
-            </div>
-            
-            <h2>
-              {testResult.isPassed 
-                ? (testResult.isCourseCompleted ? 'Курс завершен!' : 'Тест пройден!') 
-                : 'Нужно потренироваться'}
-            </h2>
-            <p>{testResult.message}</p>
+      {/* Используем вынесенный компонент */}
+      <TestResultModal 
+        isOpen={isSubmitted && testResult !== null}
+        isPassed={testResult?.isPassed ?? false}
+        isCourseCompleted={testResult?.isCourseCompleted ?? false}
+        message={testResult?.message ?? ''}
+        courseId={courseId}
+        onRetry={handleRetry}
+      />
 
-            <div className="modal-actions">
-              {testResult.isPassed ? (
-                // --- СЛУЧАЙ: УСПЕХ ---
-                <>
-                  {testResult.isCourseCompleted ? (
-                    // Если весь курс завершен - ведем на главную (AdaptationPage)
-                    <button className="btn btn-primary" onClick={() => navigate('/')}>
-                      Вернуться к плану адаптации
-                    </button>
-                  ) : (
-                    // Если курс еще не до конца пройден - возвращаемся в курс
-                    <button className="btn btn-primary" onClick={() => navigate(`/courses/course/${courseId}`)}>
-                      Продолжить курс
-                    </button>
-                  )}
-                  <button className="btn btn-secondary" onClick={() => navigate('/courses')}>
-                    К списку курсов
-                  </button>
-                </>
-              ) : (
-                // --- СЛУЧАЙ: ПРОВАЛ ---
-                <>
-                  <button className="btn btn-primary" onClick={() => {
-                    setIsSubmitted(false);
-                    setTestResult(null);
-                    setUserAnswers({}); 
-                  }}>
-                    Попробовать снова
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => navigate(`/courses/course/${courseId}`)}>
-                    Вернуться к курсу
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="card test-header">
+      <div className="card text test-header">
         <h1>{test.title}</h1>
         <p>{test.description}</p>
-        <div className="test-info-badge">
+        <div className="text-info">
           Вопросов: {test.questionsCount} | Проходной балл: {test.passingScore}
         </div>
       </div>
@@ -153,18 +110,15 @@ const PassingTestPage = () => {
       <div className="questions-list">
         {test.questions?.map((question: any, index: number) => {
           const isMultiple = question.questionTypeId === 3 || question.typeName?.toLowerCase() === 'multiple';
-
           return (
-            <div key={question.id} className="card question-card">
-              <div className="question-number">Вопрос {index + 1}</div>
-              <h3 className="question-text">
-                {question.textQuestion}
+            <div key={question.id} className="card text">
+              <div className="question-number">Вопрос {index + 1}
                 <span className="type-hint">
-                  {isMultiple ? ' (несколько вариантов)' : ' (один вариант)'}
+                    {isMultiple ? ' (выберите несколько вариантов)' : ' (выберите один вариант)'}
                 </span>
-              </h3>
-              
-              <div className="options-list">
+              </div>
+              <h2>{question.textQuestion}</h2>
+              <div className="card-item-list">
                 {question.options.map((option: any) => {
                   const isSelected = userAnswers[question.id]?.includes(option.id);
                   return (
@@ -174,7 +128,13 @@ const PassingTestPage = () => {
                       onClick={() => handleOptionSelect(question.id, option.id, isMultiple)}
                     >
                       <div className={`control ${isMultiple ? 'checkbox' : 'radio'}`}>
-                        {isSelected && <div className="control-inner" />}
+                        {isSelected && (
+                          isMultiple ? (
+                            <img src={done} className="control-icon" alt="done" />
+                          ) : (
+                            <div className="control-inner" />
+                          )
+                        )}
                       </div>
                       <span className="option-text">{option.text}</span>
                     </div>
@@ -186,9 +146,9 @@ const PassingTestPage = () => {
         })}
       </div>
 
-      <div className="test-footer">
+      <div className="card-footer">
         <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-          Отмена
+          Назад к курсу
         </button>
         <button 
           className="btn btn-primary" 
