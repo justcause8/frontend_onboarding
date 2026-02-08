@@ -2,15 +2,20 @@ export const PAGE_TITLES: Record<string, string> = {
   '/': 'Мой план адаптации',
   '/courses': 'Обучение и тестирование',
   '/test': 'Тест',
-  '/edit': 'Редактирование маршрута',
+  '/edit': 'Редактирование',
+  '/edit/adaptationRoutes': 'Адаптационные маршруты',
+  '/edit/courses': 'Обучающие курсы',
+  '/edit/tests': 'Редактирование тестов',
 };
 
 export const BREADCRUMB_NAMES: Record<string, string> = {
   '': 'Главная',
-  'courses': 'Курсы',
-  'course': 'Курс',
+  'courses': 'Обучающие курсы',
+  'course': 'Обучающий курс',
   'test': 'Тест',
-  'edit': 'Редактирование'
+  'tests': 'Тесты',
+  'edit': 'Редактирование', 
+  'adaptationRoutes': 'Редактирование адаптационных маршрутов',
 };
 
 const truncate = (text: string, maxLength: number = 25): string => {
@@ -40,7 +45,6 @@ export const getBreadcrumbs = (pathname: string, dynamicTitle?: string): Array<{
   const segments = pathname.split('/').filter(Boolean);
   const breadcrumbs: Array<{name: string, path: string}> = [{ name: 'Главная', path: '/' }];
   
-  // Разделяем dynamicTitle, если там передано "Название курса | Название теста"
   const [courseTitle, testTitle] = dynamicTitle ? dynamicTitle.split(' | ') : [undefined, undefined];
 
   let currentPath = '';
@@ -52,29 +56,32 @@ export const getBreadcrumbs = (pathname: string, dynamicTitle?: string): Array<{
     // 1. Логика для курса
     if (segment === 'course' && segments[i + 1]) {
       const title = courseTitle || dynamicTitle || BREADCRUMB_NAMES[segment];
-      breadcrumbs.push({ 
-        name: truncate(title), 
-        path: `/courses/course/${segments[i + 1]}` 
-      });
-      i++; // Пропускаем ID курса
-      continue;
+      breadcrumbs.push({ name: truncate(title), path: `/courses/course/${segments[i + 1]}` });
+      i++; continue;
     }
 
-    // 2. Логика для теста (ДОБАВЛЕНО)
+    // 2. Логика для теста
     if (segment === 'test' && segments[i + 1]) {
       const title = testTitle || 'Тест';
-      breadcrumbs.push({ 
-        name: truncate(title), 
-        path: currentPath + `/${segments[i + 1]}` 
-      });
-      i++; // Пропускаем ID теста
-      continue;
+      breadcrumbs.push({ name: truncate(title), path: currentPath + `/${segments[i + 1]}` });
+      i++; continue;
     }
 
-    // 3. Обычные сегменты (например, 'courses')
+    // 3. ОБЩАЯ ЛОГИКА (Для Редактирование / Администрирование)
     if (BREADCRUMB_NAMES[segment] || isNaN(Number(segment))) {
         let name = BREADCRUMB_NAMES[segment] || segment;
-        breadcrumbs.push({ name: truncate(name), path: currentPath });
+
+        // ПРОВЕРКА: Если это последний сегмент пути, приоритет отдаем dynamicTitle
+        const isLastSegment = i === segments.length - 1;
+        if (isLastSegment && dynamicTitle) {
+            // Берем "Администрирование" из setDynamicTitle
+            name = dynamicTitle.split(' | ')[0]; 
+        }
+
+        breadcrumbs.push({ 
+            name: truncate(name), 
+            path: currentPath 
+        });
     }
   }
   

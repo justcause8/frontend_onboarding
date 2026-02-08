@@ -1,11 +1,10 @@
 export { default as AdaptationPage } from './adaptationPage/AdaptationPage';
 export { default as CoursesPage } from './coursesPage/CoursesPage';
 export { default as CoursePage } from './coursePage/CoursePage';
-export { default as EditAdaptationPage } from './adminPanel/EditAdaptPage/EditAdaptationPage';
 export { default as PassingTestPage } from './passingTestPage/PassingTestPage';
-export { default as PageAdapt } from './adminPanel/PageAdapt';
-export { default as TrainingCourses } from './adminPanel/TrainingCourses/TrainingCourses';
-export { default as TrainingCoursesEdit } from './adminPanel/TrainingCoursesEdit/TrainingCoursesEdit';
-export { default as TestPage } from './adminPanel/TestPage/TestPage';
-export { default as TestPageEdit } from './adminPanel/TestPageEdit/TestPageEdit';
-
+export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';
+export { default as AdminEditAdaptationRoute } from './editPages/adminAdaptationPage/adminEditAdaptationRoute/AdminEditAdaptationRoute';
+export { default as AdminCourses } from './editPages/adminCoursePage/adminCourses/AdminCourses';
+export { default as AdminEditCourse } from './editPages/adminCoursePage/adminEditCourse/AdminEditCourse';
+export { default as AdminTests } from './editPages/adminTestPage/adminTests/AdminTests';
+export { default as AdminEditTest } from './editPages/adminTestPage/adminEditTest/AdminEditTest';

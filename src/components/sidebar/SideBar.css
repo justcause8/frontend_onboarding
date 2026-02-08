@@ -1,9 +1,16 @@
+.sidebar.edit-mode {
+  --primary-color: #6b7280;      /* Серый цвет для админки */
+  --active-bg: #f3f4f6;         /* Светло-серый фон активной ссылки */
+}
+
 .sidebar {
     background-color: var(--card-bg);
     padding: 15px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    transition: all 0.3s ease;
+    border-right: 1px solid var(--border-color);
 }
 
 .sidebar-header img {
@@ -30,6 +37,7 @@
     text-decoration: none;
     font-weight: 500;
     margin-bottom: 5px;
+    color: var(--text-primary);
     transition: background-color 0.2s, color 0.2s;
 }
 
@@ -39,13 +47,18 @@
     text-align: center;
 }
 
+/* .edit-mode .sidebar-nav li a .icon {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+} */
+
 .sidebar-nav li a:hover {
     background-color: var(--bg-light);
 }
 
 .sidebar-nav li a.active {
-    background-color: #FFF7ED;
-    color: #f04923;
+background-color: var(--bg-btn-primary);
+    color: var(--primary-color);
     font-weight: 600;
 }
 
@@ -62,10 +75,10 @@
     height: 42px;
 
     border-radius: 8px;
-    border: 1px solid #f04923;
+    border: 1px solid var(--primary-color);
 
-    background-color: #ffffff;
-    color: #f04923;
+    background-color: transparent;
+    color: var(--primary-color);
 
     font-weight: 600;
     font-size: 14px;
@@ -75,11 +88,11 @@
 }
 
 .edit-button:hover {
-    background-color: #f04923;
-    color: #ffffff;
+    background-color: var(--primary-color);
+    color: var(--sidebar-bg);
 }
 
 .edit-button.active {
-    background-color: #f04923;
-    color: #ffffff;
+    background-color: var(--primary-color);
+    color: #ffffff; 
 }

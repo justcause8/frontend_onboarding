@@ -1,0 +1,56 @@
+/* Базовые стили таблицы (те, что были раньше) */
+.admin-table-container {
+    width: 100%;
+    background: var(--card-bg, #fff);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-family: inherit;
+}
+
+.admin-table th {
+    background-color: #f3f4f6; 
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.admin-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+/* --- Стили статусов (теперь в общем компоненте) --- */
+.status-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Цветовые модификаторы */
+.text-active { 
+    color: #22c55e; 
+}
+
+.text-archived, .text-error { 
+    color: #ef4444; 
+}
+
+.text-draft, .text-secondary { 
+    color: #6b7280; 
+}
+
+.action-cell {
+    text-align: right;
+}
+
+.table-empty-row {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}

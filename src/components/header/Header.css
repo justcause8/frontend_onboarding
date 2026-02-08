@@ -1,6 +1,7 @@
 .header-wrapper {
   position: sticky;
-  background-color: var(--bg-light);
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .header {
@@ -59,7 +60,8 @@
   height: 35px;
   min-width: 35px;
   border-radius: 50%;
-  background-color: #f04923;
+  background-color: var(--primary-color);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;

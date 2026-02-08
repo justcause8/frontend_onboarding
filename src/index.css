@@ -1,8 +1,6 @@
 :root {
-  /* --primary-color: #F97316; */
   --primary-color: #f04923;
   --green-color: #22C55E;
-  /* --red-color: #f04923; */
   --blue-color: #3B82F6;
 
   --bg-light: #F7FAFC;
@@ -11,6 +9,8 @@
 
   --text-primary: #333333;
   --text-secondary: #718096;
+
+  --bg-btn-primary: #FFF7ED;
 
   --font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
@@ -43,50 +43,50 @@ button {
 
 /* Базовая кнопка */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-    padding: 8px 14px;
-    border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
 
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
 
-    cursor: pointer;
-    border: none;
+  cursor: pointer;
+  border: none;
 
-    transition: opacity 0.2s, background-color 0.2s;
+  transition: opacity 0.2s, background-color 0.2s;
 }
 
 /* Hover */
 .btn:hover {
-    opacity: 0.9;
+  opacity: 0.9;
 }
 
 /* Disabled */
 .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Основная кнопка */
 .btn-primary {
-    background-color: var(--primary-color);
-    color: #fff;
+  background-color: var(--primary-color);
+  color: #fff;
+  transition: background-color 0.3s ease;
 }
 
 /* Вторичная кнопка */
 .btn-secondary {
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 
 /* Кнопка без отступа слева (например в карточках) */
 .btn-no-margin {
-    margin-left: 0;
+  margin-left: 0;
 }
 
 .text h1 {
