@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../../contexts/PageTitleContext';
-import { adaptationService, type AdaptationRoute } from '../../../../services/adaptation.service';
+import { adaptationService } from '../../../../services/adaptation.service';
+import type { OnboardingRoute } from '../../../../services/adaptation.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
@@ -11,7 +12,7 @@ export const AdminAdaptationRoute = () => {
     const { setDynamicTitle } = usePageTitle();
     const navigate = useNavigate();
     
-    const [routes, setRoutes] = useState<AdaptationRoute[]>([]);
+    const [routes, setRoutes] = useState<OnboardingRoute[]>([]);
     const [loading, setLoading] = useState(true);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -67,7 +68,7 @@ export const AdminAdaptationRoute = () => {
 
      return (
         <div className="card">
-            <button className="btn btn-primary create-btn" onClick={() => navigate('/edit')}>
+            <button className="btn btn-primary create-btn" onClick={() => navigate('/edit/adaptationRoutes/new')}>
                 Создать адаптационный маршрут
             </button>
 

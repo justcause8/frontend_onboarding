@@ -1,201 +1,303 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+// Используем import type для соответствия правилу verbatimModuleSyntax
+import { adaptationService } from '../../../../services/adaptation.service';
+import type { UserShort, CourseBase } from '../../../../services/adaptation.service';
+
 import './AdminEditAdaptationRoute.css';
+import upIcon from '@/assets/editMode/UpIcon.png';
+import downIcon from '@/assets/editMode/DownIcon.png';
+import deleteIcon from '@/assets/editMode/DeleteIcon.png';
+import cross from '@/assets/cross.png';
 
-
-interface Course {
-  id: string;
+interface SelectedCourse {
+  id: number;
   title: string;
 }
 
 interface Stage {
-  id: string;
+  id: string; // Временный ID (Date.now())
   title: string;
   description: string;
+  courses: SelectedCourse[];
 }
 
 export const AdminEditAdaptationRoute: React.FC = () => {
   const navigate = useNavigate();
-
+  const { adaptationRouteId } = useParams<{ adaptationRouteId: string }>();
+  
+  const [allUsers, setAllUsers] = useState<UserShort[]>([]);
+  const [allCourses, setAllCourses] = useState<CourseBase[]>([]);
+  
   const [routeName, setRouteName] = useState('');
   const [routeDesc, setRouteDesc] = useState('');
-  const [mentors, setMentors] = useState<string[]>(['Колесников Тимофей Игоревич']);
-  const [users, setUsers] = useState<string[]>(['Егоров Фёдор Иванович', 'Морозов Максим Григорьевич']);
+  
+  const [selectedMentors, setSelectedMentors] = useState<UserShort[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<UserShort[]>([]);
   const [stages, setStages] = useState<Stage[]>([]);
-  const [routeCourses, setRouteCourses] = useState<Course[]>([]);
 
-  // --- Вспомогательная функция перемещения ---
-  const moveItem = <T,>(list: T[], setList: (items: T[]) => void, index: number, direction: 'up' | 'down') => {
-    const newList = [...list];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  const [searchMentor, setSearchMentor] = useState('');
+  const [searchEmployee, setSearchEmployee] = useState('');
+  const [activeCourseSearch, setActiveCourseSearch] = useState<{stageId: string, query: string} | null>(null);
 
-    if (targetIndex < 0 || targetIndex >= newList.length) return;
+  useEffect(() => {
+    const loadData = async () => {
+      const u = await adaptationService.getAllUsers();
+      console.log("Загруженные пользователи:", u);
+      setAllUsers(u);
+      try {
+        const [u, c] = await Promise.all([
+          adaptationService.getAllUsers(),
+          adaptationService.getAllCourses()
+        ]);
+        setAllUsers(u);
+        setAllCourses(c);
 
-    [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
-    setList(newList);
-  };
-
-  // --- Функции для Этапов ---
-  const addStage = () => {
-    const newStage: Stage = {
-      id: Date.now().toString(),
-      title: '',
-      description: ''
+        // Если мы редактируем существующий (не 'new'), можно загрузить данные здесь
+        if (adaptationRouteId && adaptationRouteId !== 'new') {
+            const route = await adaptationService.getRoute(Number(adaptationRouteId));
+            setRouteName(route.title);
+            setRouteDesc(route.description);
+            // ... заполнение остальных полей
+        }
+      } catch (e) {
+        console.error("Ошибка загрузки данных", e);
+      }
     };
-    setStages([...stages, newStage]);
+    loadData();
+  }, [adaptationRouteId]);
+
+  // --- ЛОГИКА СОХРАНЕНИЯ ---
+  const handleSaveRoute = async () => {
+    try {
+      if (!selectedMentors.length) return alert("Выберите наставника");
+      if (!routeName) return alert("Введите название маршрута");
+
+      // 1. Создаем маршрут
+      const routeRes = await adaptationService.createRoute({
+        title: routeName,
+        description: routeDesc,
+        mentorId: selectedMentors[0].id,
+        userIds: selectedEmployees.map(e => e.id)
+      });
+      
+      const newRouteId = routeRes.routeId; 
+
+      // 2. Создаем этапы (добавляем order)
+      const stagesToSave = stages.map((s, idx) => ({
+        title: s.title || `Этап ${idx + 1}`,
+        description: s.description || '',
+        order: idx + 1
+      }));
+
+      await adaptationService.addStages(newRouteId, stagesToSave);
+      
+      // 3. Привязываем курсы
+      const fullRoute = await adaptationService.getRoute(newRouteId);
+      
+      for (let i = 0; i < stages.length; i++) {
+        const dbStage = fullRoute.stages[i]; // Бэкенд возвращает их в порядке order
+        const frontStage = stages[i];
+        
+        if (dbStage && frontStage.courses.length > 0) {
+          for (let j = 0; j < frontStage.courses.length; j++) {
+            await adaptationService.linkCourseToStage(
+              frontStage.courses[j].id, 
+              dbStage.id, 
+              j + 1
+            );
+          }
+        }
+      }
+
+      alert("Маршрут успешно сохранен!");
+      navigate('/edit/adaptationRoutes');
+    } catch (e) {
+      console.error(e);
+      alert("Ошибка при сохранении");
+    }
   };
 
-  const removeStage = (id: string) => {
-    setStages(stages.filter(s => s.id !== id));
-  };
+  // --- ФИЛЬТРАЦИЯ ---
+  // Наставники
+  const filteredMentors = allUsers.filter(u => {
+    // Если роль Mentor или (для теста) если ролей вообще нет, но мы ищем по имени
+    const isMentor = u.role === 'Mentor' || u.role === 'HrAdmin'; 
+    return isMentor && u.fullName.toLowerCase().includes(searchMentor.toLowerCase());
+  }).slice(0, 5);
 
-  const updateStage = (id: string, field: keyof Stage, value: string) => {
-    setStages(stages.map(s => s.id === id ? { ...s, [field]: value } : s));
-  };
+  // Сотрудники
+  const filteredEmployees = allUsers.filter(u => {
+    const isUser = u.role === 'User' || !u.role; // Если роль не указана, считаем User
+    return isUser && u.fullName.toLowerCase().includes(searchEmployee.toLowerCase());
+  }).slice(0, 5);
 
-  // --- Функции для Курсов ---
-  const addRouteCourse = () => {
-    const courseTitle = prompt('Введите название курса:');
-    if (!courseTitle) return;
+  const filteredCourses = (query: string) =>
+    allCourses.filter(c => c.title.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
 
-    setRouteCourses([...routeCourses, {
-      id: Date.now().toString(),
-      title: courseTitle
-    }]);
-  };
-
-  const removeRouteCourse = (id: string) => {
-    setRouteCourses(routeCourses.filter(c => c.id !== id));
-  };
-
-  const handleSave = () => {
-    console.log('Данные для отправки:', { routeName, routeDesc, mentors, users, stages, routeCourses });
-    navigate('/admin');
-  };
+  // Функции перемещения этапов
+  const moveStage = (idx: number, dir: 'up' | 'down') => {
+    const newStages = [...stages];
+    const target = dir === 'up' ? idx - 1 : idx + 1;
+    if (target < 0 || target >= newStages.length) return;
+    [newStages[idx], newStages[target]] = [newStages[target], newStages[idx]];
+    setStages(newStages);
+  }
 
   return (
     <div className="edit-page-container">
-      <div className="edit-card">
-        
-        {/* Название и описание */}
-        <div className="form-section">
-          <label className="section-label">Название маршрута</label>
-          <input
-            className="input-field"
-            value={routeName}
-            onChange={(e) => setRouteName(e.target.value)}
-            placeholder="Введите название"
-          />
+      <section className="card">
+        <h2>Информация о маршруте</h2>
+        <div className="input-group">
+            <label className="section-label">Название маршрута</label>
+            <input className="input-field" value={routeName} onChange={e => setRouteName(e.target.value)} placeholder="Название" />
         </div>
-
-        <div className="form-section">
-          <label className="section-label">Описание маршрута</label>
-          <textarea
-            className="textarea-field"
-            value={routeDesc}
-            onChange={(e) => setRouteDesc(e.target.value)}
-            placeholder="Введите описание"
-          />
+        <div className="input-group">
+            <label className="section-label">Описание</label>
+            <textarea className="textarea-field" value={routeDesc} onChange={e => setRouteDesc(e.target.value)} placeholder="Описание" />
         </div>
+      </section>
 
-        {/* Наставники */}
-        <div className="form-section">
-          <label className="section-label">Назначить наставника</label>
-          <input className="input-field search-icon" placeholder="Поиск по имени" />
-          <div className="chips-container">
-            {mentors.map((m, i) => (
-              <div key={i} className="chip">
-                {m} 
-                <button className="chip-delete-btn" onClick={() => setMentors(mentors.filter((_, idx) => idx !== i))}>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Пользователи */}
-        <div className="form-section">
-          <label className="section-label">Назначить пользователей</label>
-          <input className="input-field search-icon" placeholder="Поиск по имени" />
-          <div className="chips-container">
-            {users.map((u, i) => (
-              <div key={i} className="chip">
-                {u} 
-                <button className="chip-delete-btn" onClick={() => setUsers(users.filter((_, idx) => idx !== i))}>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Блок добавления этапа */}
-        <div className="add-placeholder-dashed">
-          <p className="placeholder-text">Добавить этап маршрута</p>
-          <div className="placeholder-btns">
-            <button className="btn-secondary" onClick={addStage}>Создать новый</button>
-          </div>
-        </div>
-
-        {/* Список этапов */}
-        {stages.map((stage, index) => (
-          <div key={stage.id} className="stage-block">
-            <div className="stage-header">
-              <span className="stage-title-label">Название этапа</span>
-              <div className="stage-actions">
-                <button className="action-icon-btn" onClick={() => moveItem(stages, setStages, index, 'up')}>
-                </button>
-                <button className="action-icon-btn" onClick={() => moveItem(stages, setStages, index, 'down')}>
-                </button>
-                <button className="action-icon-btn close" onClick={() => removeStage(stage.id)}>
-                </button>
-              </div>
-            </div>
-
-            <input
-              className="stage-inner-input"
-              value={stage.title}
-              onChange={(e) => updateStage(stage.id, 'title', e.target.value)}
-              placeholder="Введите название"
+      <section className="card">
+        <h2>Назначения</h2>
+        <div className="assignment-row">
+          <div className="assign-block">
+            <label className="section-label">Наставник (Mentor)</label>
+            <input 
+              className="search-input" 
+              value={searchMentor} 
+              onChange={e => setSearchMentor(e.target.value)} 
+              placeholder="Поиск наставника..." 
             />
-
-            <span className="stage-title-label label-mt">Описание этапа</span>
-            <textarea
-              className="stage-inner-input"
-              value={stage.description}
-              onChange={(e) => updateStage(stage.id, 'description', e.target.value)}
-              placeholder="Введите описание"
-            />
-          </div>
-        ))}
-
-        {/* Блок добавления курса */}
-        <div className="add-placeholder-dashed mt-large">
-          <p className="placeholder-text">Добавить существующий обучающий курс</p>
-          <div className="placeholder-btns">
-            <button className="btn-secondary" onClick={addRouteCourse}>Выбрать существующий</button>
-          </div>
-        </div>
-
-        {/* Список курсов */}
-        {routeCourses.map((course, index) => (
-          <div key={course.id} className="course-row">
-            <span className="course-name">Курс: "{course.title}"</span>
-            <div className="stage-actions">
-              <button className="action-icon-btn" onClick={() => moveItem(routeCourses, setRouteCourses, index, 'up')}>
-              </button>
-              <button className="action-icon-btn" onClick={() => moveItem(routeCourses, setRouteCourses, index, 'down')}>
-              </button>
-              <button className="action-icon-btn close" onClick={() => removeRouteCourse(course.id)}>
-              </button>
+            {searchMentor && (
+              <div className="search-results">
+                {filteredMentors.map(u => (
+                  <div key={u.id} className="search-item" onClick={() => {
+                    setSelectedMentors([u]);
+                    setSearchMentor('');
+                  }}>
+                    {u.fullName} <small style={{opacity: 0.6}}>{u.position}</small>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="chips-container">
+              {selectedMentors.map(m => (
+                <div key={m.id} className="chip">
+                    {m.fullName} 
+                    <img src={cross} className="chip-remove-icon" onClick={() => setSelectedMentors([])} alt="x" />
+                </div>
+              ))}
             </div>
           </div>
-        ))}
 
-        <div className="footer-bar">
-          <button className="save-btn" onClick={handleSave}>
-            <span className="check-mark">✓</span> СОХРАНИТЬ
-          </button>
+          <div className="assign-block">
+            <label className="section-label">Сотрудники (User)</label>
+            <input 
+              className="search-input" 
+              value={searchEmployee} 
+              onChange={e => setSearchEmployee(e.target.value)} 
+              placeholder="Поиск сотрудников..." 
+            />
+            {searchEmployee && (
+              <div className="search-results">
+                {filteredEmployees.map(u => (
+                  <div key={u.id} className="search-item" onClick={() => {
+                    if (!selectedEmployees.find(e => e.id === u.id)) {
+                      setSelectedEmployees([...selectedEmployees, u]);
+                    }
+                    setSearchEmployee('');
+                  }}>
+                    {u.fullName}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="chips-container">
+              {selectedEmployees.map(u => (
+                <div key={u.id} className="chip">
+                  {u.fullName} 
+                  <img src={cross} className="chip-remove-icon" onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== u.id))} alt="x" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      </section>
+
+      <section className="card">
+        <h2>Этапы адаптации</h2>
+        <div className="stages-list">
+            {stages.map((stage, index) => (
+            <div key={stage.id} className="stage-card">
+                <div className="stage-card-header">
+                    <div className="stage-number">{index + 1}</div>
+                    <input 
+                    className="stage-title-input" 
+                    value={stage.title} 
+                    placeholder="Заголовок этапа"
+                    onChange={e => setStages(stages.map(s => s.id === stage.id ? {...s, title: e.target.value} : s))}
+                    />
+                    <div className="order-controls">
+                        <button onClick={() => moveStage(index, 'up')}><img src={upIcon} alt="U" /></button>
+                        <button onClick={() => moveStage(index, 'down')}><img src={downIcon} alt="D" /></button>
+                        <button className="del-btn" onClick={() => setStages(stages.filter(s => s.id !== stage.id))}>
+                            <img src={deleteIcon} alt="X" />
+                        </button>
+                    </div>
+                </div>
+                
+                <div className="nested-courses">
+                {stage.courses.map(c => (
+                    <div key={c.id} className="course-item-mini">
+                        {c.title}
+                        <img 
+                            src={cross} 
+                            className="course-remove-icon" 
+                            onClick={() => setStages(stages.map(s => s.id === stage.id ? {...s, courses: s.courses.filter(crs => crs.id !== c.id)} : s))} 
+                            alt="x" 
+                        />
+                    </div>
+                ))}
+                
+                <div className="course-search-container">
+                    <input 
+                    className="search-input"
+                    style={{fontSize: '13px'}}
+                    placeholder="+ Привязать курс..."
+                    value={activeCourseSearch?.stageId === stage.id ? activeCourseSearch.query : ''}
+                    onChange={e => setActiveCourseSearch({ stageId: stage.id, query: e.target.value })}
+                    />
+                    {activeCourseSearch?.stageId === stage.id && activeCourseSearch.query && (
+                    <div className="search-results">
+                        {filteredCourses(activeCourseSearch.query).map(course => (
+                        <div key={course.id} className="search-item" onClick={() => {
+                            setStages(stages.map(s => {
+                            if (s.id === stage.id && !s.courses.find(c => c.id === course.id)) {
+                                return { ...s, courses: [...s.courses, { id: course.id, title: course.title }] };
+                            }
+                            return s;
+                            }));
+                            setActiveCourseSearch(null);
+                        }}>
+                            {course.title}
+                        </div>
+                        ))}
+                    </div>
+                    )}
+                </div>
+                </div>
+            </div>
+            ))}
+        </div>
+        <button className="btn-add-stage-dashed" onClick={() => setStages([...stages, { id: Date.now().toString(), title: '', description: '', courses: [] }])}>
+          + Добавить новый этап
+        </button>
+      </section>
+
+      <div className="card-footer">
+        <button className="btn btn-secondary" onClick={() => navigate(-1)}>Отмена</button>
+        <button className="btn btn-primary" onClick={handleSaveRoute}>Сохранить маршрут</button>
       </div>
     </div>
   );
