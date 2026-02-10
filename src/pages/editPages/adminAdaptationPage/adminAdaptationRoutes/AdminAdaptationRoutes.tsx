@@ -93,7 +93,7 @@ export const AdminAdaptationRoute = () => {
                                 <ActionMenuItem 
                                     icon={ICONS.edit}
                                     label="Изменить"
-                                    onClick={() => navigate(`/edit/${route.id}`)}
+                                    onClick={() => navigate(`/edit/adaptationRoutes/${route.id}`)}
                                 />
                                 <ActionMenuItem 
                                     icon={ICONS.delete}

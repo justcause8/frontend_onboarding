@@ -4,7 +4,7 @@ export interface CourseShort {
   id: number;
   title: string;
   orderIndex: number;
-  status?: string;
+  status?: 'not_started' | 'in_process' | 'completed' | 'failed';
 }
 
 export interface Stage {
@@ -23,7 +23,7 @@ export interface OnboardingRoute {
 
 export interface StageProgressItem {
   stageId: number;
-  status: 'completed' | 'failed' | 'current';
+  status: 'completed' | 'failed' | 'in_process' | 'not_started';
 }
 
 export interface UserProgress {

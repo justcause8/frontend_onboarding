@@ -103,10 +103,10 @@ const AdaptationPage = () => {
     navigate(`/courses/course/${firstCourse.id}`);
   };
 
-  const getStageStatus = (stageId: number) => {
+  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'in_process' | 'not_started' => {
     return (
       progress.stageProgress.find(s => s.stageId === stageId)?.status ??
-      'current'
+      'not_started'
     );
   };
   
@@ -147,7 +147,6 @@ const AdaptationPage = () => {
             </div>
           </section>
 
-          {/* Динамические этапы */}
           <section className="card plan-card text">
             <h2>Этапы вашего маршрута</h2>
             <div className="stepper">
@@ -161,11 +160,11 @@ const AdaptationPage = () => {
                   
                   let iconContent: React.ReactNode;
                   if (status === 'completed') {
-                    iconContent = <img src={done} className="step-icon-img" />;
+                      iconContent = <img src={done} className="step-icon-img" />;
                   } else if (status === 'failed') {
-                    iconContent = <img src={exclamationmark} className="step-icon-img" />;
+                      iconContent = <img src={exclamationmark} className="step-icon-img" />;
                   } else {
-                    iconContent = stage.orderIndex;
+                      iconContent = stage.orderIndex;
                   }
 
                   return (
@@ -175,13 +174,13 @@ const AdaptationPage = () => {
                       </div>
                       <div className="card-item step-item">
                         <div className="step-header">
-                          <h4>{stage.title}</h4>
-                          <span className={`stage-badge ${status}`}>
-                            {status === 'completed' && 'Завершен'}
-                            {status === 'current' && 'Текущий'}
-                            {status === 'failed' && 'Начат'}
-                            {!status && 'Не начат'}
-                          </span>
+                            <h4>{stage.title}</h4>
+                            <span className={`stage-badge ${status}`}>
+                                {status === 'completed' && 'Завершен'}
+                                {status === 'in_process' && 'Текущий'}
+                                {status === 'failed' && 'Не пройден'}
+                                {status === 'not_started' && 'Не начат'}
+                            </span>
                         </div>
                         
                         {stage.description && <p>{stage.description}</p>}
@@ -192,20 +191,21 @@ const AdaptationPage = () => {
                             {course.status && (
                               <span className={`course-status ${course.status}`}>
                                 {course.status === 'completed' ? '✓' : 
-                                course.status === 'in_progress' ? '▶' : '○'}
+                                course.status === 'in_process' ? '▶' : '○'}
                               </span>
                             )}
                           </div>
                         ))}
                         
-                        {(status === 'current' || status === 'failed') && (
+                        {/* Здесь были ошибки сравнения - теперь типы совпадают */}
+                        {(status === 'in_process' || status === 'failed') && (
                           <div className="step-footer">
-                            <button 
-                              className={`btn ${status === 'current' ? 'btn-primary' : 'btn-secondary'}`}
-                              onClick={() => handleStartStage(stage.id)}
-                            >
-                              {status === 'current' ? 'Начать этап' : 'Продолжить этап'}
-                            </button>
+                              <button 
+                                  className={`btn ${status === 'in_process' ? 'btn-primary' : 'btn-secondary'}`}
+                                  onClick={() => handleStartStage(stage.id)}
+                              >
+                                  {status === 'in_process' ? 'Продолжить этап' : 'Попробовать снова'}
+                              </button>
                           </div>
                         )}
                       </div>
