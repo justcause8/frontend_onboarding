@@ -1,169 +1,331 @@
-import React, { useState, type ChangeEvent } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import { testService, type Question, type QuestionOption } from '../../../../services/test.service';
+import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
+import { usePageTitle } from '../../../../contexts/PageTitleContext';
+
 import './AdminEditTest.css';
 
-// Импорты иконок
+import upIcon from '@/assets/editMode/UpIcon.png';
+import downIcon from '@/assets/editMode/DownIcon.png';
+import deleteIcon from '@/assets/editMode/DeleteIcon.png';
+import cross from '@/assets/cross.png';
 
-type QuestionType = 'Закрытый' | 'Множественный выбор';
+export const AdminEditTest: React.FC = () => {
+  const { setDynamicTitle } = usePageTitle();
+  const navigate = useNavigate();
+  const params = useParams<{ testId: string; courseId?: string }>();
+  const { testId } = params;
+  const isEditMode = testId !== 'new';
 
-interface Question {
-    uniqueId: string;
-    type: QuestionType;
-    text: string;
-    answers: string[];
-}
+  const [loading, setLoading] = useState(isEditMode);
+  
+  // Поля теста
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [passingScore, setPassingScore] = useState(70);
+  const [status, setStatus] = useState('active');
+  const [questions, setQuestions] = useState<Question[]>([]);
 
-const AdminEditTest: React.FC = () => {
-    const [title, setTitle] = useState<string>('');
-    const [passingScore, setPassingScore] = useState<string>('');
-    const [questions, setQuestions] = useState<Question[]>([
-        { uniqueId: 'q1', type: 'Закрытый', text: '', answers: ['', ''] }
-    ]);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // 2. Если создание — ставим заголовок сразу
+        if (!isEditMode) {
+          setDynamicTitle('Создание теста');
+        }
 
-    // Функция перемещения вопроса (та самая логика со стрелками)
-    const moveQuestion = (index: number, direction: 'up' | 'down') => {
-        const newIndex = direction === 'up' ? index - 1 : index + 1;
-        if (newIndex < 0 || newIndex >= questions.length) return;
-
-        const updatedQuestions = [...questions];
-        const [movedItem] = updatedQuestions.splice(index, 1);
-        updatedQuestions.splice(newIndex, 0, movedItem);
-        setQuestions(updatedQuestions);
+        if (isEditMode) {
+          const data = await testService.getTestById(Number(testId));
+          setTitle(data.title);
+          // 3. Если редактирование — ставим название теста
+          setDynamicTitle(data.title); 
+          
+          setDescription(data.description || '');
+          setPassingScore(data.passingScore);
+          setStatus(data.status);
+          setQuestions(data.questions || []);
+        }
+      } catch (e) {
+        console.error("Ошибка загрузки теста:", e);
+      } finally {
+        setLoading(false);
+      }
     };
+    loadData();
 
-    const addNewQuestion = (type: QuestionType) => {
-        if (questions.length >= 10) return;
-        setQuestions([...questions, {
-            uniqueId: `q${Date.now()}`,
-            type: type,
-            text: '',
-            answers: ['', '']
-        }]);
+    // 4. Очистка при уходе
+    return () => setDynamicTitle('');
+  }, [testId, isEditMode, setDynamicTitle]);
+
+  // 5. Обновление заголовка при вводе названия (чтобы в крошках менялось сразу)
+  useEffect(() => {
+    if (isEditMode && title) {
+      setDynamicTitle(title);
+    }
+  }, [title, isEditMode, setDynamicTitle]);
+
+  // --- ЛОГИКА ВОПРОСОВ ---
+
+  const addQuestionByType = (typeId: number, typeName: string) => {
+    const newQuestion: Question = {
+      id: Date.now(),
+      testId: Number(testId) || 0,
+      questionTypeId: typeId,
+      typeName: typeName,
+      textQuestion: '',
+      options: [
+        { id: Date.now() + 1, text: '', correctAnswer: false, orderIndex: 1 },
+        { id: Date.now() + 2, text: '', correctAnswer: false, orderIndex: 2 }
+      ]
     };
+    setQuestions([...questions, newQuestion]);
+  };
 
-    const deleteQuestion = (uniqueId: string) => {
-        setQuestions(questions.filter(q => q.uniqueId !== uniqueId));
-    };
+  const removeQuestion = (qId: number) => {
+    setQuestions(questions.filter(q => q.id !== qId));
+  };
 
-    const handleAnswerChange = (qId: string, index: number, value: string) => {
-        setQuestions(questions.map(q => {
-            if (q.uniqueId === qId) {
-                const newAnswers = [...q.answers];
-                newAnswers[index] = value;
-                return { ...q, answers: newAnswers };
-            }
-            return q;
-        }));
-    };
+  const updateQuestionText = (qId: number, text: string) => {
+    setQuestions(questions.map(q => q.id === qId ? { ...q, textQuestion: text } : q));
+  };
 
-    const addAnswerField = (qId: string) => {
-        setQuestions(questions.map(q => 
-            q.uniqueId === qId ? { ...q, answers: [...q.answers, ''] } : q
-        ));
-    };
+  const moveQuestion = (idx: number, dir: 'up' | 'down') => {
+    const newQuestions = [...questions];
+    const target = dir === 'up' ? idx - 1 : idx + 1;
+    if (target < 0 || target >= newQuestions.length) return;
+    [newQuestions[idx], newQuestions[target]] = [newQuestions[target], newQuestions[idx]];
+    setQuestions(newQuestions);
+  };
 
-    return (
-        <div className="survey-page">
-            <div className="survey-form">
-                <div className="survey-title">
-                    <input
-                        type="text"
-                        placeholder="Введите название теста"
-                        value={title}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-                    />
-                </div>
+  // --- ЛОГИКА ВАРИАНТОВ ОТВЕТОВ ---
 
-                <div className="survey-content-wrapper">
-                    {questions.map((q, index) => (
-                        <div key={q.uniqueId} className="question-container">
-                            <div className="question-header">
-                                <div className="question-type-info">
-                                    <img 
-                                        alt="icon" 
-                                        className="q-type-icon-main" 
-                                    />
-                                    <span className="question-type-label-large">{q.type.toUpperCase()}</span>
-                                </div>
-                                <div className="question-actions">
-                                    {/* Кнопки перемещения */}
-                                    <button 
-                                        type="button" 
-                                        className="action-btn move-btn" 
-                                        onClick={() => moveQuestion(index, 'up')}
-                                        disabled={index === 0}
-                                    >↑</button>
-                                    <button 
-                                        type="button" 
-                                        className="action-btn move-btn" 
-                                        onClick={() => moveQuestion(index, 'down')}
-                                        disabled={index === questions.length - 1}
-                                    >↓</button>
-                                    <button type="button" className="action-btn delete-btn" onClick={() => deleteQuestion(q.uniqueId)}>✕</button>
-                                </div>
-                            </div>
+  const addOption = (qId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === qId) {
+        const newOption: QuestionOption = {
+          id: Date.now(),
+          text: '',
+          correctAnswer: false,
+          orderIndex: q.options.length + 1
+        };
+        return { ...q, options: [...q.options, newOption] };
+      }
+      return q;
+    }));
+  };
 
-                            <input
-                                type="text"
-                                className="question-input"
-                                placeholder="Текст вопроса"
-                                value={q.text}
-                                onChange={(e) => setQuestions(questions.map(item => 
-                                    item.uniqueId === q.uniqueId ? { ...item, text: e.target.value } : item
-                                ))}
-                            />
+  const removeOption = (qId: number, optId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === qId) {
+        return { ...q, options: q.options.filter(o => o.id !== optId) };
+      }
+      return q;
+    }));
+  };
 
-                            <div className="answers-section">
-                                {q.answers.map((ans, i) => (
-                                    <div key={i} className="answer-row">
-                                        <div className={`answer-marker ${q.type === 'Закрытый' ? 'round' : 'square'}`}></div>
-                                        <input
-                                            type="text"
-                                            className="answer-input"
-                                            placeholder={`Вариант ${i + 1}`}
-                                            value={ans}
-                                            onChange={(e) => handleAnswerChange(q.uniqueId, i, e.target.value)}
-                                        />
-                                    </div>
-                                ))}
-                                <button type="button" className="add-answer-link" onClick={() => addAnswerField(q.uniqueId)}>
-                                    + ДОБАВИТЬ ВАРИАНТ
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                    
-                    {/* Кнопки добавления */}
-                    <div className="add-question-placeholder">
-                        <span className="add-question-title">Добавить новый вопрос</span>
-                        <div className="question-type-buttons">
-                            <div className="q-type-btn" onClick={() => addNewQuestion('Закрытый')}>
-                                <span className="q-type-label-btn">Закрытый</span>
-                            </div>
-                            <div className="q-type-btn" onClick={() => addNewQuestion('Множественный выбор')}>
-                                <span className="q-type-label-btn">Несколько</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  const updateOption = (qId: number, optId: number, data: Partial<QuestionOption>) => {
+    setQuestions(questions.map(q => {
+      if (q.id === qId) {
+        return {
+          ...q,
+          options: q.options.map(o => o.id === optId ? { ...o, ...data } : o)
+        };
+      }
+      return q;
+    }));
+  };
 
-                <div className="score-config-container">
-                    <input 
-                        type="text" 
-                        className="score-input-field" 
-                        placeholder="Проходной балл: “число”"
-                        value={passingScore}
-                        onChange={(e) => setPassingScore(e.target.value)}
-                    />
-                </div>
+  const toggleCorrectAnswer = (qId: number, optId: number) => {
+    setQuestions(questions.map(q => {
+      if (q.id === qId) {
+        // Если это одиночный выбор (тип 1), сбрасываем остальные галочки
+        const isSingleChoice = q.questionTypeId === 1;
+        return {
+          ...q,
+          options: q.options.map(o => {
+            if (o.id === optId) return { ...o, correctAnswer: !o.correctAnswer };
+            return isSingleChoice ? { ...o, correctAnswer: false } : o;
+          })
+        };
+      }
+      return q;
+    }));
+  };
 
-                <div className="ButtonSaveContainer">
-                    <button className="ButtonSaveGrey" type="button">
-                        СОХРАНИТЬ
-                    </button>
-                </div>
-            </div>
+  // --- СОХРАНЕНИЕ ---
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+
+      const testData = {
+        title: title || "Новый тест",
+        description: description,
+        passingScore: Number(passingScore) || 70,
+        status: status,
+        courseId: params.courseId ? Number(params.courseId) : undefined,
+        
+        questions: questions.map((q) => ({
+          questionTypeId: q.questionTypeId,
+          textQuestion: q.textQuestion,
+          options: q.options.map((o, oIdx) => ({
+            text: o.text,
+            correctAnswer: !!o.correctAnswer, 
+            orderIndex: oIdx + 1
+          }))
+        }))
+      };
+
+      if (isEditMode) {
+        // TypeScript теперь не будет ругаться на несовместимость null/undefined
+        await testService.updateTest(Number(testId), testData as any);
+        console.log("Тест успешно обновлен");
+      } else {
+        await testService.createTest(testData as any); 
+        console.log("Тест успешно создан");
+      }
+
+      navigate(-1); 
+    } catch (e) {
+      console.error("Ошибка при сохранении теста:", e);
+      alert("Не удалось сохранить тест.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const autoResize = (target: HTMLTextAreaElement) => {
+    target.style.height = 'inherit';
+    target.style.height = `${target.scrollHeight}px`;
+  };
+
+  if (loading) return <LoadingSpinner />;
+
+  return (
+    <>
+      <section className="card text">
+        <h2>{isEditMode ? 'Редактирование теста' : 'Новый тест'}</h2>
+        <div className="input-item">
+          <h4>Название теста</h4>
+          <input 
+            className="input-field" 
+            value={title}
+            onChange={e => setTitle(e.target.value)} 
+            placeholder="Например: Тест по курсу Знакомство с культурой компании" 
+          />
         </div>
-    );
+        <div className="input-item">
+          <h4>Описание</h4>
+          <textarea 
+            className="textarea-field"
+            value={description} 
+            onChange={e => {
+              setDescription(e.target.value);
+              autoResize(e.target);
+            }}
+            placeholder="О чем этот тест и какие правила прохождения?" 
+          />
+        </div>
+        <div className="input-item" style={{ maxWidth: '200px' }}>
+          <h4>Балл для прохождения (%)</h4>
+          <input 
+            type="number"
+            className="input-field" 
+            value={passingScore}
+            onChange={e => setPassingScore(Number(e.target.value))} 
+          />
+        </div>
+      </section>
+
+      <section className="card text">
+        <h2>Вопросы теста</h2>
+        <div className="stages-list">
+          {questions.map((q, index) => (
+            <div key={q.id} className="stage-card">
+              <div className="stage-card-header">
+                <div className="stage-number">{index + 1}</div>
+                <input
+                  className="input-field"
+                  value={q.textQuestion}
+                  placeholder="Введите текст вопроса..."
+                  onChange={(e) => updateQuestionText(q.id, e.target.value)}
+                />
+                <div className="order-controls">
+                  <button className="control-btn" onClick={() => moveQuestion(index, 'up')} title="Вверх">
+                    <img src={upIcon} alt="U" />
+                  </button>
+                  <button className="control-btn" onClick={() => moveQuestion(index, 'down')} title="Вниз">
+                    <img src={downIcon} alt="D" />
+                  </button>
+                  <button className="control-btn del-btn" onClick={() => removeQuestion(q.id)} title="Удалить вопрос">
+                    <img src={deleteIcon} alt="X" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="input-item">
+                <h4 style={{ marginBottom: '12px' }}>Варианты ответов</h4>
+                <div className="answers-section">
+                  {q.options.map((opt, i) => (
+                    <div key={opt.id} className="answer-row">
+                      {/* Маркер: круглый для типа 1, квадратный для остальных */}
+                      <div 
+                        className={`answer-marker ${q.questionTypeId === 1 ? 'round' : 'square'} ${opt.correctAnswer ? 'active' : ''}`}
+                        onClick={() => toggleCorrectAnswer(q.id, opt.id)}
+                      ></div>
+                      
+                      <input
+                        type="text"
+                        className="input-field"
+                        placeholder={`Вариант ${i + 1}`}
+                        value={opt.text}
+                        onChange={(e) => updateOption(q.id, opt.id, { text: e.target.value })}
+                      />
+                      
+                      <img
+                        src={cross}
+                        className="remove-icon"
+                        onClick={() => removeOption(q.id, opt.id)}
+                        alt="Удалить ответ"
+                      />
+                    </div>
+                  ))}
+                  
+                  <button type="button" className="add-answer-link" onClick={() => addOption(q.id)}>
+                    Добавить вариант ответа
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Блок добавления нового вопроса с выбором типа */}
+        <div className="add-question-placeholder">
+          <span className="add-question-title">Добавить новый вопрос</span>
+          <div className="question-type-buttons">
+            <div className="q-type-btn" onClick={() => addQuestionByType(1, 'Одиночный выбор')}>
+              <span className="q-type-label-btn">Закрытый</span>
+            </div>
+            <div className="q-type-btn" onClick={() => addQuestionByType(2, 'Множественный выбор')}>
+              <span className="q-type-label-btn">Множественный</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="card-footer">
+        <button className="btn btn-secondary" onClick={() => navigate(-1)}>Отмена</button>
+        <button className="btn btn-primary" onClick={handleSave}>
+            {isEditMode ? 'Сохранить тест' : 'Создать тест'}
+        </button>
+      </div>
+    </>
+  );
 };
 
 export default AdminEditTest;

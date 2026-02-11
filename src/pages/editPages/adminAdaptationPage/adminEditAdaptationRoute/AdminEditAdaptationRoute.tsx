@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+
 import { adaptationService } from '../../../../services/adaptation.service';
-import type { UserShort, CourseBase } from '../../../../services/adaptation.service';
-import LoadingSpinner from '../../../../components/loading/LoadingSpinner'; // Импортируйте ваш спиннер
+import { userService, type UserShort } from '../../../../services/user.service';
+import { courseService, type Course as CourseBase } from '../../../../services/course.service';
+
+import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
+import { usePageTitle } from '../../../../contexts/PageTitleContext';
+
 
 import './AdminEditAdaptationRoute.css';
 import upIcon from '@/assets/editMode/UpIcon.png';
@@ -16,13 +21,14 @@ interface SelectedCourse {
 }
 
 interface Stage {
-  id: string | number; // Может быть временным (string) или из БД (number)
+  id: string | number;
   title: string;
   description: string;
   courses: SelectedCourse[];
 }
 
 export const AdminEditAdaptationRoute: React.FC = () => {
+  const { setDynamicTitle } = usePageTitle();
   const navigate = useNavigate();
   const { adaptationRouteId } = useParams<{ adaptationRouteId: string }>();
   const isEditMode = adaptationRouteId !== 'new';
@@ -43,14 +49,18 @@ export const AdminEditAdaptationRoute: React.FC = () => {
   const [searchMentor, setSearchMentor] = useState('');
   const [searchEmployee, setSearchEmployee] = useState('');
   const [activeCourseSearch, setActiveCourseSearch] = useState<{stageId: string | number, query: string} | null>(null);
+  const [routeStatus, setRouteStatus] = useState('active');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
+        if (!isEditMode) {
+          setDynamicTitle('Создание адаптационного маршрута');
+        }
         const [users, courses] = await Promise.all([
-          adaptationService.getAllUsers(),
-          adaptationService.getAllCourses()
+          userService.getAllUsers(),
+          courseService.getAllCoursesAdmin()
         ]);
         setAllUsers(users);
         setAllCourses(courses);
@@ -58,7 +68,9 @@ export const AdminEditAdaptationRoute: React.FC = () => {
         if (isEditMode) {
           const route = await adaptationService.getRoute(Number(adaptationRouteId));
           setRouteName(route.title);
+          setDynamicTitle(route.title)
           setRouteDesc(route.description);
+          setRouteStatus(route.status || 'active');
           
           if (route.mentor) {
               setSelectedMentors([{
@@ -96,7 +108,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
     loadData();
   }, [adaptationRouteId, isEditMode]);
 
-  // Удаление курса ТЕПЕРЬ ТОЛЬКО ИЗ UI
+  // Удаление курса
   const handleRemoveCourse = (stageId: string | number, courseId: number) => {
       setStages(prev => prev.map(s => {
           if (s.id === stageId) {
@@ -106,9 +118,8 @@ export const AdminEditAdaptationRoute: React.FC = () => {
       }));
   };
 
-  // Удаление этапа ТЕПЕРЬ ТОЛЬКО ИЗ UI
+  // Удаление этапа
   const handleDeleteStage = (stageId: string | number) => {
-      // Если у этапа числовой ID (значит он из БД), запоминаем его для удаления при сохранении
       if (typeof stageId === 'number') {
           setDeletedStageIds(prev => [...prev, stageId]);
       }
@@ -117,39 +128,40 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
   const handleSaveRoute = async () => {
     try {
-        setLoading(true); // Показываем лоадер на время сохранения
-        if (!selectedMentors.length || !routeName) return;
-
-        const routeData = {
-            title: routeName,
-            description: routeDesc,
-            mentorId: selectedMentors[0].id,
-            userIds: selectedEmployees.map(e => e.id)
-        };
+        setLoading(true);
+        // Базовая валидация
+        if (!selectedMentors.length || !routeName) {
+            setLoading(false);
+            return;
+        }
 
         let currentRouteId: number;
 
         if (isEditMode) {
             currentRouteId = Number(adaptationRouteId);
-            
+
             // 1. Сначала удаляем этапы, которые пользователь пометил на удаление
             for (const id of deletedStageIds) {
                 await adaptationService.deleteStage(id);
             }
+            setDeletedStageIds([]); // Очищаем список после удаления
 
-            // 2. Обновляем базовую инфу
-            await adaptationService.updateRoute(currentRouteId, routeData);
-            
-            // 3. Обработка текущих этапов
+            // 2. Обновляем существующие этапы или создаем новые, добавленные в процессе редактирования
+            // Делаем это ДО обновления статуса самого маршрута
             for (const stage of stages) {
                 if (typeof stage.id === 'number') {
-                    // Обновляем существующий
-                    await adaptationService.updateStage(stage.id, {
-                        title: stage.title,
-                        description: stage.description
-                    });
+                    try {
+                        // Обновляем существующий этап
+                        await adaptationService.updateStage(stage.id, {
+                            title: stage.title,
+                            description: stage.description,
+                            order: stages.indexOf(stage) + 1
+                        });
+                    } catch (err) {
+                        console.warn(`Не удалось обновить этап ${stage.id}, возможно он был удален или не изменен`);
+                    }
                 } else {
-                    // Создаем новый (если был добавлен в процессе редактирования)
+                    // Создаем новый этап (у него временный строковый ID)
                     await adaptationService.addStages(currentRouteId, [{
                         title: stage.title,
                         description: stage.description,
@@ -157,11 +169,32 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                     }]);
                 }
             }
+
+            // 3. В ПОСЛЕДНЮЮ ОЧЕРЕДЬ обновляем основную информацию маршрута и его СТАТУС
+            const routeData = {
+                title: routeName,
+                description: routeDesc,
+                mentorId: selectedMentors[0].id,
+                userIds: selectedEmployees.map(e => e.id).filter(id => !!id),
+                status: routeStatus
+            };
+            console.log("SENDING TO BACKEND:", routeData);
+            await adaptationService.updateRoute(currentRouteId, routeData);
+
         } else {
-            // Создание нового маршрута
+            // --- ЛОГИКА СОЗДАНИЯ НОВОГО МАРШРУТА ---
+            const routeData = {
+                title: routeName,
+                description: routeDesc,
+                mentorId: selectedMentors[0].id,
+                userIds: selectedEmployees.map(e => e.id),
+                status: 'active'
+            };
+
             const res = await adaptationService.createRoute(routeData);
             currentRouteId = res.routeId;
 
+            // Добавляем этапы для нового маршрута
             const stagesToSave = stages.map((s, idx) => ({
                 title: s.title || `Этап ${idx + 1}`,
                 description: s.description || '',
@@ -170,19 +203,20 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             await adaptationService.addStages(currentRouteId, stagesToSave);
         }
 
-        // --- СИНХРОНИЗАЦИЯ КУРСОВ ---
-        // Получаем актуальную структуру из БД, чтобы иметь правильные ID этапов
-        const fullRoute = await adaptationService.getRoute(currentRouteId);
+        // --- СИНХРОНИЗАЦИЯ КУРСОВ (После того как все этапы точно созданы/обновлены) ---
+        
+        // Получаем актуальную структуру из БД, чтобы иметь правильные (числовые) ID новых этапов
+        const fullRouteFromDb = await adaptationService.getRoute(currentRouteId);
         const currentCourseIdsInUI = stages.flatMap(s => s.courses.map(c => c.id));
 
-        // 1. Привязываем/обновляем курсы, которые сейчас в UI
+        // 1. Привязываем/обновляем курсы к этапам
         for (let i = 0; i < stages.length; i++) {
-            const dbStage = fullRoute.stages[i]; 
+            const dbStage = fullRouteFromDb.stages[i]; 
             const frontStage = stages[i];
             
             if (dbStage && frontStage.courses.length > 0) {
                 for (let j = 0; j < frontStage.courses.length; j++) {
-                    await adaptationService.linkCourseToStage(
+                    await courseService.linkCourseToStage(
                         frontStage.courses[j].id, 
                         dbStage.id, 
                         j + 1
@@ -191,15 +225,17 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             }
         }
 
-        // 2. Отвязываем курсы, которые были раньше, но теперь их нет ни в одном этапе
+        // 2. Отвязываем курсы, которые были удалены из интерфейса
         const coursesToUnlink = originalCourseIds.filter(id => !currentCourseIdsInUI.includes(id));
         for (const id of coursesToUnlink) {
-            await adaptationService.linkCourseToStage(id, null, 0);
+            await courseService.linkCourseToStage(id, null, 0);
         }
 
+        // Успешное завершение
         navigate('/edit/adaptationRoutes');
     } catch (e) {
-        console.error("Ошибка при сохранении:", e);
+        console.error("Ошибка при сохранении маршрута:", e);
+        alert("Произошла ошибка при сохранении. Проверьте корректность данных.");
     } finally {
         setLoading(false);
     }
@@ -248,7 +284,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             className="input-field" 
             value={routeName}
             onChange={e => setRouteName(e.target.value)} 
-            placeholder="Введите название адаптационного маршрута..." 
+            placeholder="Например: Адаптация нового сотрудника" 
           />
         </div>
         <div className="input-item">
@@ -260,7 +296,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
               setRouteDesc(e.target.value);
               autoResize(e.target);
             }}
-            placeholder="Введите описание адаптационного маршрута..." 
+            placeholder="Укажите цели адаптации " 
           />
         </div>
       </section>
@@ -368,7 +404,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                 <input 
                   className={"input-field"}
                   value={stage.title} 
-                  placeholder="Введите название этапа..."
+                  placeholder="Например: Знакомство с культурой компании"
                   onChange={e => setStages(stages.map(s => s.id === stage.id ? {...s, title: e.target.value} : s))}
                 />
                 <div className="order-controls">
@@ -393,7 +429,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                 <textarea 
                   className="textarea-field"
                   value={stage.description}
-                  placeholder="Добавьте краткое описание этапа..."
+                  placeholder="О чем должен узнать сотрудник на этом шаге? (например: график работы и дресс-код)..."
                   onChange={e => {
                     setStages(stages.map(s => s.id === stage.id ? {...s, description: e.target.value} : s));
                     autoResize(e.target);
@@ -411,7 +447,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                           <span>{c.title}</span>
                           <img 
                             src={cross} 
-                            className="course-remove-icon" 
+                            className="remove-icon" 
                             onClick={() => handleRemoveCourse(stage.id, c.id)}
                             alt="x" 
                           />

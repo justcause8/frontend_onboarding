@@ -6,7 +6,7 @@ import type { OnboardingRoute } from '../../../../services/adaptation.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
-import './AdminAdaptationRoutes.css';
+import '../../adminPagesWithTables.css';
 
 export const AdminAdaptationRoute = () => {
     const { setDynamicTitle } = usePageTitle();
@@ -17,12 +17,21 @@ export const AdminAdaptationRoute = () => {
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
+    // Вспомогательная функция для сортировки: активные сверху
+    const sortRoutes = (data: OnboardingRoute[]) => {
+        return [...data].sort((a, b) => {
+            if (a.status === 'active' && b.status !== 'active') return -1;
+            if (a.status !== 'active' && b.status === 'active') return 1;
+            return 0;
+        });
+    };
+    
     useEffect(() => {
     const fetchRoutes = async () => {
         try {
             setLoading(true);
             const data = await adaptationService.getAllRoutes();
-            setRoutes(data);
+            setRoutes(sortRoutes(data));
             setDynamicTitle('Редактирование адаптационных маршрутов'); 
         } catch (error) {
             console.error('Ошибка загрузки:', error);
@@ -45,9 +54,18 @@ export const AdminAdaptationRoute = () => {
     }, [setDynamicTitle]);
 
     const handleStatusChange = async (id: number, currentStatus: string) => {
-        const newStatus = currentStatus === 'active' ? 'archived' : 'active';
-        await adaptationService.updateRoute(id, { status: newStatus });
-        setRoutes(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+        try {
+            const newStatus = currentStatus === 'active' ? 'archived' : 'active';
+            
+            await adaptationService.updateRoute(id, { status: newStatus });
+            
+            setRoutes(prev => {
+                const updated = prev.map(r => r.id === id ? { ...r, status: newStatus } : r);
+                return sortRoutes(updated);
+            });
+        } catch (e) {
+            alert("Не удалось изменить статус маршрута");
+        }
         setOpenMenuId(null);
     };
 
@@ -76,10 +94,17 @@ export const AdminAdaptationRoute = () => {
                 columns={columns}
                 data={routes}
                 renderRow={(route) => (
-                    <tr key={route.id}>
-                        <td><span className="route-title">{route.title}</span></td>
+                    // Добавляем класс row-archived для визуального отделения
+                    <tr key={route.id} className={route.status === 'archived' ? 'row-archived' : ''}>
                         <td>
-                            <span className={`status-text text-${route.status}`}>
+                            <span className="route-title">
+                                {route.title}
+                                {route.status === 'archived' && <small style={{marginLeft: '10px', color: '#888'}}></small>}
+                            </span>
+                        </td>
+                        <td>
+                            {/* Стилизуем текст статуса */}
+                            <span className={`status-badge status-${route.status}`}>
                                 {route.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>
                         </td>

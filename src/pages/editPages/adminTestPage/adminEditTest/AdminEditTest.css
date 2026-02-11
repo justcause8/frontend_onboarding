@@ -1,129 +1,80 @@
-/* Основной контейнер страницы */
-.survey-page {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    font-family: 'Inter', -apple-system, sans-serif;
-    color: #333;
-}
-
-.survey-form {
+.options-list {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 10px;
+    padding: 15px;
+    background-color: #F8FAFC;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
 }
 
-/* Заголовок теста */
-.survey-title input {
-    width: 100%;
-    font-size: 32px;
-    font-weight: 700;
-    border: none;
-    border-bottom: 2px solid transparent;
-    outline: none;
-    padding: 10px 0;
-    margin-bottom: 20px;
-    transition: border-color 0.3s;
-}
-
-.survey-title input:focus {
-    border-bottom-color: #ddd;
-}
-
-/* Карточка вопроса */
-.question-container {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 28px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f0f0f0;
-    transition: transform 0.2s ease;
-}
-
-.question-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.question-type-info {
+.option-row {
     display: flex;
     align-items: center;
-    gap: 15px;
-}
-
-/* Увеличенные и скругленные иконки внутри карточки */
-.q-type-icon-main {
-    width: 37px;
-    height: 37px;
-    object-fit: contain;
+    gap: 12px;
+    background-color: #ffffff;
+    padding: 8px 12px;
     border-radius: 10px;
-    background: #f8f8f8;
-    padding: 6px;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s ease;
+    animation: fadeIn 0.3s ease;
 }
 
-/* Название типа вопроса */
-.question-type-label-large {
-    font-size: 13px;
-    font-weight: 900;
-    color: #1a1a1a;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
+.option-row:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Кнопки управления (стрелки и удаление) */
-.question-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.action-btn {
-    background: #f5f5f5;
-    border: none;
-    border-radius: 8px;
-    color: #666;
+/* Кастомный чекбокс для правильного ответа */
+.custom-checkbox {
+    min-width: 20px;
+    height: 20px;
     cursor: pointer;
-    font-size: 18px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    accent-color: var(--primary-color);
+    border-radius: 4px;
 }
 
-.action-btn:hover:not(:disabled) {
-    background: #e0e0e0;
-    color: #000;
+/* Поле ввода текста ответа внутри строки */
+.option-row .input-field {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: 13px;
 }
 
-.action-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+.remove-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
 }
 
-.delete-btn:hover {
-    background: #ffeeee !important;
-    color: #ff4d4f !important;
+.remove-icon:hover {
+    opacity: 1;
 }
 
-/* Поле ввода вопроса */
-.question-input {
-    width: 100%;
-    padding: 14px 18px;
-    font-size: 16px;
-    background-color: #f9f9f9;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    outline: none;
-    box-sizing: border-box;
+/* Анимация появления нового вопроса/ответа */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Варианты ответов */
+/* Переопределение кнопки добавления для компактности внутри вопроса */
+.options-list .btn-add-stage-dashed {
+    padding: 10px;
+    font-size: 13px;
+    margin-top: 5px;
+    border-width: 1px;
+}
+
+/* Секция ответов */
 .answers-section {
     display: flex;
     flex-direction: column;
@@ -136,144 +87,88 @@
     gap: 12px;
 }
 
+/* Маркеры (вместо чекбоксов) */
 .answer-marker {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #ddd;
-    flex-shrink: 0;
+  width: 18.5px;
+  height: 18px;
+  min-width: 18.5px;
+  min-height: 18px;
+  flex-shrink: 0;
+  border: 2px solid #CBD5E1;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; 
+  align-items: center;
+  justify-content: center;
 }
 
 .answer-marker.round { border-radius: 50%; }
 .answer-marker.square { border-radius: 4px; }
 
-.answer-input {
-    flex: 1;
-    border: none;
-    border-bottom: 1px solid #eee;
-    padding: 8px 0;
-    outline: none;
-    font-size: 15px;
-    transition: border-color 0.2s;
+.answer-marker.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: inset 0 0 0 3px #fff; /* Эффект точки внутри */
 }
 
-.answer-input:focus {
-    border-bottom-color: #999;
-}
-
+/* Ссылка добавления варианта */
 .add-answer-link {
     background: none;
     border: none;
-    color: #888;
-    font-size: 13px;
-    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     cursor: pointer;
+    padding: 10px 0;
     text-align: left;
-    margin-top: 10px;
-    padding: 5px 0;
     width: fit-content;
 }
 
-.add-answer-link:hover {
-    color: #555;
-}
+.add-answer-link:hover { opacity: 0.8; }
 
-/* Блок добавления нового вопроса */
+/* Плейсхолдер добавления вопроса */
 .add-question-placeholder {
-    border: 2px dashed #e0e0e0;
+    margin-top: 30px;
+    padding: 30px;
+    border: 2px dashed #E2E8F0;
     border-radius: 16px;
-    padding: 40px;
-    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 25px;
-    background: #fafafa;
+    gap: 20px;
+    background-color: #fcfcfc;
 }
 
 .add-question-title {
-    font-weight: 800;
-    font-size: 15px;
-    color: #444;
-    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 600;
+    color: #64748B;
 }
 
 .question-type-buttons {
     display: flex;
-    gap: 50px;
+    gap: 15px;
 }
 
 .q-type-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-}
-
-/* Увеличенные иконки в кнопках добавления */
-.q-type-icon-large {
-    width: 50px;
-    height: 50px;
-    border-radius: 15px;
+    padding: 12px 24px;
     background: #fff;
-    padding: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.q-type-btn:hover .q-type-icon-large {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+.q-type-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(240, 73, 35, 0.1);
 }
 
 .q-type-label-btn {
-    font-weight: 800;
+    font-weight: 600;
     font-size: 14px;
-    color: #333;
-}
-
-/* Настройка проходного балла */
-.score-config-container {
-    margin-top: 20px;
-}
-
-.score-input-field {
-    width: 300px;
-    padding: 14px;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    outline: none;
-    font-size: 14px;
-}
-
-/* Кнопка сохранения */
-.ButtonSaveContainer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 30px;
-}
-
-.ButtonSaveGrey {
-    background-color: #868686; 
-    color: #cfcfcf;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.ButtonSaveGrey:hover {
-    background-color: #6b6969;
-}
-
-.TickIcon {
-    width: 20px;
-    height: 20px;
-    opacity: 0.7;
 }

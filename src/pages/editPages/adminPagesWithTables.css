@@ -1,0 +1,25 @@
+.create-btn {
+    margin-bottom: 16px;
+}
+
+/* Стиль для строки закрытого маршрута */
+.row-archived {
+    background-color: #f9f9f9 !important;
+    opacity: 0.7;
+}
+
+.status-active {
+    color: var(--green-color);
+}
+
+.status-archived {
+    color: var(--red-color);
+}
+
+.row-archived .route-title {
+    color: #777;
+}
+
+.row-archived:hover {
+    opacity: 0.9;
+}

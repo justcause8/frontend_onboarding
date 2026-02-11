@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { courseService } from '../../services/coursePage.services';
-import type { Course } from '../../services/coursePage.services';
+import { courseService } from '../../services/course.service'; 
+import type { Course, Material, TestShort } from '../../services/course.service'; 
+
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { extractFileNameFromUrl } from '../../utils/fileUtils';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
@@ -17,8 +18,7 @@ const CoursePage = () => {
   const navigate = useNavigate();
   const { setDynamicTitle } = usePageTitle();
 
-  useEffect(() => {
-  const loadCourse = async () => {
+  const loadCourse = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -34,38 +34,20 @@ const CoursePage = () => {
     } finally {
       setLoading(false);
     }
-  };
-  loadCourse();
-  
-  return () => {
-      setDynamicTitle('');
-    };
   }, [courseId, setDynamicTitle]);
 
+  useEffect(() => {
+    loadCourse();
+    return () => {
+      setDynamicTitle('');
+    };
+  }, [loadCourse]);
 
-const handleRetry = () => {
-  const loadCourse = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const handleRetry = () => {
+      loadCourse();
+    };
 
-      if (!courseId) throw new Error('ID курса не указан');
-
-      const data = await courseService.getCourseById(Number(courseId));
-      setCourse(data);
-      setDynamicTitle(data.title);
-    } catch (e) {
-      console.error(e);
-      setError('Не удалось загрузить информацию о курсе');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadCourse();
-};
-
-const getMaterialTitle = (
+  const getMaterialTitle = (
     urlDocument: string | undefined,
     fallbackTitle: string | undefined, 
     index: number
@@ -121,9 +103,8 @@ const getMaterialTitle = (
         <section className="card course-section">
           <h2>Дополнительная информация</h2>
           <div className="card-item-list">
-            {course.materials.map((material, index) => {
+            {course.materials.map((material: Material, index: number) => {
               const fileName = getMaterialTitle(material.urlDocument, material.title, index);
-              
               return (
                 <div key={material.id} className="card-item material-item">
                   <a
@@ -148,7 +129,7 @@ const getMaterialTitle = (
         <section className="card course-section">
           <h2>Тесты по курсу</h2>
           <div className="card-item-list">
-            {course.tests.map(test => (
+            {course.tests.map((test: TestShort) => (
               <div key={test.id} className="card-item test-item">
                 <div>
                   <h4>{test.title}</h4>

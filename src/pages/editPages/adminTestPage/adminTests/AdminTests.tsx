@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../../contexts/PageTitleContext';
-import { adaptationService, type AdaptationRoute as Test } from '../../../../services/adaptation.service';
+
+import { testService, type Test } from '../../../../services/test.service';
+
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
-import './AdminTests.css'; 
+import '../../adminPagesWithTables.css';
 
 export const AdminTests = () => {
     const { setDynamicTitle } = usePageTitle();
@@ -13,14 +15,23 @@ export const AdminTests = () => {
     
     const [tests, setTests] = useState<Test[]>([]);
     const [loading, setLoading] = useState(true);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Сортировка: активные сверху
+    const sortTests = (data: Test[]) => {
+        return [...data].sort((a, b) => {
+            if (a.status === 'active' && b.status !== 'active') return -1;
+            if (a.status !== 'active' && b.status === 'active') return 1;
+            return 0;
+        });
+    };
 
     useEffect(() => {
         const fetchTests = async () => {
             try {
                 setLoading(true);
-                // В будущем здесь будет вызов именно тестов, например: testService.getAll()
-                const data = await adaptationService.getAllRoutes(); 
-                setTests(data);
+                const data = await testService.getAllTests(); 
+                setTests(sortTests(data));
                 setDynamicTitle('Редактирование тестов');
             } catch (error) {
                 console.error('Ошибка загрузки тестов:', error);
@@ -35,27 +46,34 @@ export const AdminTests = () => {
     }, [setDynamicTitle]);
 
     const handleStatusChange = async (id: number, currentStatus: string) => {
-        const newStatus = currentStatus === 'active' ? 'archived' : 'active';
         try {
-            // await testService.update(id, { status: newStatus });
-            setTests(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
-        } catch (error) {
-            console.error(error);
+            const newStatus = currentStatus === 'active' ? 'archived' : 'active';
+            // ИСПРАВЛЕНО: Вызов из testService
+            await testService.updateTest(id, { status: newStatus });
+            
+            setTests(prev => {
+                const updated = prev.map(t => t.id === id ? { ...t, status: newStatus } : t);
+                return sortTests(updated);
+            });
+        } catch (e) {
+            alert("Не удалось изменить статус теста");
         }
     };
 
     const handleDelete = async (id: number) => {
         if (!window.confirm('Вы уверены, что хотите удалить этот тест?')) return;
         try {
-            // await testService.delete(id);
+            // ИСПРАВЛЕНО: Вызов из testService
+            await testService.deleteTest(id);
             setTests(prev => prev.filter(t => t.id !== id));
         } catch (error) {
-            console.error(error);
+            alert("Ошибка при удалении теста");
         }
     };
 
+    // Остальной код (columns, renderRow, JSX) остается без изменений
     const columns = [
-        { header: 'Название', width: '60%' },
+        { header: 'Название теста', width: '60%' },
         { header: 'Статус', width: '20%' },
         { header: '', width: '10%' }
     ];
@@ -64,19 +82,22 @@ export const AdminTests = () => {
 
     return (
         <div className="card">
-            <button className="btn btn-primary create-btn" onClick={() => navigate('/testPageEdit')}>
-                Создать тест
+            <button 
+                className="btn btn-primary create-btn" 
+                onClick={() => navigate('/edit/tests/new')}
+            >
+                Создать новый тест
             </button>
 
             <AdminTable 
                 columns={columns}
                 data={tests}
-                emptyText="Список тестов пуст"
+                emptyText="Тесты в базе данных не найдены"
                 renderRow={(test) => (
-                    <tr key={test.id}>
+                    <tr key={test.id} className={test.status === 'archived' ? 'row-archived' : ''}>
                         <td><span className="route-title">{test.title}</span></td>
                         <td>
-                            <span className={`status-text text-${test.status}`}>
+                            <span className={`status-badge status-${test.status}`}>
                                 {test.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>
                         </td>
@@ -90,7 +111,7 @@ export const AdminTests = () => {
                                 <ActionMenuItem 
                                     icon={ICONS.edit}
                                     label="Изменить"
-                                    onClick={() => navigate(`/edit-test/${test.id}`)}
+                                    onClick={() => navigate(`/edit/tests/${test.id}`)}
                                 />
                                 <ActionMenuItem 
                                     icon={ICONS.delete}

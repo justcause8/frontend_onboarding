@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adaptationService } from '../../services/adaptationRoute.service';
-import type { OnboardingRoute, UserProgress } from '../../services/adaptationRoute.service';
+import { adaptationService } from '../../services/adaptation.service';
+import { userService, type UserProgress } from '../../services/user.service';
+import { courseService } from '../../services/course.service';
+import type { OnboardingRoute } from '../../services/adaptation.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
@@ -28,8 +30,7 @@ const AdaptationPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setDynamicTitle('');
-    
+    setDynamicTitle('Мой план адаптации');
     return () => setDynamicTitle('');
   }, [setDynamicTitle]);
 
@@ -38,7 +39,7 @@ const AdaptationPage = () => {
     setError(null);
 
     try {
-      const routeId = await adaptationService.getMyRouteId();
+      const routeId = await userService.getMyRouteId();
 
       if (!routeId) {
         setRoute(null);
@@ -47,7 +48,7 @@ const AdaptationPage = () => {
       }
 
       const [progressData, routeData] = await Promise.all([
-        adaptationService.getUserProgress(),
+        userService.getUserProgress(),
         adaptationService.getRoute(routeId),
       ]);
 
@@ -65,13 +66,8 @@ const AdaptationPage = () => {
     loadData();
   }, []);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  if (error) {
-    return <ErrorState message={error} onRetry={loadData} />;
-  }
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorState message={error} onRetry={loadData} />;
 
   if (!route) {
     return (
@@ -82,12 +78,11 @@ const AdaptationPage = () => {
     );
   }
 
-
   const handleStartStage = async (stageId: number) => {
     if (!route) return;
 
     const stage = route.stages.find(s => s.id === stageId);
-    if (!stage || stage.courses.length === 0) {
+    if (!stage || !stage.courses || stage.courses.length === 0) {
       alert('В этапе нет курсов');
       return;
     }
@@ -96,11 +91,14 @@ const AdaptationPage = () => {
       (a, b) => a.orderIndex - b.orderIndex
     )[0];
 
-    await adaptationService.startCourse(firstCourse.id);
-    await adaptationService.recalcStatuses();
-    await loadData();
-
-    navigate(`/courses/course/${firstCourse.id}`);
+    try {
+        await courseService.startCourse(firstCourse.id);
+        await userService.recalcStatuses();
+        await loadData();
+        navigate(`/courses/course/${firstCourse.id}`);
+    } catch (err) {
+        console.error("Ошибка при старте курса", err);
+    }
   };
 
   const getStageStatus = (stageId: number): 'completed' | 'failed' | 'in_process' | 'not_started' => {
@@ -110,117 +108,111 @@ const AdaptationPage = () => {
     );
   };
   
-  const percent =
-    progress.totalCourses > 0
-      ? Math.round(
-          (progress.completedCourses / progress.totalCourses) * 100
-        )
-      : 0;
+  const percent = progress.totalCourses > 0
+      ? Math.round((progress.completedCourses / progress.totalCourses) * 100) : 0;
 
-  const percentStages =
-    progress.totalStages > 0
-      ? Math.round(
-          (progress.completedStages / progress.totalStages) * 100
-        )
-      : 0;
+  const percentStages = progress.totalStages > 0
+      ? Math.round((progress.completedStages / progress.totalStages) * 100) : 0;
+
+  // Находим первый этап, который еще не завершен, чтобы разрешить его начать
+  const firstIncompleteStage = [...route.stages]
+    .sort((a, b) => a.orderIndex - b.orderIndex)
+    .find(s => getStageStatus(s.id) !== 'completed');
 
   return (
     <div>
-      {route ? (
-        <>
-          <section className="card progress-card text">
-            <h2>Ваш общий прогресс</h2>
-            <div className="progress-items">
-              <div className="progress-item">
-                <div className="progress-circle">{percentStages}%</div>
-                <div>
-                  <p>Этапы: {progress.completedStages} / {progress.totalStages}</p>
-                </div>
-              </div>
-
-              <div className="progress-item">
-                <div className="progress-circle">{percent}%</div>
-                <div>
-                  <p>Курсы: {progress.completedCourses} / {progress.totalCourses}</p>
-                </div>
-              </div>
+      <section className="card progress-card text">
+        <h2>Ваш общий прогресс</h2>
+        <div className="progress-items">
+          <div className="progress-item">
+            <div className="progress-circle">{percentStages}%</div>
+            <div>
+              <p>Этапы: {progress.completedStages} / {progress.totalStages}</p>
             </div>
-          </section>
+          </div>
+          <div className="progress-item">
+            <div className="progress-circle">{percent}%</div>
+            <div>
+              <p>Курсы: {progress.completedCourses} / {progress.totalCourses}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <section className="card plan-card text">
-            <h2>Этапы вашего маршрута</h2>
-            <div className="stepper">
-              {[...route.stages]
-                .sort((a, b) => a.orderIndex - b.orderIndex)
-                .map((stage) => {
-                  const sortedCourses = [...stage.courses].sort(
-                    (a, b) => a.orderIndex - b.orderIndex
-                  );
-                  const status = getStageStatus(stage.id);
-                  
-                  let iconContent: React.ReactNode;
-                  if (status === 'completed') {
-                      iconContent = <img src={done} className="step-icon-img" />;
-                  } else if (status === 'failed') {
-                      iconContent = <img src={exclamationmark} className="step-icon-img" />;
-                  } else {
-                      iconContent = stage.orderIndex;
-                  }
+      <section className="card plan-card text">
+        <h2>Этапы вашего маршрута</h2>
+        <div className="stepper">
+          {[...route.stages]
+            .sort((a, b) => a.orderIndex - b.orderIndex)
+            .map((stage) => {
+              const status = getStageStatus(stage.id);
+              const sortedCourses = [...stage.courses].sort((a, b) => a.orderIndex - b.orderIndex);
 
-                  return (
-                    <div key={stage.id} className={`step ${status}`}>
-                      <div className="step-icon">
-                        {iconContent}
-                      </div>
-                      <div className="card-item step-item">
-                        <div className="step-header">
-                            <h4>{stage.title}</h4>
-                            <span className={`stage-badge ${status}`}>
-                                {status === 'completed' && 'Завершен'}
-                                {status === 'in_process' && 'Текущий'}
-                                {status === 'failed' && 'Не пройден'}
-                                {status === 'not_started' && 'Не начат'}
-                            </span>
-                        </div>
-                        
-                        {stage.description && <p>{stage.description}</p>}
-                        
+              // Кнопка доступна если: этап в процессе, завален ИЛИ это самый первый не начатый этап
+              const canStart = status === 'in_process' || 
+                               status === 'failed' || 
+                               (status === 'not_started' && firstIncompleteStage?.id === stage.id);
+              
+              let iconContent: React.ReactNode;
+              if (status === 'completed') {
+                  iconContent = <img src={done} className="step-icon-img" alt="done" />;
+              } else if (status === 'failed') {
+                  iconContent = <img src={exclamationmark} className="step-icon-img" alt="failed" style={{ filter: 'brightness(0) invert(1)' }} />;
+              } else {
+                  iconContent = stage.orderIndex;
+              }
+
+              return (
+                <div key={stage.id} className={`step ${status}`}>
+                  <div className="step-icon">
+                    {iconContent}
+                  </div>
+                  <div className="card-item step-item">
+                    <div className="step-header">
+                        <h4>{stage.title}</h4>
+                        <span className={`stage-badge ${status}`}>
+                            {status === 'completed' && 'Завершен'}
+                            {status === 'in_process' && 'Текущий'}
+                            {status === 'failed' && 'Не пройден'}
+                            {status === 'not_started' && 'Не начат'}
+                        </span>
+                    </div>
+                    
+                    {stage.description && <p>{stage.description}</p>}
+                    
+                    <div className="courses-list-mini">
                         {sortedCourses.map(course => (
-                          <div key={course.id} className="course-item">
+                        <div key={course.id} className="course-item">
                             <span className="course-title">{course.title}</span>
                             {course.status && (
-                              <span className={`course-status ${course.status}`}>
+                            <span className={`course-status ${course.status}`}>
                                 {course.status === 'completed' ? '✓' : 
                                 course.status === 'in_process' ? '▶' : '○'}
-                              </span>
+                            </span>
                             )}
-                          </div>
+                        </div>
                         ))}
-                        
-                        {/* Здесь были ошибки сравнения - теперь типы совпадают */}
-                        {(status === 'in_process' || status === 'failed') && (
-                          <div className="step-footer">
-                              <button 
-                                  className={`btn ${status === 'in_process' ? 'btn-primary' : 'btn-secondary'}`}
-                                  onClick={() => handleStartStage(stage.id)}
-                              >
-                                  {status === 'in_process' ? 'Продолжить этап' : 'Попробовать снова'}
-                              </button>
-                          </div>
-                        )}
-                      </div>
                     </div>
-                  );
-                })}
-            </div>
-          </section>
-        </>
-      ) : (
-        <div className="empty-state">
-          <h4>Маршрут адаптации не назначен</h4>
-          <p>Обратитесь к HR-специалисту или Наставнику.</p>
+                    
+                    {/* Исправленное условие: используем canStart */}
+                    {canStart && (
+                      <div className="step-footer">
+                          <button 
+                              className={`btn ${status === 'failed' ? 'btn-secondary' : 'btn-primary'}`}
+                              onClick={() => handleStartStage(stage.id)}
+                          >
+                              {status === 'not_started' && 'Начать этап'}
+                              {status === 'in_process' && 'Продолжить этап'}
+                              {status === 'failed' && 'Попробовать снова'}
+                          </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
         </div>
-      )}
+      </section>
     </div>
   );
 };

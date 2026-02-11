@@ -35,6 +35,28 @@
   padding: 0 200px 35px 80px;
 }
 
+@media (max-width: 1400px) {
+  .main-content {
+    padding: 0 100px 35px 60px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 0 40px 30px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 0 20px 20px 20px;
+  }
+  
+  .main-header {
+    padding: 20px;
+  }
+}
+
 .card {
   background-color: var(--card-bg);
   padding: 24px;

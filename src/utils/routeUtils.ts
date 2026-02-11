@@ -16,6 +16,7 @@ export const BREADCRUMB_NAMES: Record<string, string> = {
   'tests': 'Тесты',
   'edit': 'Редактирование', 
   'adaptationRoutes': 'Редактирование адаптационных маршрутов',
+  'new': 'Создание',
 };
 
 const truncate = (text: string, maxLength: number = 25): string => {
@@ -69,20 +70,19 @@ export const getBreadcrumbs = (pathname: string, dynamicTitle?: string): Array<{
 
     // 3. ОБЩАЯ ЛОГИКА (Для Редактирование / Администрирование)
     if (BREADCRUMB_NAMES[segment] || isNaN(Number(segment))) {
-        let name = BREADCRUMB_NAMES[segment] || segment;
+      let name = BREADCRUMB_NAMES[segment] || segment;
 
-        // ПРОВЕРКА: Если это последний сегмент пути, приоритет отдаем dynamicTitle
-        const isLastSegment = i === segments.length - 1;
-        if (isLastSegment && dynamicTitle) {
-            // Берем "Администрирование" из setDynamicTitle
-            name = dynamicTitle.split(' | ')[0]; 
-        }
+      const isLastSegment = i === segments.length - 1;
+      
+      if (isLastSegment && dynamicTitle && segment !== 'new') {
+          name = dynamicTitle.split(' | ')[0]; 
+      }
 
-        breadcrumbs.push({ 
-            name: truncate(name), 
-            path: currentPath 
-        });
-    }
+      breadcrumbs.push({ 
+          name: truncate(name), 
+          path: currentPath 
+      });
+  }
   }
   
   return breadcrumbs;

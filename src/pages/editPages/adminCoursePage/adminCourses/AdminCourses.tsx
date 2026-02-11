@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../../contexts/PageTitleContext';
-import { adaptationService, type AdaptationRoute as TrainingCourse } from '../../../../services/adaptation.service';
+import { adaptationService } from '../../../../services/adaptation.service';
+import type { OnboardingRoute as TrainingCourse } from '../../../../services/adaptation.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
-
-// Мы используем те же стили, что и в маршрутах, либо общие стили таблиц
-import './AdminCourses.css'; 
+import '../../adminPagesWithTables.css';
 
 export const AdminCourses = () => {
     const { setDynamicTitle } = usePageTitle();
@@ -15,14 +14,25 @@ export const AdminCourses = () => {
     
     const [courses, setCourses] = useState<TrainingCourse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Функция сортировки: активные сверху
+    const sortCourses = (data: TrainingCourse[]) => {
+        return [...data].sort((a, b) => {
+            if (a.status === 'active' && b.status !== 'active') return -1;
+            if (a.status !== 'active' && b.status === 'active') return 1;
+            return 0;
+        });
+    };
 
     useEffect(() => {
         const fetchCourses = async () => {
             try {
                 setLoading(true);
-                // В будущем замените на специальный сервис для курсов, если он есть
+                // В будущем заменить на courseService.getAll()
                 const data = await adaptationService.getAllRoutes(); 
-                setCourses(data);
+                setCourses(sortCourses(data));
                 setDynamicTitle('Редактирование обучающих курсов');
             } catch (error) {
                 console.error('Ошибка загрузки курсов:', error);
@@ -33,27 +43,45 @@ export const AdminCourses = () => {
 
         fetchCourses();
 
-        return () => setDynamicTitle('');
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuId(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            setDynamicTitle('');
+        };
     }, [setDynamicTitle]);
 
     const handleStatusChange = async (id: number, currentStatus: string) => {
-        const newStatus = currentStatus === 'active' ? 'archived' : 'active';
         try {
-            // await courseService.update(id, { status: newStatus });
-            setCourses(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
-        } catch (error) {
-            console.error(error);
+            const newStatus = currentStatus === 'active' ? 'archived' : 'active';
+            
+            // Заглушка (обновите на нужный сервис, когда будет готов)
+            await adaptationService.updateRoute(id, { status: newStatus });
+            
+            setCourses(prev => {
+                const updated = prev.map(c => c.id === id ? { ...c, status: newStatus } : c);
+                return sortCourses(updated);
+            });
+        } catch (e) {
+            alert("Не удалось изменить статус курса");
         }
+        setOpenMenuId(null);
     };
 
     const handleDelete = async (id: number) => {
         if (!window.confirm('Вы уверены, что хотите удалить этот курс?')) return;
         try {
-            // await courseService.delete(id);
+            await adaptationService.deleteRoute(id);
             setCourses(prev => prev.filter(c => c.id !== id));
         } catch (error) {
             console.error(error);
         }
+        setOpenMenuId(null);
     };
 
     const columns = [
@@ -66,19 +94,26 @@ export const AdminCourses = () => {
 
     return (
         <div className="card">
-            <button className="btn btn-primary create-btn" onClick={() => navigate('/trainingEdit')}>
-                    Создать обучающий курс
-                </button>
+            <button 
+                className="btn btn-primary create-btn" 
+                onClick={() => navigate('/edit/courses/new')}
+            >
+                Создать обучающий курс
+            </button>
 
             <AdminTable 
                 columns={columns}
                 data={courses}
                 emptyText="Список курсов пуст"
                 renderRow={(course) => (
-                    <tr key={course.id}>
-                        <td><span className="route-title">{course.title}</span></td>
+                    <tr key={course.id} className={course.status === 'archived' ? 'row-archived' : ''}>
                         <td>
-                            <span className={`status-text text-${course.status}`}>
+                            <span className="route-title">
+                                {course.title}
+                            </span>
+                        </td>
+                        <td>
+                            <span className={`status-badge status-${course.status}`}>
                                 {course.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>
                         </td>
@@ -92,7 +127,7 @@ export const AdminCourses = () => {
                                 <ActionMenuItem 
                                     icon={ICONS.edit}
                                     label="Изменить"
-                                    onClick={() => navigate(`/edit-course/${course.id}`)}
+                                    onClick={() => navigate(`/edit/courses/${course.id}`)}
                                 />
                                 <ActionMenuItem 
                                     icon={ICONS.delete}

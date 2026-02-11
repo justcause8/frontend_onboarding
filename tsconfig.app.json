@@ -24,5 +24,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "на всякий случай старые сервисы/passingTestPage.service.ts", "на всякий случай старые сервисы/coursesPage.service.ts", "на всякий случай старые сервисы/coursePage.services.ts", "на всякий случай старые сервисы/adaptationRoute.service.ts"]
 }

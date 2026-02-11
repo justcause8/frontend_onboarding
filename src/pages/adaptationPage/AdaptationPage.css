@@ -200,5 +200,13 @@
 .step-icon-img {
   width: 20px;
   height: 20px;
-  object-fit: contain;
+  object-fit: contain; 
+}
+
+.step.failed .step-icon-img {
+    filter: brightness(0) invert(1);
+}
+
+.step.completed .step-icon-img {
+    filter: brightness(0) invert(1);
 }

@@ -28,10 +28,10 @@ export const App = () => {
             {/* Админские роуты */}
             <Route path="/edit/adaptationRoutes" element={<AdminAdaptationRoute />} />
             <Route path="/edit/adaptationRoutes/:adaptationRouteId" element={<AdminEditAdaptationRoute />} />
-            <Route path="/edit/Courses" element={<AdminCourses />} />
-            <Route path="/edit/Courses/:courseId" element={<AdminEditCourse />} />
+            <Route path="/edit/courses" element={<AdminCourses />} />
+            <Route path="/edit/courses/:courseId" element={<AdminEditCourse />} />
             <Route path="edit/tests" element={<AdminTests />} />
-            <Route path="edit/tests: testId" element={<AdminEditTest />} />
+            <Route path="edit/tests/:testId" element={<AdminEditTest />} />
             {/* <Route path="edit/users" element={< />} />
             <Route path="edit/requests" element={< />} /> */}
           </Route>
