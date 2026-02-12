@@ -12,6 +12,7 @@
   --text-secondary: #718096;
 
   --bg-btn-primary: #FFF7ED;
+  --bg-bth-secondary: #e6e5e4f8;
 
   --font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
@@ -81,7 +82,7 @@ button {
 
 /* Вторичная кнопка */
 .btn-secondary {
-  background-color: var(--card-bg);
+  background-color: var(--bg-bth-secondary);
   color: var(--text-primary);
 }
 

@@ -47,6 +47,10 @@ export const courseService = {
     return res.data;
   },
 
+  async updateCourse(courseId: number, data: Partial<Course>): Promise<void> {
+    await api.put(`/onboarding/course/${courseId}`, data);
+  },
+
   /** Удалить курс */
   async deleteCourse(courseId: number): Promise<void> {
     await api.delete(`/onboarding/course/${courseId}`);

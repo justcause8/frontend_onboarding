@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../../contexts/PageTitleContext';
-import { adaptationService } from '../../../../services/adaptation.service';
-import type { OnboardingRoute as TrainingCourse } from '../../../../services/adaptation.service';
+import { courseService, type Course } from '../../../../services/course.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
@@ -12,13 +11,13 @@ export const AdminCourses = () => {
     const { setDynamicTitle } = usePageTitle();
     const navigate = useNavigate();
     
-    const [courses, setCourses] = useState<TrainingCourse[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Функция сортировки: активные сверху
-    const sortCourses = (data: TrainingCourse[]) => {
+    // Сортировка: "active" курсы выше "archived"
+    const sortCourses = (data: Course[]) => {
         return [...data].sort((a, b) => {
             if (a.status === 'active' && b.status !== 'active') return -1;
             if (a.status !== 'active' && b.status === 'active') return 1;
@@ -26,21 +25,20 @@ export const AdminCourses = () => {
         });
     };
 
-    useEffect(() => {
-        const fetchCourses = async () => {
-            try {
-                setLoading(true);
-                // В будущем заменить на courseService.getAll()
-                const data = await adaptationService.getAllRoutes(); 
-                setCourses(sortCourses(data));
-                setDynamicTitle('Редактирование обучающих курсов');
-            } catch (error) {
-                console.error('Ошибка загрузки курсов:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchCourses = async () => {
+        try {
+            setLoading(true);
+            const data = await courseService.getAllCoursesAdmin();
+            setCourses(sortCourses(data));
+            setDynamicTitle('Редактирование обучающих курсов');
+        } catch (error) {
+            console.error('Ошибка загрузки курсов:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchCourses();
 
         const handleClickOutside = (event: MouseEvent) => {
@@ -59,9 +57,8 @@ export const AdminCourses = () => {
     const handleStatusChange = async (id: number, currentStatus: string) => {
         try {
             const newStatus = currentStatus === 'active' ? 'archived' : 'active';
-            
-            // Заглушка (обновите на нужный сервис, когда будет готов)
-            await adaptationService.updateRoute(id, { status: newStatus });
+            // Используем метод обновления курса
+            await courseService.updateCourse(id, { status: newStatus });
             
             setCourses(prev => {
                 const updated = prev.map(c => c.id === id ? { ...c, status: newStatus } : c);
@@ -76,10 +73,11 @@ export const AdminCourses = () => {
     const handleDelete = async (id: number) => {
         if (!window.confirm('Вы уверены, что хотите удалить этот курс?')) return;
         try {
-            await adaptationService.deleteRoute(id);
+            await courseService.deleteCourse(id);
             setCourses(prev => prev.filter(c => c.id !== id));
         } catch (error) {
-            console.error(error);
+            console.error("Ошибка при удалении:", error);
+            alert("Не удалось удалить курс");
         }
         setOpenMenuId(null);
     };

@@ -1,85 +1,264 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+// Импортируем типы и сервисы
+import { courseService, type Material, type Course } from '../../../../services/course.service';
+import { testService } from '../../../../services/test.service'; 
+
+import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
+import { usePageTitle } from '../../../../contexts/PageTitleContext';
+
 import './AdminEditCourse.css';
+import cross from '@/assets/cross.png';
+import downIcon from '@/assets/editMode/DownIcon.png';
+
+interface TestShort {
+    id: number;
+    title: string;
+    passingScore: number;
+}
 
 export const AdminEditCourse: React.FC = () => {
-  const navigate = useNavigate();
+    const { setDynamicTitle } = usePageTitle();
+    const navigate = useNavigate();
+    const { courseId } = useParams<{ courseId: string }>();
+    const isEditMode = courseId !== 'new';
 
-  const [courseName, setCourseName] = useState('Основы корпоративной безопасности');
-  const [courseDesc, setCourseDesc] = useState('Корпоративные данные — это актив компании, и их разглашение может нанести ущерб бизнесу. Поэтому никогда не используйте простые пароли вроде «12345» и не оставляйте рабочие документы на экране монитора без присмотра.');
-  
-  const [materials, setMaterials] = useState<string[]>([
-    'https://storage.yandexcloud.net/onboarding/основы_корпоративной_безопасности_v1.pdf',
-    'https://storage.yandexcloud.net/onboarding/основы_корпоративной_безопасности_v2.pdf'
-  ]);
+    const [loading, setLoading] = useState(isEditMode);
+    
+    // Состояния данных курса
+    const [courseName, setCourseName] = useState('');
+    const [courseDesc, setCourseDesc] = useState('');
+    const [materials, setMaterials] = useState<Material[]>([]);
+    const [selectedTests, setSelectedTests] = useState<TestShort[]>([]);
+    
+    // Состояния поиска и выбора тестов
+    const [allTests, setAllTests] = useState<TestShort[]>([]);
+    const [searchTestQuery, setSearchTestQuery] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
 
-  const [tests, setTests] = useState<string[]>([
-    'Тест: "Тест по курсу Основы корпоративной безопасности"',
-    'Тест: "Обратная связь по курсу Основы корпоративной безопасности"'
-  ]);
+    // Загрузка данных при старте
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                const tests = await testService.getAllTests(); 
+                setAllTests(tests);
 
-  const removeMaterial = (index: number) => setMaterials(materials.filter((_, i) => i !== index));
-  const removeTest = (index: number) => setTests(tests.filter((_, i) => i !== index));
+                if (isEditMode) {
+                    const course = await courseService.getCourseById(Number(courseId));
+                    setCourseName(course.title);
+                    setCourseDesc(course.description);
+                    setMaterials(course.materials || []);
+                    setSelectedTests(course.tests || []);
+                    setDynamicTitle(course.title);
+                } else {
+                    setDynamicTitle('Создание нового курса');
+                }
+            } catch (e) {
+                console.error("Ошибка загрузки:", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, [courseId, isEditMode, setDynamicTitle]);
 
-  return (
-    <div className="edit-page-container">
-      <div className="edit-card">
-        
-        <div className="form-section">
-          <label className="section-label">Название курса</label>
-          <input
-            className="input-field"
-            value={courseName}
-            onChange={(e) => setCourseName(e.target.value)}
-          />
-        </div>
+    // Закрытие выпадающего списка при клике вне его области
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
-        <div className="form-section">
-          <label className="section-label">Описание курса</label>
-          <textarea
-            className="textarea-field"
-            value={courseDesc}
-            onChange={(e) => setCourseDesc(e.target.value)}
-          />
-        </div>
+    const handleSaveCourse = async () => {
+      try {
+          setLoading(true);
 
-        {/* Кнопка Добавить материал */}
-        <button className="dashed-add-btn">
-          <span className="plus-icon">+</span> Добавить материал
-        </button>
+          const courseData: any = {
+              title: courseName,
+              description: courseDesc,
+              materials: materials.map(m => m.urlDocument),
+              testIds: selectedTests.map(t => t.id)
+          };
 
-        <div className="section-group">
-          <h3 className="group-title">Материал для курса</h3>
-          {materials.map((mat, i) => (
-            <div key={i} className="item-row white-bg">
-              <span className="item-text">{mat}</span>
-              <button className="delete-btn" onClick={() => removeMaterial(i)}>✕</button>
+          if (!isEditMode) {
+              courseData.orderIndex = 0;
+              courseData.status = "active";
+          }
+
+          if (isEditMode) {
+              await courseService.updateCourse(Number(courseId), courseData);
+          } else {
+              await courseService.createCourse(courseData);
+          }
+          
+          navigate('/edit/courses');
+          
+      } catch (e: any) {
+          console.error("Ошибка сохранения:", e);
+          alert("Не удалось сохранить курс.");
+      } finally {
+          setLoading(false);
+      }
+    };
+
+    const autoResize = (target: HTMLTextAreaElement) => {
+        target.style.height = 'inherit';
+        target.style.height = `${target.scrollHeight}px`;
+    };
+
+    if (loading) return <LoadingSpinner />;
+
+    // Фильтрация тестов для выпадающего списка
+    const filteredTests = allTests
+        .filter(t => t.title.toLowerCase().includes(searchTestQuery.toLowerCase()))
+        .slice(0, 20); // Ограничиваем список для производительности
+
+    return (
+        <div className="admin-edit-container">
+            <section className="card text">
+                <h2>{isEditMode ? 'Редактирование курса' : 'Информация о курсе'}</h2>
+                
+                <div className="input-item">
+                    <h4>Название курса</h4>
+                    <input 
+                        className="input-field" 
+                        value={courseName}
+                        onChange={e => setCourseName(e.target.value)} 
+                        placeholder="Например: Знакомство с компанией" 
+                    />
+                </div>
+
+                <div className="input-item">
+                    <h4>Описание</h4>
+                    <textarea 
+                        className="textarea-field"
+                        value={courseDesc} 
+                        onChange={e => {
+                            setCourseDesc(e.target.value);
+                            autoResize(e.target);
+                        }}
+                        placeholder="О чем этот курс..." 
+                    />
+                </div>
+            </section>
+
+            <section className="card text">
+                <h2>Материалы и тестирование</h2>
+                
+                <div className="input-item">
+                    <h4>Ссылки на дополнительные материалы</h4>
+                    <div className="nested-courses">
+                        <input 
+                            className="input-field ghost-input-style" 
+                            placeholder="Вставьте ссылку и нажмите Enter"
+                            onKeyDown={e => {
+                                if (e.key === 'Enter' && e.currentTarget.value) {
+                                    const newMaterial: Material = {
+                                        id: Date.now() ? Date.now() : 0,
+                                        urlDocument: e.currentTarget.value,
+                                        title: ''
+                                    };
+                                    setMaterials([...materials, newMaterial]);
+                                    e.currentTarget.value = '';
+                                }
+                            }}
+                        />
+
+                        <div className="courses-grid">
+                            {materials.map((mat, idx) => (
+                                <div key={mat.id || idx} className="course-item-mini">
+                                    <span className="truncate-text">{mat.urlDocument}</span>
+                                    <img 
+                                        src={cross} 
+                                        className="remove-icon" 
+                                        onClick={() => setMaterials(materials.filter((_, i) => i !== idx))}
+                                        alt="remove" 
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Секция тестов: Выпадающий список при фокусе */}
+                <div className="input-item">
+                    <h4>Привязанные тесты</h4>
+                    <div className="search-container" ref={searchRef}>
+                        <div style={{ position: 'relative' }}>
+                            <input 
+                                className="input-field" 
+                                value={searchTestQuery} 
+                                onChange={e => {
+                                    setSearchTestQuery(e.target.value);
+                                    setIsDropdownOpen(true);
+                                }} 
+                                onFocus={() => setIsDropdownOpen(true)}
+                                placeholder="Найти или выбрать тест из списка..." 
+                            />
+                            
+                            <div 
+                                className={`search-arrow ${isDropdownOpen ? 'open' : ''}`}
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <img className='search-dropdown' src={downIcon} alt="" />
+                            </div>
+
+                            {isDropdownOpen && filteredTests.length > 0 && (
+                                <div className="search-results">
+                                    {filteredTests.map(t => {
+                                        const isSelected = selectedTests.find(st => st.id === t.id);
+                                        return (
+                                            <div 
+                                                key={t.id} 
+                                                className={`search-item ${isSelected ? 'selected' : ''}`} 
+                                                onClick={() => {
+                                                    if (!isSelected) {
+                                                        setSelectedTests([...selectedTests, t]);
+                                                    }
+                                                    setIsDropdownOpen(false);
+                                                    setSearchTestQuery('');
+                                                }}
+                                            >
+                                                {t.title}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="chips-display-zone">
+                            {selectedTests.map(t => (
+                                <div key={t.id} className="chip mentor-chip">
+                                    {t.title}
+                                    <img 
+                                        src={cross} 
+                                        className="chip-remove-icon" 
+                                        onClick={() => setSelectedTests(selectedTests.filter(st => st.id !== t.id))} 
+                                        alt="remove" 
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div className="card-footer">
+                <button className="btn btn-secondary" onClick={() => navigate(-1)}>Отмена</button>
+                <button className="btn btn-primary" onClick={handleSaveCourse}>
+                    {isEditMode ? 'Сохранить изменения' : 'Создать курс'}
+                </button>
             </div>
-          ))}
         </div>
-
-        {/* Кнопка Добавить тест */}
-        <button className="dashed-add-btn">
-          <span className="plus-icon">+</span> Добавить существующий тест
-        </button>
-
-        <div className="section-group">
-          {tests.map((test, i) => (
-            <div key={i} className="item-row grey-bg">
-              <span className="item-text">{test}</span>
-              <button className="delete-btn" onClick={() => removeTest(i)}>✕</button>
-            </div>
-          ))}
-        </div>
-
-        <div className="footer-bar">
-          <button className="save-btn" onClick={() => navigate('/admin/training')}>
-            <span className="check-icon">✓</span> СОХРАНИТЬ
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default AdminEditCourse;

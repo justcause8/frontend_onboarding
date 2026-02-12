@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { adaptationService } from '../../../../services/adaptation.service';
@@ -7,7 +7,6 @@ import { courseService, type Course as CourseBase } from '../../../../services/c
 
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { usePageTitle } from '../../../../contexts/PageTitleContext';
-
 
 import './AdminEditAdaptationRoute.css';
 import upIcon from '@/assets/editMode/UpIcon.png';
@@ -48,8 +47,11 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
   const [searchMentor, setSearchMentor] = useState('');
   const [searchEmployee, setSearchEmployee] = useState('');
-  const [activeCourseSearch, setActiveCourseSearch] = useState<{stageId: string | number, query: string} | null>(null);
   const [routeStatus, setRouteStatus] = useState('active');
+
+  // --- Состояния для выпадающего списка курсов ---
+  const [activeStageId, setActiveStageId] = useState<string | number | null>(null);
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -68,7 +70,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
         if (isEditMode) {
           const route = await adaptationService.getRoute(Number(adaptationRouteId));
           setRouteName(route.title);
-          setDynamicTitle(route.title)
+          setDynamicTitle(route.title);
           setRouteDesc(route.description);
           setRouteStatus(route.status || 'active');
           
@@ -95,7 +97,6 @@ export const AdminEditAdaptationRoute: React.FC = () => {
           }));
           setStages(mappedStages);
 
-          // Запоминаем ID всех курсов, которые были в маршруте изначально
           const courseIds = mappedStages.flatMap(s => s.courses.map(c => c.id));
           setOriginalCourseIds(courseIds);
         }
@@ -106,9 +107,21 @@ export const AdminEditAdaptationRoute: React.FC = () => {
       }
     };
     loadData();
-  }, [adaptationRouteId, isEditMode]);
+  }, [adaptationRouteId, isEditMode, setDynamicTitle]);
 
-  // Удаление курса
+  // Закрытие выпадающего списка курсов при клике вне
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.course-search-wrapper')) {
+            setActiveStageId(null);
+            setCourseSearchQuery('');
+        }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleRemoveCourse = (stageId: string | number, courseId: number) => {
       setStages(prev => prev.map(s => {
           if (s.id === stageId) {
@@ -118,7 +131,6 @@ export const AdminEditAdaptationRoute: React.FC = () => {
       }));
   };
 
-  // Удаление этапа
   const handleDeleteStage = (stageId: string | number) => {
       if (typeof stageId === 'number') {
           setDeletedStageIds(prev => [...prev, stageId]);
@@ -129,7 +141,6 @@ export const AdminEditAdaptationRoute: React.FC = () => {
   const handleSaveRoute = async () => {
     try {
         setLoading(true);
-        // Базовая валидация
         if (!selectedMentors.length || !routeName) {
             setLoading(false);
             return;
@@ -139,29 +150,23 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
         if (isEditMode) {
             currentRouteId = Number(adaptationRouteId);
-
-            // 1. Сначала удаляем этапы, которые пользователь пометил на удаление
             for (const id of deletedStageIds) {
                 await adaptationService.deleteStage(id);
             }
-            setDeletedStageIds([]); // Очищаем список после удаления
+            setDeletedStageIds([]);
 
-            // 2. Обновляем существующие этапы или создаем новые, добавленные в процессе редактирования
-            // Делаем это ДО обновления статуса самого маршрута
             for (const stage of stages) {
                 if (typeof stage.id === 'number') {
                     try {
-                        // Обновляем существующий этап
                         await adaptationService.updateStage(stage.id, {
                             title: stage.title,
                             description: stage.description,
                             order: stages.indexOf(stage) + 1
                         });
                     } catch (err) {
-                        console.warn(`Не удалось обновить этап ${stage.id}, возможно он был удален или не изменен`);
+                        console.warn(`Не удалось обновить этап ${stage.id}`);
                     }
                 } else {
-                    // Создаем новый этап (у него временный строковый ID)
                     await adaptationService.addStages(currentRouteId, [{
                         title: stage.title,
                         description: stage.description,
@@ -170,7 +175,6 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                 }
             }
 
-            // 3. В ПОСЛЕДНЮЮ ОЧЕРЕДЬ обновляем основную информацию маршрута и его СТАТУС
             const routeData = {
                 title: routeName,
                 description: routeDesc,
@@ -178,11 +182,9 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                 userIds: selectedEmployees.map(e => e.id).filter(id => !!id),
                 status: routeStatus
             };
-            console.log("SENDING TO BACKEND:", routeData);
             await adaptationService.updateRoute(currentRouteId, routeData);
 
         } else {
-            // --- ЛОГИКА СОЗДАНИЯ НОВОГО МАРШРУТА ---
             const routeData = {
                 title: routeName,
                 description: routeDesc,
@@ -194,7 +196,6 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             const res = await adaptationService.createRoute(routeData);
             currentRouteId = res.routeId;
 
-            // Добавляем этапы для нового маршрута
             const stagesToSave = stages.map((s, idx) => ({
                 title: s.title || `Этап ${idx + 1}`,
                 description: s.description || '',
@@ -203,13 +204,9 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             await adaptationService.addStages(currentRouteId, stagesToSave);
         }
 
-        // --- СИНХРОНИЗАЦИЯ КУРСОВ (После того как все этапы точно созданы/обновлены) ---
-        
-        // Получаем актуальную структуру из БД, чтобы иметь правильные (числовые) ID новых этапов
         const fullRouteFromDb = await adaptationService.getRoute(currentRouteId);
         const currentCourseIdsInUI = stages.flatMap(s => s.courses.map(c => c.id));
 
-        // 1. Привязываем/обновляем курсы к этапам
         for (let i = 0; i < stages.length; i++) {
             const dbStage = fullRouteFromDb.stages[i]; 
             const frontStage = stages[i];
@@ -225,17 +222,15 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             }
         }
 
-        // 2. Отвязываем курсы, которые были удалены из интерфейса
         const coursesToUnlink = originalCourseIds.filter(id => !currentCourseIdsInUI.includes(id));
         for (const id of coursesToUnlink) {
             await courseService.linkCourseToStage(id, null, 0);
         }
 
-        // Успешное завершение
         navigate('/edit/adaptationRoutes');
     } catch (e) {
         console.error("Ошибка при сохранении маршрута:", e);
-        alert("Произошла ошибка при сохранении. Проверьте корректность данных.");
+        alert("Произошла ошибка при сохранении.");
     } finally {
         setLoading(false);
     }
@@ -248,24 +243,22 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
   if (loading) return <LoadingSpinner />;
 
-  // --- ФИЛЬТРАЦИЯ ---
-  // Наставники
   const filteredMentors = allUsers.filter(u => {
-    // Если роль Mentor или (для теста) если ролей вообще нет, но мы ищем по имени
     const isMentor = u.role === 'Mentor' || u.role === 'HrAdmin'; 
     return isMentor && u.fullName.toLowerCase().includes(searchMentor.toLowerCase());
   }).slice(0, 5);
 
-  // Сотрудники
   const filteredEmployees = allUsers.filter(u => {
-    const isUser = u.role === 'User' || !u.role; // Если роль не указана, считаем User
+    const isUser = u.role === 'User' || !u.role;
     return isUser && u.fullName.toLowerCase().includes(searchEmployee.toLowerCase());
   }).slice(0, 5);
 
-  const filteredCourses = (query: string) =>
-    allCourses.filter(c => c.title.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+  // Фильтрация курсов
+  const getFilteredCourses = (query: string) =>
+    allCourses
+        .filter(c => c.title.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 15);
 
-  // Функции перемещения этапов
   const moveStage = (idx: number, dir: 'up' | 'down') => {
     const newStages = [...stages];
     const target = dir === 'up' ? idx - 1 : idx + 1;
@@ -302,14 +295,14 @@ export const AdminEditAdaptationRoute: React.FC = () => {
       </section>
 
       <section className="card text">
-        <h2>Назначение сотрудников в план адаптации</h2>
+        <h2>Назначение сотрудников</h2>
         <div className="assignment-row">
           
           {/* Блок Наставников */}
           <div className="assign-block input-item">
             <h4>Наставники</h4>
             <div className="search-container">
-              <div style={{ position: 'relative' }}> {/* Обертка для позиционирования результатов */}
+              <div style={{ position: 'relative' }}>
                 <input 
                   className="input-field" 
                   value={searchMentor} 
@@ -331,17 +324,11 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   </div>
                 )}
               </div>
-
               <div className="chips-display-zone">
                 {selectedMentors.map(m => (
                   <div key={m.id} className="chip mentor-chip">
                     {m.fullName}
-                    <img 
-                      src={cross} 
-                      className="chip-remove-icon" 
-                      onClick={() => setSelectedMentors(selectedMentors.filter(mentor => mentor.id !== m.id))} 
-                      alt="remove" 
-                    />
+                    <img src={cross} className="chip-remove-icon" onClick={() => setSelectedMentors(selectedMentors.filter(mentor => mentor.id !== m.id))} alt="remove" />
                   </div>
                 ))}
               </div>
@@ -374,23 +361,16 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   </div>
                 )}
               </div>
-
               <div className="chips-display-zone">
                 {selectedEmployees.map(u => (
                   <div key={u.id} className="chip">
                     {u.fullName} 
-                    <img 
-                      src={cross} 
-                      className="chip-remove-icon" 
-                      onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== u.id))} 
-                      alt="x" 
-                    />
+                    <img src={cross} className="chip-remove-icon" onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== u.id))} alt="x" />
                   </div>
                 ))}
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -404,32 +384,21 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                 <input 
                   className={"input-field"}
                   value={stage.title} 
-                  placeholder="Например: Знакомство с культурой компании"
+                  placeholder="Название этапа..."
                   onChange={e => setStages(stages.map(s => s.id === stage.id ? {...s, title: e.target.value} : s))}
                 />
                 <div className="order-controls">
-                  <button className="control-btn" onClick={() => moveStage(index, 'up')} title="Вверх">
-                    <img src={upIcon} alt="U" />
-                  </button>
-                  <button className="control-btn" onClick={() => moveStage(index, 'down')} title="Вниз">
-                    <img src={downIcon} alt="D" />
-                  </button>
-                  <button 
-                      className="control-btn del-btn" 
-                      onClick={() => handleDeleteStage(stage.id)}
-                      title="Удалить этап"
-                  >
-                      <img src={deleteIcon} alt="X" />
-                  </button>
+                  <button className="control-btn" onClick={() => moveStage(index, 'up')}><img src={upIcon} alt="U" /></button>
+                  <button className="control-btn" onClick={() => moveStage(index, 'down')}><img src={downIcon} alt="D" /></button>
+                  <button className="control-btn del-btn" onClick={() => handleDeleteStage(stage.id)}><img src={deleteIcon} alt="X" /></button>
                 </div>
               </div>
 
               <div className="input-item">
-                <h4>Описание эпапа</h4>
+                <h4>Описание этапа</h4>
                 <textarea 
                   className="textarea-field"
                   value={stage.description}
-                  placeholder="О чем должен узнать сотрудник на этом шаге? (например: график работы и дресс-код)..."
                   onChange={e => {
                     setStages(stages.map(s => s.id === stage.id ? {...s, description: e.target.value} : s));
                     autoResize(e.target);
@@ -445,42 +414,70 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                       {stage.courses.map(c => (
                         <div key={c.id} className="course-item-mini">
                           <span>{c.title}</span>
-                          <img 
-                            src={cross} 
-                            className="remove-icon" 
-                            onClick={() => handleRemoveCourse(stage.id, c.id)}
-                            alt="x" 
-                          />
+                          <img src={cross} className="remove-icon" onClick={() => handleRemoveCourse(stage.id, c.id)} alt="x" />
                         </div>
                       ))}
                     </div>
                   )}
                   
-                  <div className="course-search-container" style={{ position: 'relative' }}>
-                    <input
-                      className="input-field"
-                      style={{ fontSize: '13px', padding: '8px 12px' }}
-                      placeholder="Введите название курса..."
-                      value={activeCourseSearch?.stageId === stage.id ? activeCourseSearch.query : ''}
-                      onChange={e => setActiveCourseSearch({ stageId: stage.id, query: e.target.value })}
-                    />
-                    {activeCourseSearch?.stageId === stage.id && activeCourseSearch.query && (
-                      <div className="search-results">
-                        {filteredCourses(activeCourseSearch.query).map(course => (
-                          <div key={course.id} className="search-item" onClick={() => {
-                            setStages(stages.map(s => {
-                              if (s.id === stage.id && !s.courses.find(c => c.id === course.id)) {
-                                return { ...s, courses: [...s.courses, { id: course.id, title: course.title }] };
-                              }
-                              return s;
-                            }));
-                            setActiveCourseSearch(null);
-                          }}>
-                            {course.title}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  {/* ВЫПАДАЮЩИЙ ПОИСК КУРСОВ */}
+                  <div className="course-search-wrapper" style={{ position: 'relative' }}>
+                    <div className="search-container course-search-wrapper">
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                className="input-field"
+                                style={{ fontSize: '13px', padding: '8px 12px' }}
+                                placeholder="Найти или выбрать курс из списка..."
+                                value={activeStageId === stage.id ? courseSearchQuery : ''}
+                                onFocus={() => {
+                                    setActiveStageId(stage.id);
+                                    setCourseSearchQuery('');
+                                }}
+                                onChange={e => {
+                                    setCourseSearchQuery(e.target.value);
+                                    setActiveStageId(stage.id);
+                                }}
+                            />
+                            
+                            <div 
+                                className={`search-arrow ${activeStageId === stage.id ? 'open' : ''}`}
+                                onClick={() => setActiveStageId(activeStageId === stage.id ? null : stage.id)}
+                            >
+                                <img className='search-dropdown' src={downIcon} alt="" />
+                            </div>
+
+                            {activeStageId === stage.id && (
+                                <div className="search-results">
+                                    {getFilteredCourses(courseSearchQuery).map(course => {
+                                        const isSelected = stage.courses.find(sc => sc.id === course.id);
+                                        return (
+                                            <div 
+                                                key={course.id} 
+                                                className={`search-item ${isSelected ? 'selected' : ''}`} 
+                                                onClick={() => {
+                                                    if (!isSelected) {
+                                                        setStages(stages.map(s => {
+                                                            if (s.id === stage.id) {
+                                                                return { ...s, courses: [...s.courses, { id: course.id, title: course.title }] };
+                                                            }
+                                                            return s;
+                                                        }));
+                                                    }
+                                                    setActiveStageId(null);
+                                                    setCourseSearchQuery('');
+                                                }}
+                                            >
+                                                {course.title}
+                                            </div>
+                                        );
+                                    })}
+                                    {getFilteredCourses(courseSearchQuery).length === 0 && (
+                                        <div className="search-item disabled">Курсы не найдены</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                   </div>
                 </div>
               </div>

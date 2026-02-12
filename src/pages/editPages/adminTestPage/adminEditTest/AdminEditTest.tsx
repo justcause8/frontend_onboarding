@@ -27,6 +27,8 @@ export const AdminEditTest: React.FC = () => {
   const [passingScore, setPassingScore] = useState(70);
   const [status, setStatus] = useState('active');
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentCourseId, setCurrentCourseId] = useState<number | null>(null);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,6 +50,7 @@ export const AdminEditTest: React.FC = () => {
           setPassingScore(data.passingScore);
           setStatus(data.status);
           setQuestions(data.questions || []);
+          setCurrentCourseId(data.courseId);
         }
       } catch (e) {
         console.error("Ошибка загрузки теста:", e);
@@ -72,7 +75,7 @@ export const AdminEditTest: React.FC = () => {
 
   const addQuestionByType = (typeId: number, typeName: string) => {
     const newQuestion: Question = {
-      id: Date.now(),
+      id: 0,
       testId: Number(testId) || 0,
       questionTypeId: typeId,
       typeName: typeName,
@@ -159,40 +162,54 @@ export const AdminEditTest: React.FC = () => {
   // --- СОХРАНЕНИЕ ---
 
   const handleSave = async () => {
+    // Валидация перед отправкой
+    if (!title.trim()) {
+        alert("Заполните название теста");
+        return;
+    }
+
+    if (questions.some(q => !q.textQuestion.trim())) {
+        alert("Заполните текст всех вопросов");
+        return;
+    }
+
     try {
       setLoading(true);
 
       const testData = {
-        title: title || "Новый тест",
-        description: description,
-        passingScore: Number(passingScore) || 70,
+        title: title.trim(),
+        description: description.trim(),
+        passingScore: isNaN(Number(passingScore)) ? 70 : Number(passingScore),
         status: status,
-        courseId: params.courseId ? Number(params.courseId) : undefined,
+        // Передаем ID курса (важно для бэкенда)
+        courseId: params.courseId ? Number(params.courseId) : currentCourseId,
         
         questions: questions.map((q) => ({
+          id: q.id > 1000000000000 ? 0 : q.id,
           questionTypeId: q.questionTypeId,
-          textQuestion: q.textQuestion,
+          textQuestion: q.textQuestion.trim(),
           options: q.options.map((o, oIdx) => ({
-            text: o.text,
+            id: o.id > 1000000000 ? 0 : o.id,
+            text: o.text.trim(),
             correctAnswer: !!o.correctAnswer, 
             orderIndex: oIdx + 1
           }))
         }))
       };
+      console.log("Отправка данных:", testData); 
 
       if (isEditMode) {
-        // TypeScript теперь не будет ругаться на несовместимость null/undefined
         await testService.updateTest(Number(testId), testData as any);
-        console.log("Тест успешно обновлен");
       } else {
         await testService.createTest(testData as any); 
-        console.log("Тест успешно создан");
       }
 
       navigate(-1); 
-    } catch (e) {
-      console.error("Ошибка при сохранении теста:", e);
-      alert("Не удалось сохранить тест.");
+    } catch (e: any) {
+       // Выводим подробности ошибки из тела ответа
+       const serverError = e.response?.data?.errors;
+       console.error("Детали ошибки:", serverError || e.response?.data);
+       alert("Ошибка валидации на сервере. Проверьте заполнение всех полей.");
     } finally {
       setLoading(false);
     }
@@ -236,7 +253,8 @@ export const AdminEditTest: React.FC = () => {
             type="number"
             className="input-field" 
             value={passingScore}
-            onChange={e => setPassingScore(Number(e.target.value))} 
+            onChange={e => setPassingScore(Number(e.target.value))}
+            onWheel={(e) => e.currentTarget.blur()}
           />
         </div>
       </section>
