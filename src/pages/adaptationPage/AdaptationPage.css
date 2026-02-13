@@ -81,7 +81,8 @@
 }
 
 .course-status.completed { color: var(--green-color); }
-.course-status.in_progress { color: var(--blue-color); }
+.course-status.in_process { color: var(--blue-color); } 
+.course-status.failed { color: var(--red-color); }
 .course-status.not_started { color: var(--text-secondary); }
 
 .stage-status {

@@ -101,11 +101,17 @@ const AdaptationPage = () => {
     }
   };
 
-  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'in_process' | 'not_started' => {
-    return (
-      progress.stageProgress.find(s => s.stageId === stageId)?.status ??
-      'not_started'
-    );
+  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' | 'not_started' => {
+    const stage = progress.stageProgress.find(s => s.stageId === stageId);
+    if (!stage) return 'not_started';
+
+    const currentStatus = stage.status as string;
+
+    if (currentStatus === 'in_process' || currentStatus === 'current') {
+      return 'current';
+    }
+    
+    return currentStatus as 'completed' | 'failed' | 'not_started';
   };
   
   const percent = progress.totalCourses > 0
@@ -148,8 +154,7 @@ const AdaptationPage = () => {
               const status = getStageStatus(stage.id);
               const sortedCourses = [...stage.courses].sort((a, b) => a.orderIndex - b.orderIndex);
 
-              // Кнопка доступна если: этап в процессе, завален ИЛИ это самый первый не начатый этап
-              const canStart = status === 'in_process' || 
+              const canStart = status === 'current' || 
                                status === 'failed' || 
                                (status === 'not_started' && firstIncompleteStage?.id === stage.id);
               
@@ -157,7 +162,7 @@ const AdaptationPage = () => {
               if (status === 'completed') {
                   iconContent = <img src={done} className="step-icon-img" alt="done" />;
               } else if (status === 'failed') {
-                  iconContent = <img src={exclamationmark} className="step-icon-img" alt="failed" style={{ filter: 'brightness(0) invert(1)' }} />;
+                  iconContent = <img src={exclamationmark} className="step-icon-img" alt="failed" />;
               } else {
                   iconContent = stage.orderIndex;
               }
@@ -172,7 +177,7 @@ const AdaptationPage = () => {
                         <h4>{stage.title}</h4>
                         <span className={`stage-badge ${status}`}>
                             {status === 'completed' && 'Завершен'}
-                            {status === 'in_process' && 'Текущий'}
+                            {status === 'current' && 'В процессе'} 
                             {status === 'failed' && 'Не пройден'}
                             {status === 'not_started' && 'Не начат'}
                         </span>
@@ -181,20 +186,25 @@ const AdaptationPage = () => {
                     {stage.description && <p>{stage.description}</p>}
                     
                     <div className="courses-list-mini">
-                        {sortedCourses.map(course => (
-                        <div key={course.id} className="course-item">
+                      {sortedCourses.map(course => {
+                        // Гарантируем, что статус — это строка из набора, либо 'not_started'
+                        const cStatus = course.status || 'not_started';
+                        
+                        return (
+                          <div key={course.id} className="course-item">
                             <span className="course-title">{course.title}</span>
-                            {course.status && (
-                            <span className={`course-status ${course.status}`}>
-                                {course.status === 'completed' ? '✓' : 
-                                course.status === 'in_process' ? '▶' : '○'}
+                            
+                            <span className={`course-status ${cStatus}`}>
+                                {cStatus === 'completed'}
+                                {cStatus === 'in_process'}
+                                {cStatus === 'failed'}
+                                {cStatus === 'not_started'}
                             </span>
-                            )}
-                        </div>
-                        ))}
+                          </div>
+                        );
+                      })}
                     </div>
                     
-                    {/* Исправленное условие: используем canStart */}
                     {canStart && (
                       <div className="step-footer">
                           <button 
@@ -202,7 +212,7 @@ const AdaptationPage = () => {
                               onClick={() => handleStartStage(stage.id)}
                           >
                               {status === 'not_started' && 'Начать этап'}
-                              {status === 'in_process' && 'Продолжить этап'}
+                              {status === 'current' && 'Продолжить этап'}
                               {status === 'failed' && 'Попробовать снова'}
                           </button>
                       </div>

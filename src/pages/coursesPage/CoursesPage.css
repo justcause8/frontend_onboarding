@@ -1,4 +1,4 @@
-.courses-grid {
+.course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   /* grid-template-columns: repeat(3, 1fr);  */
@@ -9,7 +9,7 @@
   box-sizing: border-box;
 }
 
-.courses-card {
+.course-card {
   display: flex;
   flex-direction: column;
   background-color: var(--card-bg);

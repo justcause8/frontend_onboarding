@@ -86,3 +86,13 @@
     gap: 8px;
     margin-top: 15px;
 }
+
+.input-with-button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.input-with-button .input-field {
+    flex: 1;
+}

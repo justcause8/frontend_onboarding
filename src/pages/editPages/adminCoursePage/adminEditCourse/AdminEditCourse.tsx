@@ -37,6 +37,7 @@ export const AdminEditCourse: React.FC = () => {
     const [searchTestQuery, setSearchTestQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
+    const [materialInput, setMaterialInput] = useState('');
 
     // Загрузка данных при старте
     useEffect(() => {
@@ -108,6 +109,18 @@ export const AdminEditCourse: React.FC = () => {
       }
     };
 
+    const handleAddMaterial = () => {
+        if (materialInput.trim()) {
+            const newMaterial: Material = {
+                id: Date.now(),
+                urlDocument: materialInput.trim(),
+                title: ''
+            };
+            setMaterials([...materials, newMaterial]);
+            setMaterialInput(''); // Очищаем поле
+        }
+    };
+
     const autoResize = (target: HTMLTextAreaElement) => {
         target.style.height = 'inherit';
         target.style.height = `${target.scrollHeight}px`;
@@ -155,21 +168,28 @@ export const AdminEditCourse: React.FC = () => {
                 <div className="input-item">
                     <h4>Ссылки на дополнительные материалы</h4>
                     <div className="nested-courses">
-                        <input 
-                            className="input-field ghost-input-style" 
-                            placeholder="Вставьте ссылку и нажмите Enter"
-                            onKeyDown={e => {
-                                if (e.key === 'Enter' && e.currentTarget.value) {
-                                    const newMaterial: Material = {
-                                        id: Date.now() ? Date.now() : 0,
-                                        urlDocument: e.currentTarget.value,
-                                        title: ''
-                                    };
-                                    setMaterials([...materials, newMaterial]);
-                                    e.currentTarget.value = '';
-                                }
-                            }}
-                        />
+                        {/* Контейнер для инпута и кнопки в одну строку */}
+                        <div className="input-with-button" style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                            <input 
+                                className="input-field ghost-input-style" 
+                                placeholder="Вставьте ссылку"
+                                value={materialInput}
+                                onChange={e => setMaterialInput(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddMaterial();
+                                    }
+                                }}
+                            />
+                            <button 
+                                type="button" 
+                                className="btn btn-primary" 
+                                onClick={handleAddMaterial}
+                            >
+                                Добавить
+                            </button>
+                        </div>
 
                         <div className="courses-grid">
                             {materials.map((mat, idx) => (

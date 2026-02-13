@@ -7,8 +7,6 @@ import { usePageTitle } from '../../../../contexts/PageTitleContext';
 
 import './AdminEditTest.css';
 
-import upIcon from '@/assets/editMode/UpIcon.png';
-import downIcon from '@/assets/editMode/DownIcon.png';
 import deleteIcon from '@/assets/editMode/DeleteIcon.png';
 import cross from '@/assets/cross.png';
 
@@ -74,19 +72,19 @@ export const AdminEditTest: React.FC = () => {
   // --- ЛОГИКА ВОПРОСОВ ---
 
   const addQuestionByType = (typeId: number, typeName: string) => {
-    const newQuestion: Question = {
-      id: 0,
-      testId: Number(testId) || 0,
-      questionTypeId: typeId,
-      typeName: typeName,
-      textQuestion: '',
-      options: [
-        { id: Date.now() + 1, text: '', correctAnswer: false, orderIndex: 1 },
-        { id: Date.now() + 2, text: '', correctAnswer: false, orderIndex: 2 }
-      ]
-    };
-    setQuestions([...questions, newQuestion]);
+  const newQuestion: Question = {
+    id: Date.now(), 
+    testId: Number(testId) || 0,
+    questionTypeId: typeId,
+    typeName: typeName,
+    textQuestion: '',
+    options: [
+      { id: Date.now() + 1, text: '', correctAnswer: false, orderIndex: 1 },
+      { id: Date.now() + 2, text: '', correctAnswer: false, orderIndex: 2 }
+    ]
   };
+  setQuestions([...questions, newQuestion]);
+};
 
   const removeQuestion = (qId: number) => {
     setQuestions(questions.filter(q => q.id !== qId));
@@ -95,16 +93,6 @@ export const AdminEditTest: React.FC = () => {
   const updateQuestionText = (qId: number, text: string) => {
     setQuestions(questions.map(q => q.id === qId ? { ...q, textQuestion: text } : q));
   };
-
-  const moveQuestion = (idx: number, dir: 'up' | 'down') => {
-    const newQuestions = [...questions];
-    const target = dir === 'up' ? idx - 1 : idx + 1;
-    if (target < 0 || target >= newQuestions.length) return;
-    [newQuestions[idx], newQuestions[target]] = [newQuestions[target], newQuestions[idx]];
-    setQuestions(newQuestions);
-  };
-
-  // --- ЛОГИКА ВАРИАНТОВ ОТВЕТОВ ---
 
   const addOption = (qId: number) => {
     setQuestions(questions.map(q => {
@@ -273,12 +261,6 @@ export const AdminEditTest: React.FC = () => {
                   onChange={(e) => updateQuestionText(q.id, e.target.value)}
                 />
                 <div className="order-controls">
-                  <button className="control-btn" onClick={() => moveQuestion(index, 'up')} title="Вверх">
-                    <img src={upIcon} alt="U" />
-                  </button>
-                  <button className="control-btn" onClick={() => moveQuestion(index, 'down')} title="Вниз">
-                    <img src={downIcon} alt="D" />
-                  </button>
                   <button className="control-btn del-btn" onClick={() => removeQuestion(q.id)} title="Удалить вопрос">
                     <img src={deleteIcon} alt="X" />
                   </button>
