@@ -10,3 +10,4 @@ export { default as AdminCourses } from './editPages/adminCoursePage/adminCourse
 export { default as AdminEditCourse } from './editPages/adminCoursePage/adminEditCourse/AdminEditCourse';
 export { default as AdminTests } from './editPages/adminTestPage/adminTests/AdminTests';
 export { default as AdminEditTest } from './editPages/adminTestPage/adminEditTest/AdminEditTest';
+export { default as AdminEditMaterialsPage } from './editPages/adminMaterialsPage/AdminEditMaterialsPage';

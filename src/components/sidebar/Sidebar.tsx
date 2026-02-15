@@ -1,6 +1,8 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../../store/useUserStore';
+
 import "./SideBar.css";
+
 import logo from '@/assets/logo/Logo_En_Plus.svg';
 import home from '@/assets/sidebar/home.svg';
 import education from '@/assets/sidebar/education.png';
@@ -9,6 +11,7 @@ import contacts from '@/assets/sidebar/contacts.svg';
 import people from '@/assets/sidebar/people.png';
 import analysis from '@/assets/sidebar/analysis.png';
 import request from '../../assets/sidebar/request.png';
+import materials from '../../assets/fileIcon.svg';
 
 const ALLOWED_ROLES = ['HrAdmin', 'Mentor', 'SuperAdmin'];
 
@@ -97,6 +100,12 @@ const Sidebar = () => {
               <NavLink to="/edit/tests">
                 <img src={analysis} className='icon' alt="" />
                 Тесты
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/edit/materials">
+                <img src={materials} className='icon' alt="" />
+                Материалы
               </NavLink>
             </li>
             <li>

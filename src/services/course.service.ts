@@ -1,12 +1,5 @@
 import { api } from '../api/api';
-
-export interface Material {
-  id: number;
-  urlDocument: string;
-  title: string;
-  isExternalLink: boolean;
-  category?: string;
-}
+import type { Material } from '../services/material.service';
 
 export interface TestShort {
   id: number;
@@ -29,27 +22,6 @@ export interface Course {
 }
 
 export const courseService = {
-  async getGeneralMaterials(): Promise<Material[]> {
-    const res = await api.get<Material[]>('/onboarding/materials/general');
-    return res.data;
-  },
-  
-  getFileUrl(relativePath: string): string {
-    const baseUrl = api.defaults.baseURL;
-    return `${baseUrl}/Files/download?path=${encodeURIComponent(relativePath)}`;
-  },
-  
-  /** Загрузить физический файл на сервер */
-  async uploadFile(file: File, subFolder: string = 'Materials'): Promise<{ relativePath: string, fileName: string }> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const res = await api.post(`/Files/upload?subFolder=${subFolder}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    return res.data;
-  },
-
   /** Создать новый курс */
   async createCourse(data: Partial<Course>): Promise<{ id: number }> {
     const res = await api.post('/onboarding/course/create', data);
@@ -94,23 +66,17 @@ export const courseService = {
     }
   },
 
-  /** 
-   * Получить список всех курсов текущего пользователя.
-   * Логика: берет маршрут юзера -> достает курсы из этапов -> обогащает их статусами и деталями.
-   */
+  /** Получить список всех курсов текущего пользователя через маршрут */
   async getAllUserCourses(): Promise<Course[]> {
     try {
-      // 1. Получаем маршрут (используем эндпоинт из API)
       const routeRes = await api.get<{ routeId: number | null }>('/onboarding/route/my-route');
       const routeId = routeRes.data.routeId;
 
       if (!routeId) return [];
 
-      // 2. Получаем структуру маршрута
       const routeData = await api.get(`/onboarding/route/${routeId}`);
       const stages = routeData.data.stages || [];
 
-      // 3. Собираем плоский список курсов из всех этапов
       const initialList: any[] = [];
       stages.forEach((stage: any) => {
         if (stage.courses) {
@@ -118,7 +84,6 @@ export const courseService = {
         }
       });
 
-      // 4. Загружаем детали и статусы для каждого курса параллельно
       const fullCourses = await Promise.all(
         initialList.map(async (base) => {
           try {
@@ -144,10 +109,7 @@ export const courseService = {
     }
   },
 
-  /** 
-   * Обновить курс или привязать его к этапу 
-   * (Используется, когда мы выбрали существующий курс и "прикрепляем" его к этапу)
-   */
+  /** Обновить курс или привязать его к этапу */
   async linkCourseToStage(courseId: number, stageId: number | null, orderIndex: number) {
     return api.put(`/onboarding/course/${courseId}`, {
       stageId: stageId,

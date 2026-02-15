@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { courseService, type Material } from '../../services/course.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
-import { formatFileName, extractFileNameFromUrl } from '../../utils/fileUtils';
+import { extractFileNameFromUrl } from '../../utils/fileUtils';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 
@@ -9,12 +9,15 @@ import './MaterialsPage.css';
 import folderIcon from '@/assets/folderIcon.svg';
 import linkIcon from '@/assets/link.svg';
 import fileIcon from '@/assets/fileIcon.svg';
+import backIcon from '@/assets/editMode/DownIcon.png';
 
 const MaterialsPage = () => {
   const { setDynamicTitle } = usePageTitle();
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const loadMaterials = useCallback(async () => {
     try {
@@ -35,7 +38,6 @@ const MaterialsPage = () => {
     loadMaterials();
   }, [loadMaterials]);
 
-  // Группировка материалов по категориям
   const groupedMaterials = materials.reduce((acc: Record<string, Material[]>, item) => {
     const category = item.category || 'Прочие материалы';
     if (!acc[category]) acc[category] = [];
@@ -68,39 +70,65 @@ const MaterialsPage = () => {
           <h2>Пока здесь нет доступных материалов</h2>
         </div>
       ) : (
-        Object.entries(groupedMaterials).map(([category, items]) => (
-          <section key={category} className="category-section">
-            <div className="category-header">
-              <img src={folderIcon} alt="folder" className="folder-icon" />
-              <h3>{category}</h3>
-              <span className="count-badge">{items.length}</span>
-            </div>
-
-            <div className="materials-grid">
-              {items.map((item) => (
+        <>
+            {!activeCategory && (
+            <div className="folders-grid">
+                {Object.entries(groupedMaterials).map(([category, items]) => (
                 <div 
-                  key={item.id} 
-                  className="card material-resource-card"
-                  onClick={() => handleOpen(item)}
+                    key={category} 
+                    className="card folder-card text" 
+                    onClick={() => setActiveCategory(category)}
                 >
-                  <div className="resource-icon">
-                    {item.isExternalLink ? (
-                      <img src={linkIcon} alt="link" />
-                    ) : (
-                      <img src={fileIcon} alt="file" />
-                    )}
-                  </div>
-                  <div className="resource-info">
-                    <p className="resource-title">{getDisplayName(item)}</p>
-                    <span className="resource-type">
-                      {item.isExternalLink ? 'Внешняя ссылка' : 'Файл'}
-                    </span>
-                  </div>
+                    <img src={folderIcon} alt="folder" className="folder-large-icon" />
+                    <h2>{category}</h2>
+                    <div className='count-badge'>{items.length}</div>
                 </div>
-              ))}
+                ))}
             </div>
-          </section>
-        ))
+            )}
+            
+            {activeCategory && (
+            <>
+                <div className='text'>
+                    <div className="back-navigation" onClick={() => setActiveCategory(null)}>
+                        <img src={backIcon} alt="back" className="back-arrow-icon" />
+                        <span>Назад к папкам</span>
+                    </div>
+
+                    <section className="category-section">
+                        <div className="category-header">
+                        <img src={folderIcon} alt="folder" className="folder-icon" />
+                        <h4>{activeCategory}</h4>
+                        </div>
+
+                        <div className="materials-grid">
+                        {groupedMaterials[activeCategory].map((item) => (
+                            <div 
+                            key={item.id} 
+                            className="card material-resource-card"
+                            onClick={() => handleOpen(item)}
+                            >
+                            <div className="resource-icon">
+                                {item.isExternalLink ? (
+                                <img src={linkIcon} alt="link" />
+                                ) : (
+                                <img src={fileIcon} alt="file" />
+                                )}
+                            </div>
+                            <div className="resource-info">
+                                <p className="resource-title">{getDisplayName(item)}</p>
+                                <span className="resource-type">
+                                {item.isExternalLink ? 'Внешняя ссылка' : 'Файл'}
+                                </span>
+                            </div>
+                            </div>
+                        ))}
+                        </div>
+                    </section>
+                </div>
+            </>
+          )}
+        </>
       )}
     </div>
   );
