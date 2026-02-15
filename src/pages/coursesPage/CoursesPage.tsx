@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-// ИСПРАВЛЕНО: Импортируем из нового файла course.service
+
 import { courseService } from '../../services/course.service';
 import type { Course, TestShort } from '../../services/course.service';
 
@@ -24,10 +24,9 @@ const CoursesPage = () => {
     try {
       setLoading(true);
       setError(null);
-      // ИСПРАВЛЕНО: Используем новый метод getAllUserCourses
       const allCourses = await courseService.getAllUserCourses();
       setCourses(allCourses);
-      setHasRoute(allCourses.length > 0 || true); // Упростил логику
+      setHasRoute(allCourses.length > 0 || true);
     } catch (err) {
       console.error(err);
       setError('Не удалось загрузить курсы. Попробуйте позже.');
@@ -49,7 +48,6 @@ const CoursesPage = () => {
   const handleStartCourse = async (courseId: number) => {
     try {
       setLoadingCourseId(courseId);
-      // ИСПРАВЛЕНО: Используем courseService
       await courseService.startCourse(courseId);
       navigate(`/courses/course/${courseId}`);
     } catch {

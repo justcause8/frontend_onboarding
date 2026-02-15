@@ -53,7 +53,7 @@ const Sidebar = () => {
               </NavLink>
             </li>
             <li>
-              <NavLink to="/files">
+              <NavLink to="/materials">
                 <img src={file} className='icon' alt="" />
                 Документы и ресурсы
               </NavLink>
@@ -79,7 +79,7 @@ const Sidebar = () => {
             </li>
           </ul>
         ) : (
-          /* РЕЖИМ РЕДАКТИРОВАНИЯ (пути из вашего App.tsx) */
+          /* РЕЖИМ РЕДАКТИРОВАНИЯ */
           <ul>
             <li>
               <NavLink to="/edit/adaptationRoutes">

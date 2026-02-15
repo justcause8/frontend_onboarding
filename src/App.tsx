@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
-import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage } from "./pages";
+import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage } from "./pages";
 import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest } from './pages';
 import MainLayout from './layout/MainLayout';
 import { PageTitleProvider } from './contexts/PageTitleContext';
@@ -23,7 +23,8 @@ export const App = () => {
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/course/:courseId" element={<CoursePage />} />
             <Route path="/courses/course/:courseId/test/:testId" element={<PassingTestPage />} />
-            
+            <Route path="/materials/" element={<MaterialsPage />} />
+
             
             {/* Админские роуты */}
             <Route path="/edit/adaptationRoutes" element={<AdminAdaptationRoute />} />
@@ -32,6 +33,7 @@ export const App = () => {
             <Route path="/edit/courses/:courseId" element={<AdminEditCourse />} />
             <Route path="edit/tests" element={<AdminTests />} />
             <Route path="edit/tests/:testId" element={<AdminEditTest />} />
+            
             {/* <Route path="edit/users" element={< />} />
             <Route path="edit/requests" element={< />} /> */}
           </Route>

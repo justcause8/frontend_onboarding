@@ -2,6 +2,8 @@ export { default as AdaptationPage } from './adaptationPage/AdaptationPage';
 export { default as CoursesPage } from './coursesPage/CoursesPage';
 export { default as CoursePage } from './coursePage/CoursePage';
 export { default as PassingTestPage } from './passingTestPage/PassingTestPage';
+export { default as MaterialsPage } from './materialsPage/MaterialsPage';
+
 export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';
 export { default as AdminEditAdaptationRoute } from './editPages/adminAdaptationPage/adminEditAdaptationRoute/AdminEditAdaptationRoute';
 export { default as AdminCourses } from './editPages/adminCoursePage/adminCourses/AdminCourses';

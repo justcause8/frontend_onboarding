@@ -47,23 +47,36 @@ const CoursePage = () => {
       loadCourse();
     };
 
-  const getMaterialTitle = (
-    urlDocument: string | undefined,
-    fallbackTitle: string | undefined, 
-    index: number
-  ) => {
-    if (!urlDocument) {
-      return fallbackTitle || `Материал ${index + 1}`;
+  const formatDisplayTitle = (material: Material, index: number): string => {
+    if (material.title && 
+        material.title !== 'Документ' && 
+        material.title !== 'Внешняя ссылка' &&
+        material.title.trim() !== "") {
+      return material.title;
     }
-    
-    const fileName = extractFileNameFromUrl(urlDocument);
-    
-    if (fileName && fileName !== 'Документ') {
-      return fileName;
+
+    let fileName = extractFileNameFromUrl(material.urlDocument);
+
+    if (!material.isExternalLink && fileName.includes('_')) {
+      const parts = fileName.split('_');
+      if (parts.length > 1) {
+        fileName = parts.slice(1).join('_');
+      }
     }
-    
-    return fallbackTitle || `Материал ${index + 1}`;
+
+    return fileName || `Материал ${index + 1}`;
   };
+
+  // Функция для обработки открытия материала
+  const handleOpenMaterial = (material: Material) => {
+    if (material.isExternalLink) {
+      window.open(material.urlDocument, '_blank', 'noreferrer');
+    } else {
+      const fileUrl = courseService.getFileUrl(material.urlDocument);
+      window.open(fileUrl, '_blank');
+    }
+  };
+
 
   if (loading) {
     return <LoadingSpinner />;
@@ -84,19 +97,7 @@ const CoursePage = () => {
     <div className="text">
       <section className="card course-section">
         <h2>Основная информация</h2>
-        <p>Тут очень большой текст Тут очень большой текст Тут очень большой текст
-           Тут очень большой текст Тут очень большой текст Тут очень большой текст
-            Тут очень большой текст Тут очень большой текст Тут очень большой текст
-             Тут очень большой текст Тут очень большой текст Тут очень большой текст
-              Тут очень большой текст Тут очень большой текст Тут очень большой текст
-               Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                 Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                  Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                   Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                    Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                     Тут очень большой текст Тут очень большой текст Тут очень большой текст
-                     {course.description || 'Описание отсутствует'}</p>
+        <p>{course.description || 'Описание отсутствует'}</p>
       </section>
 
       {course.materials.length > 0 && (
@@ -104,20 +105,19 @@ const CoursePage = () => {
           <h2>Дополнительная информация</h2>
           <div className="card-item-list">
             {course.materials.map((material: Material, index: number) => {
-              const fileName = getMaterialTitle(material.urlDocument, material.title, index);
+              const displayTitle = formatDisplayTitle(material, index);
+              
               return (
-                <div key={material.id} className="card-item material-item">
-                  <a
-                    href={material.urlDocument} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    title={`Открыть ${fileName}`}
-                  >
-                    <div className="material-content">
-                      <p>{fileName}</p>
-                      <img src={link} alt='Открыть'/>
-                    </div>
-                  </a>
+                <div 
+                  key={material.id} 
+                  className="card-item material-item"
+                  onClick={() => handleOpenMaterial(material)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="material-content">
+                    <p>{displayTitle}</p>
+                    <img src={link} alt='Открыть'/>
+                  </div>
                 </div>
               );
             })}

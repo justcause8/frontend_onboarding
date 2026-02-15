@@ -1,0 +1,102 @@
+.category-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #E2E8F0;
+}
+
+.folder-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.category-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1E293B;
+}
+
+.count-badge {
+    background: #F1F5F9;
+    color: #64748B;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Сетка карточек */
+.materials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.material-resource-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px !important;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid transparent;
+}
+
+.material-resource-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.resource-icon {
+    width: 48px;
+    height: 48px;
+    background: #F8FAFC;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.resource-icon img {
+    width: 24px;
+    height: 24px;
+}
+
+.resource-info {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.resource-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resource-type {
+    font-size: 0.8rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-top: 4px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px !important;
+    color: #64748B;
+}

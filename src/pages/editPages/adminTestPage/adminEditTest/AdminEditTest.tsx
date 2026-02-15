@@ -133,8 +133,8 @@ export const AdminEditTest: React.FC = () => {
   const toggleCorrectAnswer = (qId: number, optId: number) => {
     setQuestions(questions.map(q => {
       if (q.id === qId) {
-        // Если это одиночный выбор (тип 1), сбрасываем остальные галочки
-        const isSingleChoice = q.questionTypeId === 1;
+        // ИСПРАВЛЕНО: Одиночный выбор теперь имеет ID 2
+        const isSingleChoice = q.questionTypeId === 2; 
         return {
           ...q,
           options: q.options.map(o => {
@@ -272,9 +272,8 @@ export const AdminEditTest: React.FC = () => {
                 <div className="answers-section">
                   {q.options.map((opt, i) => (
                     <div key={opt.id} className="answer-row">
-                      {/* Маркер: круглый для типа 1, квадратный для остальных */}
                       <div 
-                        className={`answer-marker ${q.questionTypeId === 1 ? 'round' : 'square'} ${opt.correctAnswer ? 'active' : ''}`}
+                        className={`answer-marker ${q.questionTypeId === 2 ? 'round' : 'square'} ${opt.correctAnswer ? 'active' : ''}`}
                         onClick={() => toggleCorrectAnswer(q.id, opt.id)}
                       ></div>
                       
@@ -308,10 +307,12 @@ export const AdminEditTest: React.FC = () => {
         <div className="add-question-placeholder">
           <span className="add-question-title">Добавить новый вопрос</span>
           <div className="question-type-buttons">
-            <div className="q-type-btn" onClick={() => addQuestionByType(1, 'Одиночный выбор')}>
+            {/* Тип 2 - Одиночный (Close) */}
+            <div className="q-type-btn" onClick={() => addQuestionByType(2, 'Одиночный выбор')}>
               <span className="q-type-label-btn">Закрытый</span>
             </div>
-            <div className="q-type-btn" onClick={() => addQuestionByType(2, 'Множественный выбор')}>
+            {/* Тип 3 - Множественный (Multiple) */}
+            <div className="q-type-btn" onClick={() => addQuestionByType(3, 'Множественный выбор')}>
               <span className="q-type-label-btn">Множественный</span>
             </div>
           </div>

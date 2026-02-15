@@ -1,11 +1,11 @@
 import { api } from '../api/api';
 
-// --- ИНТЕРФЕЙСЫ ---
-
 export interface Material {
   id: number;
   urlDocument: string;
-  title?: string;
+  title: string;
+  isExternalLink: boolean;
+  category?: string;
 }
 
 export interface TestShort {
@@ -21,23 +21,32 @@ export interface Course {
   title: string;
   description: string;
   orderIndex: number;
-  status: CourseStatus | string; // string для гибкости админки
+  status: CourseStatus | string;
   stageId: number | null;
   materials: Material[];
   tests: TestShort[];
+  testIds?: number[];
 }
 
-// --- СЕРВИС ---
-
 export const courseService = {
+  async getGeneralMaterials(): Promise<Material[]> {
+    const res = await api.get<Material[]>('/onboarding/materials/general');
+    return res.data;
+  },
   
-  // ==========================================
-  // АДМИНИСТРАТИВНЫЕ МЕТОДЫ (Admin)
-  // ==========================================
-
-  /** Получить абсолютно все курсы из БД (для таблицы админа) */
-  async getAllCoursesAdmin(): Promise<Course[]> {
-    const res = await api.get<Course[]>('/onboarding/courses');
+  getFileUrl(relativePath: string): string {
+    const baseUrl = api.defaults.baseURL;
+    return `${baseUrl}/Files/download?path=${encodeURIComponent(relativePath)}`;
+  },
+  
+  /** Загрузить физический файл на сервер */
+  async uploadFile(file: File, subFolder: string = 'Materials'): Promise<{ relativePath: string, fileName: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await api.post(`/Files/upload?subFolder=${subFolder}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return res.data;
   },
 
@@ -47,8 +56,15 @@ export const courseService = {
     return res.data;
   },
 
+  /** Обновить курс */
   async updateCourse(courseId: number, data: Partial<Course>): Promise<void> {
     await api.put(`/onboarding/course/${courseId}`, data);
+  },
+
+  /** Получить полную информацию о курсе */
+  async getCourseById(courseId: number): Promise<Course> {
+    const res = await api.get<Course>(`/onboarding/course/${courseId}`);
+    return res.data;
   },
 
   /** Удалить курс */
@@ -56,15 +72,11 @@ export const courseService = {
     await api.delete(`/onboarding/course/${courseId}`);
   },
 
-  /** Получить полную информацию о курсе (Материалы + Тесты) */
-  async getCourseById(courseId: number): Promise<Course> {
-    const res = await api.get<Course>(`/onboarding/course/${courseId}`);
+  /** Получить абсолютно все курсы из БД (для таблицы админа) */
+  async getAllCoursesAdmin(): Promise<Course[]> {
+    const res = await api.get<Course[]>('/onboarding/courses');
     return res.data;
   },
-
-  // ==========================================
-  // ПОЛЬЗОВАТЕЛЬСКИЕ МЕТОДЫ (User Progress)
-  // ==========================================
 
   /** Начать прохождение курса пользователем */
   async startCourse(courseId: number): Promise<void> {
