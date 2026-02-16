@@ -213,18 +213,26 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             
             if (dbStage && frontStage.courses.length > 0) {
                 for (let j = 0; j < frontStage.courses.length; j++) {
-                    await courseService.linkCourseToStage(
-                        frontStage.courses[j].id, 
-                        dbStage.id, 
-                        j + 1
-                    );
+                    const fullCourse = allCourses.find(ac => ac.id === frontStage.courses[j].id);
+                    
+                    if (fullCourse) {
+                        await courseService.linkCourseToStage(
+                            fullCourse,
+                            dbStage.id, 
+                            j + 1
+                        );
+                    }
                 }
             }
         }
 
-        const coursesToUnlink = originalCourseIds.filter(id => !currentCourseIdsInUI.includes(id));
-        for (const id of coursesToUnlink) {
-            await courseService.linkCourseToStage(id, null, 0);
+        const coursesToUnlinkIds = originalCourseIds.filter(id => !currentCourseIdsInUI.includes(id));
+        for (const id of coursesToUnlinkIds) {
+            const fullCourseToUnlink = allCourses.find(ac => ac.id === id);
+            
+            if (fullCourseToUnlink) {
+                await courseService.linkCourseToStage(fullCourseToUnlink, null, 0);
+            }
         }
 
         navigate('/edit/adaptationRoutes');
@@ -427,7 +435,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                             <input
                                 className="input-field"
                                 style={{ fontSize: '13px', padding: '8px 12px' }}
-                                placeholder="Найти или выбрать курс из списка..."
+                                placeholder="Выбрать курс..."
                                 value={activeStageId === stage.id ? courseSearchQuery : ''}
                                 onFocus={() => {
                                     setActiveStageId(stage.id);

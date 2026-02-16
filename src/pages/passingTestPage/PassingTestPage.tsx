@@ -7,7 +7,7 @@ import type { TestFullResponse, Question, QuestionOption } from '../../services/
 import { courseService } from '../../services/course.service';
 
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
-import TestResultModal from '../../components/modals/TestResultModal';
+import TestResultModal from '../../components/modals/testResultModal/TestResultModal';
 import './PassingTestPage.css';
 import done from '@/assets/done.svg';
 

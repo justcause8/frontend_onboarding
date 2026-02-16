@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { courseService, type Material } from '../../../../services/course.service';
+import { courseService } from '../../../../services/course.service';
+import { materialService, type Material } from '../../../../services/material.service';
 import { testService } from '../../../../services/test.service'; 
 
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
@@ -38,16 +39,42 @@ export const AdminEditCourse: React.FC = () => {
     
     const searchRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [searchParams] = useSearchParams();
+    const newTestId = searchParams.get('newTestId');
     const [materialInput, setMaterialInput] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 setLoading(true);
-                const tests = await testService.getAllTests(); 
-                setAllTests(tests);
+                const allTestsData = await testService.getAllTests(); 
+                setAllTests(allTestsData);
 
-                if (isEditMode) {
+                const draft = sessionStorage.getItem('course_draft');
+                
+                if (draft) {
+                    const parsed = JSON.parse(draft);
+                    setCourseName(parsed.courseName || '');
+                    setCourseDesc(parsed.courseDesc || '');
+                    setMaterials(parsed.materials || []);
+                    
+                    let testsFromDraft = parsed.selectedTests || [];
+
+                    if (newTestId) {
+                        const newId = Number(newTestId);
+                        const testObject = allTestsData.find(t => t.id === newId);
+                        
+                        if (testObject && !testsFromDraft.find((t: any) => t.id === newId)) {
+                            testsFromDraft = [...testsFromDraft, { id: testObject.id, title: testObject.title }];
+                        }
+                    }
+                    
+                    setSelectedTests(testsFromDraft);
+                    
+                    sessionStorage.removeItem('course_draft');
+                    navigate(window.location.pathname, { replace: true }); 
+                } 
+                else if (isEditMode) {
                     const course = await courseService.getCourseById(Number(courseId));
                     setCourseName(course.title);
                     setCourseDesc(course.description);
@@ -64,7 +91,18 @@ export const AdminEditCourse: React.FC = () => {
             }
         };
         loadData();
-    }, [courseId, isEditMode, setDynamicTitle]);
+    }, [courseId, isEditMode, newTestId]);
+
+    const handleCreateTestRedirect = () => {
+        const draft = {
+            courseName,
+            courseDesc,
+            materials,
+            selectedTests
+        };
+        sessionStorage.setItem('course_draft', JSON.stringify(draft));
+        navigate(`/edit/tests/new?returnToCourse=${courseId}`);
+    };
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -72,7 +110,7 @@ export const AdminEditCourse: React.FC = () => {
 
         try {
             setUploading(true);
-            const data = await courseService.uploadFile(file);
+            const data = await materialService.uploadFile(file);
 
             let extractedTitle = extractFileNameFromUrl(data.relativePath);
             
@@ -232,6 +270,13 @@ export const AdminEditCourse: React.FC = () => {
                 {/* Секция тестов: Выпадающий список при фокусе */}
                 <div className="input-item">
                     <h4>Привязанные тесты</h4>
+                    <button 
+                        className="add-test" 
+                        onClick={handleCreateTestRedirect}
+                    >
+                        + Создать новый тест
+                    </button>
+                    
                     <div className="search-container" ref={searchRef}>
                         <div style={{ position: 'relative' }}>
                             <input 

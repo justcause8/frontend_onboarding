@@ -20,6 +20,10 @@ export const materialService = {
     await api.post('/onboarding/material', data);
   },
 
+  async updateMaterial(id: number, data: Partial<Material>): Promise<void> {
+    await api.put(`/onboarding/material/${id}`, data);
+  },
+
   /** Сформировать URL для скачивания файла */
   getFileUrl(relativePath: string): string {
     const baseUrl = api.defaults.baseURL;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { testService, type Question, type QuestionOption } from '../../../../services/test.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
@@ -26,6 +26,8 @@ export const AdminEditTest: React.FC = () => {
   const [status, setStatus] = useState('active');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentCourseId, setCurrentCourseId] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const returnToCourse = searchParams.get('returnToCourse');
 
 
   useEffect(() => {
@@ -184,15 +186,21 @@ export const AdminEditTest: React.FC = () => {
           }))
         }))
       };
-      console.log("Отправка данных:", testData); 
-
+      let savedTest: any;
       if (isEditMode) {
-        await testService.updateTest(Number(testId), testData as any);
+          await testService.updateTest(Number(testId), testData as any);
+          savedTest = { id: Number(testId) };
       } else {
-        await testService.createTest(testData as any); 
+          const response = await testService.createTest(testData as any);
+          savedTest = response; 
       }
 
-      navigate(-1); 
+      if (returnToCourse) {
+          const createdId = savedTest?.id || savedTest; 
+          navigate(`/edit/courses/${returnToCourse}?newTestId=${createdId}`);
+      } else {
+          navigate(-1);
+      }
     } catch (e: any) {
        // Выводим подробности ошибки из тела ответа
        const serverError = e.response?.data?.errors;

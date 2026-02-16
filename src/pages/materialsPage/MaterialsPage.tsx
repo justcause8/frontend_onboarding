@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { courseService, type Material } from '../../services/course.service';
+import { materialService, type Material } from '../../services/material.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { extractFileNameFromUrl } from '../../utils/fileUtils';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
@@ -23,7 +23,7 @@ const MaterialsPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await courseService.getGeneralMaterials();
+      const data = await materialService.getGeneralMaterials();
       setMaterials(data);
       setDynamicTitle('Материалы и ресурсы');
     } catch (e) {
@@ -49,7 +49,7 @@ const MaterialsPage = () => {
     if (material.isExternalLink) {
       window.open(material.urlDocument, '_blank', 'noreferrer');
     } else {
-      const fileUrl = courseService.getFileUrl(material.urlDocument);
+      const fileUrl = materialService.getFileUrl(material.urlDocument);
       window.open(fileUrl, '_blank');
     }
   };
@@ -116,12 +116,16 @@ const MaterialsPage = () => {
                                 )}
                             </div>
                             <div className="resource-info">
-                                <p className="resource-title">{getDisplayName(item)}</p>
-                                <span className="resource-type">
-                                {item.isExternalLink ? 'Внешняя ссылка' : 'Файл'}
-                                </span>
+                              <p className="resource-title">{getDisplayName(item)}</p>
+                              <span className="resource-type">
+                                {item.isExternalLink ? (
+                                  item.urlDocument.replace(/^https?:\/\//, '')
+                                ) : (
+                                  item.urlDocument.split('.').pop()?.toUpperCase() + ' файл'
+                                )}
+                              </span>
                             </div>
-                            </div>
+                          </div>
                         ))}
                         </div>
                     </section>

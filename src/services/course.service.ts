@@ -1,5 +1,6 @@
 import { api } from '../api/api';
 import type { Material } from '../services/material.service';
+import { extractFileNameFromUrl } from '../utils/fileUtils';
 
 export interface TestShort {
   id: number;
@@ -21,18 +22,21 @@ export interface Course {
   testIds?: number[];
 }
 
+const prepareCoursePayload = (data: Partial<Course>) => {
+  return {
+    ...data,
+    materials: data.materials?.map(m => ({
+      id: m.id,
+      title: m.title || extractFileNameFromUrl(m.urlDocument),
+      urlDocument: m.urlDocument,
+      isExternalLink: m.isExternalLink,
+      category: m.category || 'Общее'
+    })),
+    testIds: data.testIds || data.tests?.map(t => t.id) || []
+  };
+};
+
 export const courseService = {
-  /** Создать новый курс */
-  async createCourse(data: Partial<Course>): Promise<{ id: number }> {
-    const res = await api.post('/onboarding/course/create', data);
-    return res.data;
-  },
-
-  /** Обновить курс */
-  async updateCourse(courseId: number, data: Partial<Course>): Promise<void> {
-    await api.put(`/onboarding/course/${courseId}`, data);
-  },
-
   /** Получить полную информацию о курсе */
   async getCourseById(courseId: number): Promise<Course> {
     const res = await api.get<Course>(`/onboarding/course/${courseId}`);
@@ -109,11 +113,25 @@ export const courseService = {
     }
   },
 
-  /** Обновить курс или привязать его к этапу */
-  async linkCourseToStage(courseId: number, stageId: number | null, orderIndex: number) {
-    return api.put(`/onboarding/course/${courseId}`, {
+  async createCourse(data: Partial<Course>): Promise<{ id: number }> {
+    const payload = prepareCoursePayload(data);
+    const res = await api.post('/onboarding/course/create', payload);
+    return res.data;
+  },
+
+  async updateCourse(courseId: number, data: Partial<Course>): Promise<void> {
+    const payload = prepareCoursePayload(data);
+    await api.put(`/onboarding/course/${courseId}`, payload);
+  },
+
+  async linkCourseToStage(course: Course, stageId: number | null, orderIndex: number) {
+    // Используем ту же очистку данных
+    const payload = prepareCoursePayload({
+      ...course,
       stageId: stageId,
       orderIndex: orderIndex
     });
+    
+    return api.put(`/onboarding/course/${course.id}`, payload);
   },
 };

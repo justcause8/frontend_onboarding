@@ -5,6 +5,7 @@ import { courseService, type Course } from '../../../../services/course.service'
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
+import { extractFileNameFromUrl } from '../../../../utils/fileUtils';
 import '../../adminPagesWithTables.css';
 
 export const AdminCourses = () => {
@@ -55,21 +56,41 @@ export const AdminCourses = () => {
     }, [setDynamicTitle]);
 
     const handleStatusChange = async (id: number, currentStatus: string) => {
+        const courseToUpdate = courses.find(c => c.id === id);
+        if (!courseToUpdate) return;
+
         try {
             const newStatus = currentStatus === 'active' ? 'archived' : 'active';
-            // Используем метод обновления курса
-            await courseService.updateCourse(id, { status: newStatus });
+            
+            const payload: Partial<Course> = {
+                title: courseToUpdate.title,
+                description: courseToUpdate.description,
+                orderIndex: courseToUpdate.orderIndex,
+                status: newStatus,
+                stageId: courseToUpdate.stageId,
+                testIds: courseToUpdate.tests?.map(t => t.id) || [],
+                materials: courseToUpdate.materials?.map(m => ({
+                    id: m.id, 
+                    title: m.title || extractFileNameFromUrl(m.urlDocument),
+                    urlDocument: m.urlDocument,
+                    isExternalLink: m.isExternalLink,
+                    category: m.category
+                })) || []
+            };
+
+            await courseService.updateCourse(id, payload);
             
             setCourses(prev => {
                 const updated = prev.map(c => c.id === id ? { ...c, status: newStatus } : c);
                 return sortCourses(updated);
             });
         } catch (e) {
+            console.error("Ошибка при обновлении статуса:", e);
             alert("Не удалось изменить статус курса");
         }
         setOpenMenuId(null);
     };
-
+    
     const handleDelete = async (id: number) => {
         if (!window.confirm('Вы уверены, что хотите удалить этот курс?')) return;
         try {

@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseService } from '../../services/course.service'; 
-import type { Course, Material, TestShort } from '../../services/course.service'; 
+import type { Course, TestShort } from '../../services/course.service'; 
+import { materialService, type Material } from '../../services/material.service'; 
+
 
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { extractFileNameFromUrl } from '../../utils/fileUtils';
@@ -72,7 +74,7 @@ const CoursePage = () => {
     if (material.isExternalLink) {
       window.open(material.urlDocument, '_blank', 'noreferrer');
     } else {
-      const fileUrl = courseService.getFileUrl(material.urlDocument);
+      const fileUrl = materialService.getFileUrl(material.urlDocument);
       window.open(fileUrl, '_blank');
     }
   };

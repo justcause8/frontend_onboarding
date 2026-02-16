@@ -1,0 +1,118 @@
+/* Затемнение фона */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4); /* Более мягкое затемнение */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(2px); /* Легкое размытие в стиле современных UI */
+    padding: 20px;
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Заголовок */
+.modal-header {
+    padding: 20px 24px;
+    background: #f8fafc; /* Легкий акцент на шапке */
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+}
+
+/* Тело модалки */
+.modal-body {
+    padding: 24px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Поля ввода (используем стиль вашего сайта) */
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #3b82f6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mt-16 {
+    margin-top: 20px;
+}
+
+/* Футер */
+.modal-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #fff;
+    border-top: 1px solid var(--border-color, #f1f5f9);
+}
+
+/* Кнопки (используем глобальные классы сайта, если они есть, либо эти стили) */
+.modal-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.btn-cancel {
+    background: #fff;
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-save {
+    background: var(--primary-color, #3b82f6);
+    color: #fff;
+}
+
+.btn-save:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-save:active {
+    transform: scale(0.98);
+}
