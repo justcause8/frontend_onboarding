@@ -32,7 +32,7 @@ export const AdminAdaptationRoute = () => {
             setLoading(true);
             const data = await adaptationService.getAllRoutes();
             setRoutes(sortRoutes(data));
-            setDynamicTitle('Редактирование адаптационных маршрутов'); 
+            setDynamicTitle('Редактирование плана адаптации'); 
         } catch (error) {
             console.error('Ошибка загрузки:', error);
         } finally {
@@ -64,7 +64,7 @@ export const AdminAdaptationRoute = () => {
                 return sortRoutes(updated);
             });
         } catch (e) {
-            alert("Не удалось изменить статус маршрута");
+            alert("Не удалось изменить статус плана");
         }
         setOpenMenuId(null);
     };
@@ -87,14 +87,13 @@ export const AdminAdaptationRoute = () => {
      return (
         <div className="card">
             <button className="btn btn-primary create-btn" onClick={() => navigate('/edit/adaptationRoutes/new')}>
-                Создать адаптационный маршрут
+                Создать план адаптации
             </button>
 
             <AdminTable 
                 columns={columns}
                 data={routes}
                 renderRow={(route) => (
-                    // Добавляем класс row-archived для визуального отделения
                     <tr key={route.id} className={route.status === 'archived' ? 'row-archived' : ''}>
                         <td>
                             <span className="route-title">
@@ -103,7 +102,6 @@ export const AdminAdaptationRoute = () => {
                             </span>
                         </td>
                         <td>
-                            {/* Стилизуем текст статуса */}
                             <span className={`status-badge status-${route.status}`}>
                                 {route.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>

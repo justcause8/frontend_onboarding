@@ -8,6 +8,7 @@ import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
+import { truncate } from '../../utils/routeUtils';
 import './CoursesPage.css';
 
 const CoursesPage = () => {
@@ -79,13 +80,13 @@ const CoursesPage = () => {
     <div>
       {!hasRoute ? (
         <EmptyState
-          title="Маршрут адаптации не назначен"
+          title="План адаптации не назначен"
           description="Обратитесь к HR-специалисту или Наставнику."
         />
       ) : courses.length === 0 ? (
         <EmptyState
           title="Курсы пока не назначены"
-          description="В вашем маршруте адаптации пока нет назначенных курсов."
+          description="В вашем плане адаптации пока нет назначенных курсов."
         />
       ) : (
         <section className="course-grid">
@@ -101,14 +102,25 @@ const CoursesPage = () => {
                 </div>
                 
                 <h4>{course.title}</h4>
-                <p>{course.description || 'Описание отсутствует'}</p>
+                <p className="course-description">
+                  {course.description && course.description.length > 150
+                    ? `${course.description.substring(0, 150)}...`
+                    : course.description || 'Описание отсутствует'}
+                </p>
 
                 {course.tests.length > 0 && (
-                  <div className="card-tests">
+                  <div className="tests-container">
                     {course.tests.slice(0, 2).map((test: TestShort) => (
-                      <div key={test.id}>{test.title}</div>
+                      <div key={test.id} className="card-tests">
+                        {test.title}
+                      </div>
                     ))}
-                    {course.tests.length > 2 && <div>...и еще {course.tests.length - 2} теста</div>}
+                    
+                    {course.tests.length > 2 && (
+                      <div className="card-tests more-tests">
+                        ...и еще {course.tests.length - 2}
+                      </div>
+                    )}
                   </div>
                 )}
 

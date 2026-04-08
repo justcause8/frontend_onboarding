@@ -22,8 +22,6 @@
   /* min-width: 300px;  */
   max-width: 315px;
   position: relative;
-  box-sizing: border-box; /* Учитываем padding в ширине */
-  transition: all 0.2s ease-in-out;
 }
 
 .course-card:hover {
@@ -63,16 +61,36 @@
   flex-grow: 1;
 }
 
+.course-description {
+  font-size: 14px;
+  background-color: var(--card-bg);
+  margin-bottom: 10px;
+  flex-grow: 1;
+  
+  text-transform: lowercase;
+}
+
+.course-description::first-letter {
+  text-transform: uppercase;
+}
+
 .card-tests {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 10px;
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    font-size: 13px;
-    margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.tests-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  margin-bottom: 10px;
 }
 
 .card-actions {
@@ -133,3 +151,4 @@
     grid-template-columns: 1fr;
   }
 }
+

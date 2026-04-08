@@ -124,3 +124,36 @@ button {
   color: var(--text-secondary);
   padding: 5px 0;
 }
+
+.step-body,
+.card-item,
+.course-card,
+.folder-card,
+.material-resource-card,
+.q-type-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.step-body:hover,
+.card-item:hover,
+.course-card:hover,
+.folder-card:hover,
+.material-resource-card:hover,
+.q-type-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.chip-remove-icon, .remove-icon {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    opacity: 0.6;
+    filter: invert(24%) sepia(94%) saturate(6345%) hue-rotate(352deg) brightness(93%) contrast(93%);
+    transition: all 0.2s;
+}
+
+.chip-remove-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}

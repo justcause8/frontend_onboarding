@@ -27,7 +27,11 @@ export const materialService = {
   /** Сформировать URL для скачивания файла */
   getFileUrl(relativePath: string): string {
     const baseUrl = api.defaults.baseURL;
-    return `${baseUrl}/Files/download?path=${encodeURIComponent(relativePath)}`;
+    // Нормализуем путь: убираем ведущий слеш и заменяем обратные слеши
+    const normalizedPath = relativePath
+      .replace(/\\/g, '/')
+      .replace(/^\//, '');
+    return `${baseUrl}/Files/download?path=${encodeURIComponent(normalizedPath)}`;
   },
 
   /** Загрузить физический файл на сервер */

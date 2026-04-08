@@ -20,13 +20,13 @@ export interface OnboardingRoute {
 }
 
 export const adaptationService = {
-  /** Все маршруты (Админка) */
+  /** Все планы (Админка) */
   async getAllRoutes(): Promise<OnboardingRoute[]> {
     const res = await api.get<OnboardingRoute[]>('/onboarding/routes');
     return res.data;
   },
 
-  /** Детали конкретного маршрута со стадиями */
+  /** Детали конкретного плана со стадиями */
   async getRoute(routeId: number): Promise<OnboardingRoute> {
     const res = await api.get<OnboardingRoute>(`/onboarding/route/${routeId}`);
     return res.data;

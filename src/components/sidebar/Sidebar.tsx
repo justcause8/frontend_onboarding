@@ -55,6 +55,7 @@ const Sidebar = () => {
                 Обучение и тестирование
               </NavLink>
             </li>
+            <hr className="nav-separator" />
             <li>
               <NavLink to="/materials">
                 <img src={file} className='icon' alt="" />
@@ -74,12 +75,6 @@ const Sidebar = () => {
                 Сотрудники
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/analysis">
-                <img src={analysis} className='icon' alt="" />
-                Отчеты
-              </NavLink>
-            </li>
           </ul>
         ) : (
           /* РЕЖИМ РЕДАКТИРОВАНИЯ */
@@ -87,7 +82,7 @@ const Sidebar = () => {
             <li>
               <NavLink to="/edit/adaptationRoutes">
                 <img src={home} className='icon' alt="" />
-                Маршруты
+                Планы адаптации
               </NavLink>
             </li>
             <li>
@@ -102,24 +97,34 @@ const Sidebar = () => {
                 Тесты
               </NavLink>
             </li>
+            <hr className="nav-separator" />
             <li>
               <NavLink to="/edit/materials">
                 <img src={materials} className='icon' alt="" />
                 Материалы
               </NavLink>
             </li>
+            <hr className="nav-separator" />
             <li>
               <NavLink to="/edit/users">
                 <img src={people} className='icon' alt="" />
                 Пользователи
               </NavLink>
             </li>
+            <hr className="nav-separator" />
             <li>
+              <NavLink to="/analysis">
+                <img src={analysis} className='icon' alt="" />
+                Отчеты
+              </NavLink>
+            </li>
+            <hr className="nav-separator" />
+            {/* <li>
               <NavLink to="/edit/requests">
                 <img src={request} className='icon' alt="" />
                 Заявки
               </NavLink>
-            </li>
+            </li> */}
           </ul>
         )}
       </nav>

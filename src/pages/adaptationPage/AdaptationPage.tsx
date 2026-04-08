@@ -9,6 +9,7 @@ import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
 import './AdaptationPage.css';
+
 import done from '@/assets/done.svg';
 import exclamationmark from '@/assets/exclamation-mark.png';
 
@@ -20,14 +21,24 @@ const emptyProgress: UserProgress = {
   stageProgress: [],
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  completed:  'Завершён',
+  current:    'В процессе',
+  failed:     'Не пройден',
+  not_started:'Не начат',
+  in_process: 'В процессе',
+};
+
 const AdaptationPage = () => {
   const navigate = useNavigate();
   const { setDynamicTitle } = usePageTitle();
 
-  const [route, setRoute] = useState<OnboardingRoute | null>(null);
-  const [progress, setProgress] = useState<UserProgress>(emptyProgress);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [route,          setRoute]          = useState<OnboardingRoute | null>(null);
+  const [progress,       setProgress]       = useState<UserProgress>(emptyProgress);
+  const [courseStatuses, setCourseStatuses] = useState<Record<number, string>>({});
+  const [loading,        setLoading]        = useState(true);
+  const [loadingCourseId,setLoadingCourseId]= useState<number | null>(null);
+  const [error,          setError]          = useState<string | null>(null);
 
   useEffect(() => {
     setDynamicTitle('Мой план адаптации');
@@ -37,23 +48,25 @@ const AdaptationPage = () => {
   const loadData = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const routeId = await userService.getMyRouteId();
-
-      if (!routeId) {
-        setRoute(null);
-        setProgress(emptyProgress);
-        return;
-      }
+      if (!routeId) { setRoute(null); setProgress(emptyProgress); return; }
 
       const [progressData, routeData] = await Promise.all([
         userService.getUserProgress(),
         adaptationService.getRoute(routeId),
       ]);
 
+      const allCourseIds: number[] = routeData.stages.flatMap((s: any) =>
+        (s.courses || []).map((c: any) => c.id)
+      );
+      const entries = await Promise.all(
+        allCourseIds.map(async (id) => [id, await courseService.getUserCourseStatus(id)] as const)
+      );
+
       setProgress(progressData);
       setRoute(routeData);
+      setCourseStatuses(Object.fromEntries(entries));
     } catch (e) {
       console.error('Ошибка загрузки', e);
       setError('Не удалось загрузить данные');
@@ -62,165 +75,150 @@ const AdaptationPage = () => {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorState message={error} onRetry={loadData} />;
+  if (error)   return <ErrorState message={error} onRetry={loadData} />;
+  if (!route)  return (
+    <EmptyState title="План адаптации не назначен" description="Обратитесь к HR-специалисту или Наставнику." />
+  );
 
-  if (!route) {
-    return (
-      <EmptyState
-        title="Маршрут адаптации не назначен"
-        description="Обратитесь к HR-специалисту или Наставнику."
-      />
-    );
-  }
-
-  const handleStartStage = async (stageId: number) => {
-    if (!route) return;
-
-    const stage = route.stages.find(s => s.id === stageId);
-    if (!stage || !stage.courses || stage.courses.length === 0) {
-      alert('В этапе нет курсов');
-      return;
-    }
-
-    const firstCourse = [...stage.courses].sort(
-      (a, b) => a.orderIndex - b.orderIndex
-    )[0];
-
+  const handleOpenCourse = async (courseId: number) => {
     try {
-        await courseService.startCourse(firstCourse.id);
-        await userService.recalcStatuses();
-        await loadData();
-        navigate(`/courses/course/${firstCourse.id}`);
+      setLoadingCourseId(courseId);
+      await courseService.startCourse(courseId);
+      await userService.recalcStatuses();
+      navigate(`/courses/course/${courseId}`);
     } catch (err) {
-        console.error("Ошибка при старте курса", err);
+      console.error('Ошибка при открытии курса', err);
+    } finally {
+      setLoadingCourseId(null);
     }
   };
 
   const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' | 'not_started' => {
-    const stage = progress.stageProgress.find(s => s.stageId === stageId);
-    if (!stage) return 'not_started';
-
-    const currentStatus = stage.status as string;
-
-    if (currentStatus === 'in_process' || currentStatus === 'current') {
-      return 'current';
-    }
-    
-    return currentStatus as 'completed' | 'failed' | 'not_started';
+    const s = progress.stageProgress.find(s => s.stageId === stageId);
+    return s ? s.status : 'not_started';
   };
-  
-  const percent = progress.totalCourses > 0
-      ? Math.round((progress.completedCourses / progress.totalCourses) * 100) : 0;
 
+  const sortedStages = [...route.stages].sort((a, b) => a.orderIndex - b.orderIndex);
+
+  const firstActiveIdx = sortedStages.findIndex(s => getStageStatus(s.id) !== 'completed');
+
+  const percent       = progress.totalCourses > 0
+    ? Math.round((progress.completedCourses / progress.totalCourses) * 100) : 0;
   const percentStages = progress.totalStages > 0
-      ? Math.round((progress.completedStages / progress.totalStages) * 100) : 0;
-
-  // Находим первый этап, который еще не завершен, чтобы разрешить его начать
-  const firstIncompleteStage = [...route.stages]
-    .sort((a, b) => a.orderIndex - b.orderIndex)
-    .find(s => getStageStatus(s.id) !== 'completed');
+    ? Math.round((progress.completedStages  / progress.totalStages)  * 100) : 0;
 
   return (
     <div>
-      <section className="card progress-card text">
-        <h2>Ваш общий прогресс</h2>
+      {/* Прогресс */}
+      <section className="card text">
+        <h2>Мой прогресс</h2>
         <div className="progress-items">
           <div className="progress-item">
-            <div className="progress-circle">{percentStages}%</div>
+            <div className="progress-circle stages">{percentStages}%</div>
             <div>
-              <p>Этапы: {progress.completedStages} / {progress.totalStages}</p>
+              <p className="progress-label">Этапы</p>
+              <p className="progress-value">{progress.completedStages} / {progress.totalStages}</p>
             </div>
           </div>
           <div className="progress-item">
-            <div className="progress-circle">{percent}%</div>
+            <div className="progress-circle courses">{percent}%</div>
             <div>
-              <p>Курсы: {progress.completedCourses} / {progress.totalCourses}</p>
+              <p className="progress-label">Курсы</p>
+              <p className="progress-value">{progress.completedCourses} / {progress.totalCourses}</p>
+            </div>
+          </div>
+          <div className="progress-bar-block">
+            <div className="progress-bar-header">
+              <span className="progress-bar-percent">{percentStages}%</span>
+              <span className="progress-label">Прогресс обучения</span>
+            </div>
+            <div className="progress-bar-track">
+              <div className="progress-bar-fill" style={{ width: `${percentStages}%` }} />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="card plan-card text">
-        <h2>Этапы вашего маршрута</h2>
+      {/* Этапы */}
+      <section className="card text">
+        <h2>Этапы плана адаптации</h2>
         <div className="stepper">
-          {[...route.stages]
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .map((stage) => {
-              const status = getStageStatus(stage.id);
-              const sortedCourses = [...stage.courses].sort((a, b) => a.orderIndex - b.orderIndex);
+          {sortedStages.map((stage, idx) => {
+            const status = getStageStatus(stage.id);
+            const isActive = idx === firstActiveIdx || status === 'current' || status === 'failed';
+            const sortedCourses = [...stage.courses].sort((a, b) => a.orderIndex - b.orderIndex);
 
-              const canStart = status === 'current' || 
-                               status === 'failed' || 
-                               (status === 'not_started' && firstIncompleteStage?.id === stage.id);
-              
-              let iconContent: React.ReactNode;
-              if (status === 'completed') {
-                  iconContent = <img src={done} className="step-icon-img" alt="done" />;
-              } else if (status === 'failed') {
-                  iconContent = <img src={exclamationmark} className="step-icon-img" alt="failed" />;
-              } else {
-                  iconContent = stage.orderIndex;
-              }
+            return (
+              <div key={stage.id} className={`step step--${status}`}>
 
-              return (
-                <div key={stage.id} className={`step ${status}`}>
-                  <div className="step-icon">
-                    {iconContent}
-                  </div>
-                  <div className="card-item step-item">
-                    <div className="step-header">
-                        <h4>{stage.title}</h4>
-                        <span className={`stage-badge ${status}`}>
-                            {status === 'completed' && 'Завершен'}
-                            {status === 'current' && 'В процессе'} 
-                            {status === 'failed' && 'Не пройден'}
-                            {status === 'not_started' && 'Не начат'}
-                        </span>
+                <div className="step-num">
+                  {status === 'completed' ? (
+                    <img src={done} className="step-icon-img" alt="done" />
+                  ) : status === 'failed' ? (
+                    <img src={exclamationmark} className="step-icon-img" alt="failed" />
+                  ) : (
+                    stage.orderIndex
+                  )}
+                </div>
+
+                {/* Карточка этапа */}
+                <div className="step-body">
+                  <div className="step-head">
+                    <div className="step-head-left">
+                      <span className="step-title">{stage.title}</span>
+                      {stage.description && (
+                        <span className="step-desc">{stage.description}</span>
+                      )}
                     </div>
-                    
-                    {stage.description && <p>{stage.description}</p>}
-                    
-                    <div className="courses-list-mini">
+                    <span className={`step-badge step-badge--${status}`}>
+                      {STATUS_LABEL[status]}
+                    </span>
+                  </div>
+
+                  {sortedCourses.length > 0 && (
+                    <div className="course-list">
                       {sortedCourses.map(course => {
-                        // Гарантируем, что статус — это строка из набора, либо 'not_started'
-                        const cStatus = course.status || 'not_started';
-                        
+                        const cs = courseStatuses[course.id] || 'not_started';
+                        const btnLabel = loadingCourseId === course.id ? '...'
+                          : cs === 'completed'  ? 'Повторить'
+                          : cs === 'in_process' ? 'Продолжить'
+                          : 'Начать';
+
                         return (
-                          <div key={course.id} className="course-item">
-                            <span className="course-title">{course.title}</span>
-                            
-                            <span className={`course-status ${cStatus}`}>
-                                {cStatus === 'completed'}
-                                {cStatus === 'in_process'}
-                                {cStatus === 'failed'}
-                                {cStatus === 'not_started'}
-                            </span>
+                          <div key={course.id} className={`course-row course-row--${cs}`}>
+                            <div className="course-row-left">
+                              <span className={`course-dot course-dot--${cs}`} />
+                              <span className="course-row-title">{course.title}</span>
+                            </div>
+                            <div className="course-row-right">
+                              <span className={`course-chip course-chip--${cs}`}>
+                                {STATUS_LABEL[cs] ?? cs}
+                              </span>
+                              {isActive && (
+                                <button
+                                  className={`btn-go btn-go--${cs}`}
+                                  disabled={loadingCourseId === course.id}
+                                  onClick={() => handleOpenCourse(course.id)}
+                                >
+                                  {btnLabel}
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                    
-                    {canStart && (
-                      <div className="step-footer">
-                          <button 
-                              className={`btn ${status === 'failed' ? 'btn-secondary' : 'btn-primary'}`}
-                              onClick={() => handleStartStage(stage.id)}
-                          >
-                              {status === 'not_started' && 'Начать этап'}
-                              {status === 'current' && 'Продолжить этап'}
-                              {status === 'failed' && 'Попробовать снова'}
-                          </button>
-                      </div>
-                    )}
-                  </div>
+                  )}
+                  {sortedCourses.length === 0 && isActive && (
+                    <p className="step-no-courses">Курсы для этого этапа ещё не назначены</p>
+                  )}
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

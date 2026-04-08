@@ -3,7 +3,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/courses': 'Обучение и тестирование',
   '/test': 'Тест',
   '/edit': 'Редактирование',
-  '/edit/adaptationRoutes': 'Адаптационные маршруты',
+  '/edit/adaptationRoutes': 'Планы адаптации',
   '/edit/courses': 'Обучающие курсы',
   '/edit/tests': 'Редактирование тестов',
 };
@@ -15,11 +15,11 @@ export const BREADCRUMB_NAMES: Record<string, string> = {
   'test': 'Тест',
   'tests': 'Тесты',
   'edit': 'Редактирование', 
-  'adaptationRoutes': 'Редактирование адаптационных маршрутов',
+  'adaptationRoutes': 'Редактирование планов адаптации',
   'new': 'Создание',
 };
 
-const truncate = (text: string, maxLength: number = 25): string => {
+export const truncate = (text: string, maxLength: number = 25): string => {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
 

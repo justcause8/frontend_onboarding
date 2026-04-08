@@ -71,10 +71,18 @@ const CoursePage = () => {
 
   // Функция для обработки открытия материала
   const handleOpenMaterial = (material: Material) => {
-    if (material.isExternalLink) {
-      window.open(material.urlDocument, '_blank', 'noreferrer');
+    const url = material.urlDocument || '';
+    // Считаем внешней ссылкой если isExternalLink=true ИЛИ URL начинается с http(s)
+    const isExternal = material.isExternalLink ||
+      url.startsWith('http://') ||
+      url.startsWith('https://');
+
+    if (isExternal) {
+      // Добавляем протокол если отсутствует (например 'docs.google.com/...')
+      const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+      window.open(fullUrl, '_blank', 'noreferrer');
     } else {
-      const fileUrl = materialService.getFileUrl(material.urlDocument);
+      const fileUrl = materialService.getFileUrl(url);
       window.open(fileUrl, '_blank');
     }
   };

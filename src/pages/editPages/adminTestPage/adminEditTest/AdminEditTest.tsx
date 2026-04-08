@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { testService, type Question, type QuestionOption } from '../../../../services/test.service';
@@ -28,6 +28,13 @@ export const AdminEditTest: React.FC = () => {
   const [currentCourseId, setCurrentCourseId] = useState<number | null>(null);
   const [searchParams] = useSearchParams();
   const returnToCourse = searchParams.get('returnToCourse');
+
+  const descRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (el) { el.style.height = 'inherit'; el.style.height = `${el.scrollHeight}px`; }
+  }, [description]);
 
 
   useEffect(() => {
@@ -233,14 +240,15 @@ export const AdminEditTest: React.FC = () => {
         </div>
         <div className="input-item">
           <h4>Описание</h4>
-          <textarea 
+          <textarea
+            ref={descRef}
             className="textarea-field"
-            value={description} 
+            value={description}
             onChange={e => {
               setDescription(e.target.value);
               autoResize(e.target);
             }}
-            placeholder="О чем этот тест и какие правила прохождения?" 
+            placeholder="О чем этот тест и какие правила прохождения?"
           />
         </div>
         <div className="input-item" style={{ maxWidth: '200px' }}>
@@ -315,11 +323,11 @@ export const AdminEditTest: React.FC = () => {
         <div className="add-question-placeholder">
           <span className="add-question-title">Добавить новый вопрос</span>
           <div className="question-type-buttons">
-            {/* Тип 2 - Одиночный (Close) */}
+            {/* Тип 1 - Одиночный (Close) */}
             <div className="q-type-btn" onClick={() => addQuestionByType(2, 'Одиночный выбор')}>
               <span className="q-type-label-btn">Закрытый</span>
             </div>
-            {/* Тип 3 - Множественный (Multiple) */}
+            {/* Тип 2 - Множественный (Multiple) */}
             <div className="q-type-btn" onClick={() => addQuestionByType(3, 'Множественный выбор')}>
               <span className="q-type-label-btn">Множественный</span>
             </div>

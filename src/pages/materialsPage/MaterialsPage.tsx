@@ -25,7 +25,7 @@ const MaterialsPage = () => {
       setError(null);
       const data = await materialService.getGeneralMaterials();
       setMaterials(data);
-      setDynamicTitle('Материалы и ресурсы');
+      setDynamicTitle('Документы и ресурсы');
     } catch (e) {
       console.error(e);
       setError('Не удалось загрузить список ресурсов');

@@ -110,7 +110,7 @@ const PassingTestPage = () => {
         onRetry={handleRetry}
       />
 
-      <div className="card text test-header">
+      <div className="card text">
         <h1>{test.title}</h1>
         {test.description && <p>{test.description}</p>}
         <div className="text-info">

@@ -42,10 +42,10 @@ const EditModal: React.FC<EditModalProps> = ({
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
+        <div className="modal-overlay text" onClick={onClose}>
+            <div className="modal-edit-content" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
                 <div className="modal-header">
-                    <h3>{title}</h3>
+                    <h2>{title}</h2>
                 </div>
                 
                 <div className="modal-body">

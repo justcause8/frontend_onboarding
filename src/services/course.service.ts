@@ -70,7 +70,7 @@ export const courseService = {
     }
   },
 
-  /** Получить список всех курсов текущего пользователя через маршрут */
+  /** Получить список всех курсов текущего пользователя через план */
   async getAllUserCourses(): Promise<Course[]> {
     try {
       const routeRes = await api.get<{ routeId: number | null }>('/onboarding/route/my-route');

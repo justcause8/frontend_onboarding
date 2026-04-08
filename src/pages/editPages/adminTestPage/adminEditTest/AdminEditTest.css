@@ -87,6 +87,11 @@
     gap: 12px;
 }
 
+.answer-row .input-field {
+    flex: 1;
+    min-width: 0;
+}
+
 /* Маркеры (вместо чекбоксов) */
 .answer-marker {
   width: 18.5px;
@@ -149,23 +154,28 @@
 .question-type-buttons {
     display: flex;
     gap: 15px;
+    width: 100%;
+    max-width: 460px;
+    justify-content: center;
 }
 
 .q-type-btn {
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
     padding: 12px 24px;
     background: #fff;
     border: 1px solid #E2E8F0;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .q-type-btn:hover {
-    border-color: var(--primary-color);
+    /* border-color: var(--primary-color); */
     color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(240, 73, 35, 0.1);
 }
 
 .q-type-label-btn {

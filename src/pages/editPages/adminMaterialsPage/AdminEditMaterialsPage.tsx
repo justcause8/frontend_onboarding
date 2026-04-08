@@ -208,8 +208,9 @@ export const AdminEditMaterialsPage: React.FC = () => {
     if (loading && materials.length === 0) return <LoadingSpinner />;
 
     return (
-        <div className="admin-edit-container">            <section className="card text">
-                <h2>Добавить новый контент</h2>
+        <div className="admin-edit-container">            
+            <section className="card text">
+                <h2>Добавить новый материал</h2>
                 <div className="add-controls-grid">
                     <div className="input-item">
                         <h4>1. Категория</h4>

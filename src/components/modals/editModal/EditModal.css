@@ -1,4 +1,17 @@
-/* Затемнение фона */
+.modal-edit-content {
+    background-color: #ffffff;
+    position: relative;
+    z-index: 2001;
+    opacity: 1 !important;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);  
+    animation: modalSlideUp 0.3s ease-out;
+    overflow: hidden; 
+}
+
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -23,13 +36,6 @@
     border-bottom: 1px solid var(--border-color, #f1f5f9);
 }
 
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary, #1e293b);
-}
-
 /* Тело модалки */
 .modal-body {
     padding: 24px;
@@ -49,7 +55,7 @@
     letter-spacing: 0.025em;
 }
 
-/* Поля ввода (используем стиль вашего сайта) */
+/* Поля ввода */
 .modal-input {
     width: 100%;
     padding: 12px;
@@ -81,7 +87,7 @@
     border-top: 1px solid var(--border-color, #f1f5f9);
 }
 
-/* Кнопки (используем глобальные классы сайта, если они есть, либо эти стили) */
+/* Кнопки */
 .modal-btn {
     padding: 10px 20px;
     border-radius: 8px;

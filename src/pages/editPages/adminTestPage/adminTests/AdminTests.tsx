@@ -71,7 +71,6 @@ export const AdminTests = () => {
         }
     };
 
-    // Остальной код (columns, renderRow, JSX) остается без изменений
     const columns = [
         { header: 'Название теста', width: '60%' },
         { header: 'Статус', width: '20%' },
@@ -92,7 +91,7 @@ export const AdminTests = () => {
             <AdminTable 
                 columns={columns}
                 data={tests}
-                emptyText="Тесты в базе данных не найдены"
+                emptyText="Тесты не найдены"
                 renderRow={(test) => (
                     <tr key={test.id} className={test.status === 'archived' ? 'row-archived' : ''}>
                         <td><span className="route-title">{test.title}</span></td>

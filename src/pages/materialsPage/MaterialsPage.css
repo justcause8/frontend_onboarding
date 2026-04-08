@@ -1,18 +1,21 @@
 .folder-card {
-    display: flex;
+    display: inline-flex;
+    width: fit-content;
+    align-self: start;
     flex-direction: row;
     align-items: center;
     gap: 15px;
     padding: 10px !important;
     text-align: left;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
 .folder-card:hover {
     transform: translateX(2px);
-    border-color: var(--primary-color);
+    color: var(--primary-color);
     box-shadow: 0 10px 20px rgba(0,0,0,0.05);
 }
 
@@ -120,7 +123,6 @@
     gap: 14px;
     padding: 10px !important;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid transparent;
     margin: 0 !important; 
 }

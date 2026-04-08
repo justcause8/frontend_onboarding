@@ -39,6 +39,12 @@ export const AdminEditCourse: React.FC = () => {
     
     const searchRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const courseDescRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        const el = courseDescRef.current;
+        if (el) { el.style.height = 'inherit'; el.style.height = `${el.scrollHeight}px`; }
+    }, [courseDesc]);
     const [searchParams] = useSearchParams();
     const newTestId = searchParams.get('newTestId');
     const [materialInput, setMaterialInput] = useState('');
@@ -209,14 +215,15 @@ export const AdminEditCourse: React.FC = () => {
 
                 <div className="input-item">
                     <h4>Описание</h4>
-                    <textarea 
+                    <textarea
+                        ref={courseDescRef}
                         className="textarea-field"
-                        value={courseDesc} 
+                        value={courseDesc}
                         onChange={e => {
                             setCourseDesc(e.target.value);
                             autoResize(e.target);
                         }}
-                        placeholder="О чем этот курс..." 
+                        placeholder="О чем этот курс..."
                     />
                 </div>
             </section>

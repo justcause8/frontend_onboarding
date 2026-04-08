@@ -9,7 +9,7 @@ export interface UserShort {
 
 export interface StageProgressItem {
   stageId: number;
-  status: 'completed' | 'failed' | 'in_process' | 'not_started';
+  status: 'not_started' | 'current' | 'completed' | 'failed';
 }
 
 export interface UserProgress {
@@ -32,7 +32,7 @@ export const userService = {
     }));
   },
 
-  /** Получить ID маршрута текущего пользователя */
+  /** Получить ID плана текущего пользователя */
   async getMyRouteId(): Promise<number | null> {
     const res = await api.get<{ routeId: number | null }>('/onboarding/route/my-route');
     return res.data.routeId;
