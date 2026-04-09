@@ -6,6 +6,7 @@ export interface TestShort {
   id: number;
   title: string;
   passingScore: number;
+  status?: string;
 }
 
 export type CourseStatus = 'not_started' | 'in_process' | 'completed' | 'failed';
@@ -16,6 +17,7 @@ export interface Course {
   description: string;
   orderIndex: number;
   status: CourseStatus | string;
+  adminStatus?: string; // admin-статус курса: 'active' | 'archived'
   stageId: number | null;
   materials: Material[];
   tests: TestShort[];
@@ -97,7 +99,8 @@ export const courseService = {
             ]);
             return {
               ...details,
-              status,
+              adminStatus: details.status, // сохраняем admin-статус отдельно
+              status,                      // перезаписываем прогресс-статусом пользователя
               stageId: base.stageId
             };
           } catch {
@@ -106,7 +109,9 @@ export const courseService = {
         })
       );
 
-      return fullCourses.sort((a, b) => a.orderIndex - b.orderIndex);
+      return fullCourses
+        .filter(c => c.adminStatus !== 'archived')
+        .sort((a, b) => a.orderIndex - b.orderIndex);
     } catch (error) {
       console.error('Ошибка в getAllUserCourses:', error);
       return [];
@@ -116,7 +121,8 @@ export const courseService = {
   async createCourse(data: Partial<Course>): Promise<{ id: number }> {
     const payload = prepareCoursePayload(data);
     const res = await api.post('/onboarding/course/create', payload);
-    return res.data;
+    const d = res.data;
+    return { id: d.id ?? d.courseId ?? d.Id ?? d.CourseId ?? 0 };
   },
 
   async updateCourse(courseId: number, data: Partial<Course>): Promise<void> {

@@ -18,6 +18,8 @@ const emptyProgress: UserProgress = {
   completedCourses: 0,
   totalStages: 0,
   completedStages: 0,
+  percentCourses: 0,
+  percentStages: 0,
   stageProgress: [],
 };
 
@@ -49,6 +51,7 @@ const AdaptationPage = () => {
     setLoading(true);
     setError(null);
     try {
+      await userService.recalcStatuses();
       const routeId = await userService.getMyRouteId();
       if (!routeId) { setRoute(null); setProgress(emptyProgress); return; }
 
@@ -97,18 +100,17 @@ const AdaptationPage = () => {
   };
 
   const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' | 'not_started' => {
-    const s = progress.stageProgress.find(s => s.stageId === stageId);
-    return s ? s.status : 'not_started';
+    const s = progress.stageProgress?.find(item => item.stageId === stageId);
+      if (!s) return 'not_started';
+      
+      return s.status as any; 
   };
 
+  const percent = progress.percentCourses ?? (progress as any).PercentCourses ?? 0;
+  const percentStages = progress.percentStages ?? (progress as any).PercentStages ?? 0;
+
   const sortedStages = [...route.stages].sort((a, b) => a.orderIndex - b.orderIndex);
-
   const firstActiveIdx = sortedStages.findIndex(s => getStageStatus(s.id) !== 'completed');
-
-  const percent       = progress.totalCourses > 0
-    ? Math.round((progress.completedCourses / progress.totalCourses) * 100) : 0;
-  const percentStages = progress.totalStages > 0
-    ? Math.round((progress.completedStages  / progress.totalStages)  * 100) : 0;
 
   return (
     <div>
@@ -149,7 +151,9 @@ const AdaptationPage = () => {
           {sortedStages.map((stage, idx) => {
             const status = getStageStatus(stage.id);
             const isActive = idx === firstActiveIdx || status === 'current' || status === 'failed';
-            const sortedCourses = [...stage.courses].sort((a, b) => a.orderIndex - b.orderIndex);
+            const sortedCourses = [...stage.courses]
+              .filter((c: any) => c.status !== 'archived')
+              .sort((a, b) => a.orderIndex - b.orderIndex);
 
             return (
               <div key={stage.id} className={`step step--${status}`}>
@@ -194,9 +198,9 @@ const AdaptationPage = () => {
                               <span className="course-row-title">{course.title}</span>
                             </div>
                             <div className="course-row-right">
-                              <span className={`course-chip course-chip--${cs}`}>
+                              {/* <span className={`course-chip course-chip--${cs}`}>
                                 {STATUS_LABEL[cs] ?? cs}
-                              </span>
+                              </span> */}
                               {isActive && (
                                 <button
                                   className={`btn-go btn-go--${cs}`}

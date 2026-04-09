@@ -84,6 +84,23 @@
   border: 1px solid var(--border-color);
   font-size: 13px;
   margin-bottom: 10px;
+  gap: 8px;
+}
+
+.card-tests--passed {
+  border-color: var(--green-color);
+  color: var(--green-color);
+}
+
+.card-tests--failed {
+  border-color: var(--red-color);
+  color: var(--red-color);
+}
+
+.course-archived-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .tests-container {

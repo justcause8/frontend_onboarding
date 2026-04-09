@@ -18,7 +18,6 @@ const PassingTestPage = () => {
   const { setDynamicTitle } = usePageTitle();
   const navigate = useNavigate();
 
-  // ИСПРАВЛЕНО: Заменили any на TestFullResponse
   const [test, setTest] = useState<TestFullResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
@@ -35,11 +34,15 @@ const PassingTestPage = () => {
         setLoading(true);
         if (!testId || !courseId) return;
 
-        // Используем новые методы сервисов
         const [testData, courseData] = await Promise.all([
           testService.getTestById(Number(testId)),
           courseService.getCourseById(Number(courseId))
         ]);
+
+        if (testData.status === 'archived') {
+          navigate(`/courses/course/${courseId}`, { replace: true });
+          return;
+        }
 
         setTest(testData);
         setDynamicTitle(`${courseData.title} | ${testData.title}`);
@@ -73,7 +76,6 @@ const PassingTestPage = () => {
       setLoading(true);
       if (!testId) return;
 
-      // Вызываем объединенный метод отправки результатов
       const response = await testService.submitTestResults(Number(testId), userAnswers);
       
       setTestResult({

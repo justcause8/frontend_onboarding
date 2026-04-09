@@ -17,6 +17,7 @@ import downIcon from '@/assets/editMode/DownIcon.png';
 interface TestShort {
     id: number;
     title: string;
+    status?: string;
 }
 
 export const AdminEditCourse: React.FC = () => {
@@ -36,10 +37,15 @@ export const AdminEditCourse: React.FC = () => {
     const [allTests, setAllTests] = useState<TestShort[]>([]);
     const [searchTestQuery, setSearchTestQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const [allGeneralMaterials, setAllGeneralMaterials] = useState<Material[]>([]);
+    const [matSearchQuery, setMatSearchQuery] = useState('');
+    const [isMatDropdownOpen, setIsMatDropdownOpen] = useState(false);
     
     const searchRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const courseDescRef = useRef<HTMLTextAreaElement>(null);
+    const draftProcessedRef = useRef(false);
 
     useEffect(() => {
         const el = courseDescRef.current;
@@ -47,38 +53,43 @@ export const AdminEditCourse: React.FC = () => {
     }, [courseDesc]);
     const [searchParams] = useSearchParams();
     const newTestId = searchParams.get('newTestId');
+    const returnToRoute = searchParams.get('returnToRoute');
+    const returnStageId = searchParams.get('stageId');
     const [materialInput, setMaterialInput] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 setLoading(true);
-                const allTestsData = await testService.getAllTests(); 
+                const [allTestsData, generalMats] = await Promise.all([
+                    testService.getAllTests(),
+                    materialService.getGeneralMaterials(),
+                ]);
                 setAllTests(allTestsData);
+                setAllGeneralMaterials(generalMats);
 
                 const draft = sessionStorage.getItem('course_draft');
-                
-                if (draft) {
+
+                if (draft && !draftProcessedRef.current) {
+                    draftProcessedRef.current = true;
                     const parsed = JSON.parse(draft);
                     setCourseName(parsed.courseName || '');
                     setCourseDesc(parsed.courseDesc || '');
                     setMaterials(parsed.materials || []);
-                    
+
                     let testsFromDraft = parsed.selectedTests || [];
 
                     if (newTestId) {
                         const newId = Number(newTestId);
                         const testObject = allTestsData.find(t => t.id === newId);
-                        
+
                         if (testObject && !testsFromDraft.find((t: any) => t.id === newId)) {
                             testsFromDraft = [...testsFromDraft, { id: testObject.id, title: testObject.title }];
                         }
                     }
-                    
+
                     setSelectedTests(testsFromDraft);
-                    
                     sessionStorage.removeItem('course_draft');
-                    navigate(window.location.pathname, { replace: true }); 
                 } 
                 else if (isEditMode) {
                     const course = await courseService.getCourseById(Number(courseId));
@@ -97,7 +108,7 @@ export const AdminEditCourse: React.FC = () => {
             }
         };
         loadData();
-    }, [courseId, isEditMode, newTestId]);
+    }, [courseId, isEditMode]);
 
     const handleCreateTestRedirect = () => {
         const draft = {
@@ -175,10 +186,15 @@ export const AdminEditCourse: React.FC = () => {
 
             if (isEditMode) {
                 await courseService.updateCourse(Number(courseId), courseData);
+                navigate('/edit/courses');
             } else {
-                await courseService.createCourse(courseData);
+                const res = await courseService.createCourse(courseData);
+                if (returnToRoute) {
+                    navigate(`/edit/adaptationRoutes/${returnToRoute}?newCourseId=${res.id}&stageId=${returnStageId}`);
+                } else {
+                    navigate('/edit/courses');
+                }
             }
-            navigate('/edit/courses');
         } catch (e) {
             alert("Не удалось сохранить курс.");
         } finally {
@@ -193,10 +209,10 @@ export const AdminEditCourse: React.FC = () => {
 
     if (loading) return <LoadingSpinner />;
 
-    // Фильтрация тестов для выпадающего списка
+    // Фильтрация тестов для выпадающего списка (archived не показываем)
     const filteredTests = allTests
-        .filter(t => t.title.toLowerCase().includes(searchTestQuery.toLowerCase()))
-        .slice(0, 20); // Ограничиваем список для производительности
+        .filter(t => t.status !== 'archived' && t.title.toLowerCase().includes(searchTestQuery.toLowerCase()))
+        .slice(0, 20);
 
     return (
         <div className="admin-edit-container">
@@ -234,9 +250,55 @@ export const AdminEditCourse: React.FC = () => {
                 <div className="input-item">
                     <h4>Дополнительные материалы</h4>
                     <div className="nested-courses">
+                        {/* Выбор из существующих материалов */}
+                        <div style={{ position: 'relative', marginBottom: '12px' }}>
+                            <input
+                                className="input-field"
+                                value={matSearchQuery}
+                                onChange={e => { setMatSearchQuery(e.target.value); setIsMatDropdownOpen(true); }}
+                                onFocus={() => setIsMatDropdownOpen(true)}
+                                onBlur={() => setTimeout(() => setIsMatDropdownOpen(false), 150)}
+                                placeholder="Выбрать из существующих материалов..."
+                            />
+                            <div className={`search-arrow${isMatDropdownOpen ? ' open' : ''}`} onClick={() => setIsMatDropdownOpen(v => !v)}>
+                                <img className="search-dropdown" src={downIcon} alt="" />
+                            </div>
+                            {isMatDropdownOpen && (
+                                <div className="search-results">
+                                    {allGeneralMaterials
+                                        .filter(m => (m.title || m.urlDocument).toLowerCase().includes(matSearchQuery.toLowerCase()))
+                                        .slice(0, 20)
+                                        .map(m => {
+                                            const alreadyAdded = materials.some(ex => ex.urlDocument === m.urlDocument);
+                                            return (
+                                                <div
+                                                    key={m.id}
+                                                    className={`search-item search-item--row${alreadyAdded ? ' selected' : ''}`}
+                                                    onMouseDown={e => e.preventDefault()}
+                                                    onClick={() => {
+                                                        if (!alreadyAdded) setMaterials(prev => [...prev, m]);
+                                                        setMatSearchQuery('');
+                                                        setIsMatDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    <span>{m.title || m.urlDocument}</span>
+                                                    {m.category && <small className="search-item-dept">{m.category}</small>}
+                                                </div>
+                                            );
+                                        })
+                                    }
+                                    {allGeneralMaterials.filter(m => (m.title || m.urlDocument).toLowerCase().includes(matSearchQuery.toLowerCase())).length === 0 && (
+                                        <div className="search-item disabled">Материалы не найдены</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="assign-divider"><span>или добавить новый</span></div>
+
                         <div className="input-with-button">
-                            <input 
-                                className="input-field ghost-input-style" 
+                            <input
+                                className="input-field ghost-input-style"
                                 placeholder="Вставьте ссылку (https://...)"
                                 value={materialInput}
                                 onChange={e => setMaterialInput(e.target.value)}
@@ -246,8 +308,8 @@ export const AdminEditCourse: React.FC = () => {
 
                         <div className="upload-zone">
                             <input type="file" ref={fileInputRef} hidden onChange={handleFileUpload} />
-                            <button 
-                                className="btn-upload" 
+                            <button
+                                className="btn-upload"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading}
                             >

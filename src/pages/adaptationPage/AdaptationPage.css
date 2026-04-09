@@ -305,19 +305,6 @@
     flex-shrink: 0;
 }
 
-.course-chip {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
-.course-chip--not_started { background: #f1f5f9; color: var(--text-secondary); }
-.course-chip--in_process  { background: rgba(59, 130, 246, 0.1); color: var(--blue-color); }
-.course-chip--completed   { background: rgba(34, 197, 94, 0.1);  color: var(--green-color); }
-.course-chip--failed      { background: rgba(239, 68, 68, 0.1);  color: var(--red-color); }
-
 .btn-go {
     font-size: 12px;
     font-weight: 600;

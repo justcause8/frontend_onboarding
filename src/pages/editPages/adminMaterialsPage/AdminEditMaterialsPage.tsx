@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import downIcon from '@/assets/editMode/DownIcon.png';
 import { useNavigate } from 'react-router-dom';
 
 import { materialService, type Material } from '../../../services/material.service';
@@ -18,6 +19,8 @@ export const AdminEditMaterialsPage: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+    const [catSearchQuery, setCatSearchQuery] = useState('');
     const [materials, setMaterials] = useState<Material[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('Общее');
     const [newCategoryInput, setNewCategoryInput] = useState<string>('');
@@ -161,27 +164,6 @@ export const AdminEditMaterialsPage: React.FC = () => {
         }
     };
 
-    // const handleRenameCategory = async (oldName: string) => {
-    //     const newName = prompt(`Введите новое название для категории "${oldName}":`, oldName);
-    //     if (!newName || newName === oldName) return;
-
-    //     try {
-    //         setLoading(true);
-    //         const materialsToUpdate = materials.filter(m => (m.category || 'Общее') === oldName);
-            
-    //         // Обновляем все материалы этой категории
-    //         await Promise.all(materialsToUpdate.map(m => 
-    //             materialService.updateMaterial(m.id, { category: newName })
-    //         ));
-            
-    //         await loadData();
-    //     } catch (e) {
-    //         alert("Ошибка при переименовании категории");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const handleDeleteCategory = async (categoryName: string) => {
         if (!window.confirm(`Удалить категорию "${categoryName}" и ВСЕ материалы в ней?`)) return;
         
@@ -214,10 +196,43 @@ export const AdminEditMaterialsPage: React.FC = () => {
                 <div className="add-controls-grid">
                     <div className="input-item">
                         <h4>1. Категория</h4>
-                        <select className="input-field" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                        </select>
-                        <input className="input-field mt-8" placeholder="Или новая..." value={newCategoryInput} onChange={e => setNewCategoryInput(e.target.value)} />
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                className="input-field"
+                                value={catSearchQuery}
+                                onChange={e => { setCatSearchQuery(e.target.value); setCatDropdownOpen(true); }}
+                                onFocus={() => setCatDropdownOpen(true)}
+                                onBlur={() => setTimeout(() => setCatDropdownOpen(false), 150)}
+                                placeholder="Выбрать категорию..."
+                            />
+                            <div className={`search-arrow${catDropdownOpen ? ' open' : ''}`} onClick={() => setCatDropdownOpen(v => !v)}>
+                                <img className="search-dropdown" src={downIcon} alt="" />
+                            </div>
+                            {catDropdownOpen && (
+                                <div className="search-results">
+                                    {categories
+                                        .filter(c => c.toLowerCase().includes(catSearchQuery.toLowerCase()))
+                                        .map(cat => (
+                                            <div
+                                                key={cat}
+                                                className={`search-item${selectedCategory === cat ? ' selected' : ''}`}
+                                                onMouseDown={e => e.preventDefault()}
+                                                onClick={() => { setSelectedCategory(cat); setCatSearchQuery(''); setCatDropdownOpen(false); }}
+                                            >
+                                                {cat}
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            )}
+                        </div>
+                        <div className="chips-display-zone" style={{ marginTop: '8px' }}>
+                            <div className="chip department-chip">
+                                {selectedCategory}
+                            </div>
+                        </div>
+                        <div className="assign-divider"><span>или добавить новую</span></div>
+                        <input className="input-field mt-8" placeholder="Добавьте категорию..." value={newCategoryInput} onChange={e => setNewCategoryInput(e.target.value)} />
                     </div>
                     <div className="input-item">
                         <h4>2. Ссылка или файл</h4>

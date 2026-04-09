@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { adaptationService } from '../../../../services/adaptation.service';
 import { userService, type UserShort } from '../../../../services/user.service';
@@ -31,6 +31,9 @@ export const AdminEditAdaptationRoute: React.FC = () => {
   const navigate = useNavigate();
   const { adaptationRouteId } = useParams<{ adaptationRouteId: string }>();
   const isEditMode = adaptationRouteId !== 'new';
+  const [searchParams] = useSearchParams();
+  const newCourseId = searchParams.get('newCourseId');
+  const returnStageId = searchParams.get('stageId');
   
   const [loading, setLoading] = useState(isEditMode);
   const [allUsers, setAllUsers] = useState<UserShort[]>([]);
@@ -54,11 +57,17 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
   const [searchMentor, setSearchMentor] = useState('');
   const [searchEmployee, setSearchEmployee] = useState('');
+  const [searchDepartment, setSearchDepartment] = useState('');
+  const [mentorDropdownOpen, setMentorDropdownOpen] = useState(false);
+  const [employeeDropdownOpen, setEmployeeDropdownOpen] = useState(false);
+  const [departmentDropdownOpen, setDepartmentDropdownOpen] = useState(false);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [routeStatus, setRouteStatus] = useState('active');
 
   // --- Состояния для выпадающего списка курсов ---
   const [activeStageId, setActiveStageId] = useState<string | number | null>(null);
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
+  const draftProcessedRef = useRef(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -74,33 +83,65 @@ export const AdminEditAdaptationRoute: React.FC = () => {
         setAllUsers(users);
         setAllCourses(courses);
 
-        if (isEditMode) {
+        const draft = sessionStorage.getItem('route_draft');
+
+        if (draft && !draftProcessedRef.current) {
+          draftProcessedRef.current = true;
+          const parsed = JSON.parse(draft);
+          setRouteName(parsed.routeName || '');
+          setRouteDesc(parsed.routeDesc || '');
+          setRouteStatus(parsed.routeStatus || 'active');
+          setSelectedMentors(parsed.selectedMentors || []);
+          setSelectedEmployees(parsed.selectedEmployees || []);
+          setSelectedDepartments(parsed.selectedDepartments || []);
+          setDeletedStageIds(parsed.deletedStageIds || []);
+          setOriginalCourseIds(parsed.originalCourseIds || []);
+
+          let restoredStages: Stage[] = parsed.stages || [];
+
+          if (newCourseId && returnStageId) {
+            const newId = Number(newCourseId);
+            const courseObj = courses.find(c => c.id === newId);
+            if (courseObj) {
+              restoredStages = restoredStages.map(s =>
+                String(s.id) === returnStageId && !s.courses.find(c => c.id === newId)
+                  ? { ...s, courses: [...s.courses, { id: courseObj.id, title: courseObj.title }] }
+                  : s
+              );
+            }
+          }
+
+          setStages(restoredStages);
+          sessionStorage.removeItem('route_draft');
+        } else if (isEditMode) {
           const route = await adaptationService.getRoute(Number(adaptationRouteId));
           setRouteName(route.title);
           setDynamicTitle(route.title);
           setRouteDesc(route.description);
           setRouteStatus(route.status || 'active');
-          
+
           if (route.mentor) {
-              setSelectedMentors([{
-                  id: route.mentor.id,
-                  fullName: (route.mentor as any).name || route.mentor.fullName,
-                  position: route.mentor.position || 'Наставник'
-              }]);
+            setSelectedMentors([{
+              id: route.mentor.id,
+              fullName: (route.mentor as any).name || route.mentor.fullName,
+              position: route.mentor.position || 'Наставник',
+              department: route.mentor.department
+            }]);
           }
-          
+
           const employees = (route.assignedEmployees || []).map((u: any) => ({
-              id: u.id,
-              fullName: u.name || u.fullName,
-              position: u.position || 'Сотрудник'
+            id: u.id,
+            fullName: u.name || u.fullName,
+            department: u.department,
+            position: u.position || 'Сотрудник'
           }));
           setSelectedEmployees(employees);
 
           const mappedStages: Stage[] = route.stages.map(s => ({
-              id: s.id,
-              title: s.title,
-              description: s.description,
-              courses: s.courses.map(c => ({ id: c.id, title: c.title }))
+            id: s.id,
+            title: s.title,
+            description: s.description,
+            courses: s.courses.map(c => ({ id: c.id, title: c.title }))
           }));
           setStages(mappedStages);
 
@@ -114,7 +155,8 @@ export const AdminEditAdaptationRoute: React.FC = () => {
       }
     };
     loadData();
-  }, [adaptationRouteId, isEditMode, setDynamicTitle]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adaptationRouteId, isEditMode]);
 
   // Закрытие выпадающего списка курсов при клике вне
   useEffect(() => {
@@ -171,7 +213,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                         await adaptationService.updateStage(stage.id, {
                             title: stage.title,
                             description: stage.description,
-                            order: stages.indexOf(stage) + 1
+                            orderIndex: stages.indexOf(stage) + 1
                         });
                     } catch (err) {
                         console.warn(`Не удалось обновить этап ${stage.id}`);
@@ -182,10 +224,10 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             // 3. Добавляем новые этапы (строковый ID) одним батч-запросом
             const newStagesToAdd = stages
                 .filter(s => typeof s.id === 'string')
-                .map((s, _) => ({
+                .map((s) => ({
                     title: s.title || `Этап ${stages.indexOf(s) + 1}`,
                     description: s.description || '',
-                    order: stages.indexOf(s) + 1
+                    orderIndex: stages.indexOf(s) + 1
                 }));
 
             if (newStagesToAdd.length > 0) {
@@ -219,18 +261,21 @@ export const AdminEditAdaptationRoute: React.FC = () => {
               status: 'active'
           };
 
-          console.log("Отправка данных на создание:", routeData); // Для отладки в консоли браузера
-
           const res = await adaptationService.createRoute(routeData);
           currentRouteId = res.routeId;
 
-          // После создания маршрута добавляем этапы
           const stagesToSave = stages.map((s, idx) => ({
               title: s.title || `Этап ${idx + 1}`,
               description: s.description || '',
-              order: idx + 1
+              orderIndex: idx + 1
           }));
-          await adaptationService.addStages(currentRouteId, stagesToSave);
+          if (stagesToSave.length > 0) {
+              try {
+                  await adaptationService.addStages(currentRouteId, stagesToSave);
+              } catch (err) {
+                  console.error('Не удалось добавить этапы:', err);
+              }
+          }
         }
 
         // Получаем свежие данные маршрута, чтобы знать ID только что созданных этапов
@@ -292,31 +337,92 @@ export const AdminEditAdaptationRoute: React.FC = () => {
     target.style.height = `${target.scrollHeight}px`;
   };
 
+  const handleCreateCourseRedirect = (stageId: string | number) => {
+    const draft = {
+      routeName,
+      routeDesc,
+      routeStatus,
+      selectedMentors,
+      selectedEmployees,
+      selectedDepartments,
+      stages,
+      deletedStageIds,
+      originalCourseIds,
+    };
+    sessionStorage.setItem('route_draft', JSON.stringify(draft));
+    navigate(`/edit/courses/new?returnToRoute=${adaptationRouteId}&stageId=${stageId}`);
+  };
+
   if (loading) return <LoadingSpinner />;
 
   const filteredMentors = allUsers.filter(u => {
-    const isMentor = u.role === 'Mentor' || u.role === 'HrAdmin'; 
+    const isMentor = u.role === 'Mentor' || u.role === 'HrAdmin';
     return isMentor && u.fullName.toLowerCase().includes(searchMentor.toLowerCase());
-  }).slice(0, 5);
+  }).slice(0, 20);
 
   const filteredEmployees = allUsers.filter(u => {
     const isUser = u.role === 'User' || !u.role;
     return isUser && u.fullName.toLowerCase().includes(searchEmployee.toLowerCase());
-  }).slice(0, 5);
+  }).slice(0, 20);
 
-  // Фильтрация курсов
+  const allDepartments = [...new Set(
+    allUsers
+      .filter(u => u.role === 'User' || !u.role)
+      .map(u => u.department)
+      .filter(Boolean)
+  )] as string[];
+
+  const filteredDepartments = allDepartments
+    .filter(d => d.toLowerCase().includes(searchDepartment.toLowerCase()))
+    .slice(0, 20);
+
+  const handleSelectDepartment = (dept: string) => {
+    if (selectedDepartments.includes(dept)) {
+      setSearchDepartment('');
+      setDepartmentDropdownOpen(false);
+      return;
+    }
+    const deptUsers = allUsers.filter(u =>
+      (u.role === 'User' || !u.role) && u.department === dept
+    );
+    setSelectedDepartments(prev => [...prev, dept]);
+    setSelectedEmployees(prev => {
+      const existingIds = new Set(prev.map(e => e.id));
+      return [...prev, ...deptUsers.filter(u => !existingIds.has(u.id))];
+    });
+    setSearchDepartment('');
+    setDepartmentDropdownOpen(false);
+  };
+
+  const handleRemoveDepartment = (dept: string) => {
+    const deptUserIds = new Set(
+      allUsers
+        .filter(u => (u.role === 'User' || !u.role) && u.department === dept)
+        .map(u => u.id)
+    );
+    setSelectedDepartments(prev => prev.filter(d => d !== dept));
+    setSelectedEmployees(prev => prev.filter(u => !deptUserIds.has(u.id)));
+  };
+
+  // Фильтрация курсов (archived не показываем)
   const getFilteredCourses = (query: string) =>
     allCourses
-        .filter(c => c.title.toLowerCase().includes(query.toLowerCase()))
+        .filter(c => c.status !== 'archived' && c.title.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 15);
 
   const moveStage = (idx: number, dir: 'up' | 'down') => {
-    const newStages = [...stages];
     const target = dir === 'up' ? idx - 1 : idx + 1;
-    if (target < 0 || target >= newStages.length) return;
-    [newStages[idx], newStages[target]] = [newStages[target], newStages[idx]];
-    setStages(newStages);
-  }
+    
+      if (target < 0 || target >= stages.length) return;
+
+      setStages(prevStages => {
+          const newStages = [...prevStages];
+          const temp = newStages[idx];
+          newStages[idx] = newStages[target];
+          newStages[target] = temp;
+          return newStages;
+      });
+  };
 
   return (
     <>
@@ -349,78 +455,166 @@ export const AdminEditAdaptationRoute: React.FC = () => {
       <section className="card text">
         <h2>Назначение сотрудников</h2>
         <div className="assignment-row">
-          
-          {/* Блок Наставников */}
+
+          {/* Наставники */}
           <div className="assign-block input-item">
             <h4>Наставники</h4>
             <div className="search-container">
               <div style={{ position: 'relative' }}>
-                <input 
-                  className="input-field" 
-                  value={searchMentor} 
-                  onChange={e => setSearchMentor(e.target.value)} 
-                  placeholder="Добавить наставника..." 
+                <input
+                  className="input-field"
+                  value={searchMentor}
+                  onChange={e => { setSearchMentor(e.target.value); setMentorDropdownOpen(true); }}
+                  onFocus={() => setMentorDropdownOpen(true)}
+                  onBlur={() => setTimeout(() => setMentorDropdownOpen(false), 150)}
+                  placeholder="Найти наставника..."
                 />
-                {searchMentor && filteredMentors.length > 0 && (
+                {mentorDropdownOpen && filteredMentors.length > 0 && (
                   <div className="search-results">
                     {filteredMentors.map(u => (
-                      <div key={u.id} className="search-item" onClick={() => {
-                        if (!selectedMentors.find(m => m.id === u.id)) {
-                          setSelectedMentors([...selectedMentors, u]);
-                        }
-                        setSearchMentor('');
-                      }}>
-                        {u.fullName} <small>{u.position}</small>
+                      <div 
+                        key={u.id} 
+                        // Добавили класс search-item--row для флекс-сетки
+                        className="search-item search-item--row" 
+                        onMouseDown={e => e.preventDefault()} 
+                        onClick={() => {
+                          if (!selectedMentors.find(m => m.id === u.id)) setSelectedMentors([...selectedMentors, u]);
+                          setSearchMentor('');
+                          setMentorDropdownOpen(false);
+                        }}
+                      >
+                        {/* Левая часть: Имя и Должность */}
+                        <span>
+                          {u.fullName}
+                          <small>{u.position}</small>
+                        </span>
+                        
+                        {/* Правая часть: Отдел (если есть) */}
+                        {u.department && (
+                          <small className="search-item-dept">{u.department}</small>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div className="chips-display-zone">
-                {selectedMentors.map(m => (
-                  <div key={m.id} className="chip mentor-chip">
-                    {m.fullName}
-                    <img src={cross} className="chip-remove-icon" onClick={() => setSelectedMentors(selectedMentors.filter(mentor => mentor.id !== m.id))} alt="remove" />
-                  </div>
-                ))}
-              </div>
+              
+              {/* Вывод выбранных наставников */}
+              {selectedMentors.length > 0 && (
+                <div className="selected-employees-list">
+                  {selectedMentors.map(m => (
+                    <div key={m.id} className="employee-row employee-row--mentor">
+                      <div className="employee-row-info">
+                        <span className="employee-name">{m.fullName}</span>
+                        {m.department && <span className="employee-dept">{m.department}</span>}
+                      </div>
+                      <img
+                        src={cross}
+                        className="remove-icon"
+                        onClick={() => setSelectedMentors(selectedMentors.filter(x => x.id !== m.id))}
+                        alt="x"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Блок Сотрудников */}
+          {/* Сотрудники */}
           <div className="assign-block input-item">
             <h4>Сотрудники</h4>
             <div className="search-container">
+
+              {/* Поиск по отделу */}
               <div style={{ position: 'relative' }}>
-                <input 
-                  className="input-field" 
-                  value={searchEmployee} 
-                  onChange={e => setSearchEmployee(e.target.value)} 
-                  placeholder="Добавить сотрудника..." 
+                <input
+                  className="input-field"
+                  value={searchDepartment}
+                  onChange={e => { setSearchDepartment(e.target.value); setDepartmentDropdownOpen(true); }}
+                  onFocus={() => setDepartmentDropdownOpen(true)}
+                  onBlur={() => setTimeout(() => setDepartmentDropdownOpen(false), 150)}
+                  placeholder="Добавить сотрудников из отдела..."
                 />
-                {searchEmployee && filteredEmployees.length > 0 && (
+                {departmentDropdownOpen && (
+                  <div className="search-results">
+                    {filteredDepartments.length > 0
+                      ? filteredDepartments.map(dept => (
+                          <div key={dept} className={`search-item${selectedDepartments.includes(dept) ? ' selected' : ''}`}
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => handleSelectDepartment(dept)}
+                          >
+                            {dept}
+                            {selectedDepartments.includes(dept) && <small>уже добавлен</small>}
+                          </div>
+                        ))
+                      : <div className="search-item disabled">Отделы не найдены</div>
+                    }
+                  </div>
+                )}
+              </div>
+
+              {/* Чипы выбранных отделов */}
+              {selectedDepartments.length > 0 && (
+                <div className="chips-display-zone">
+                  {selectedDepartments.map(dept => (
+                    <div key={dept} className="chip department-chip">
+                      {dept}
+                      <img src={cross} className="chip-remove-icon" onClick={() => handleRemoveDepartment(dept)} alt="x" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Поиск отдельных сотрудников */}
+              <div className="assign-divider"><span>или добавить вручную</span></div>
+              <div style={{ position: 'relative' }}>
+                <input
+                  className="input-field"
+                  value={searchEmployee}
+                  onChange={e => { setSearchEmployee(e.target.value); setEmployeeDropdownOpen(true); }}
+                  onFocus={() => setEmployeeDropdownOpen(true)}
+                  onBlur={() => setTimeout(() => setEmployeeDropdownOpen(false), 150)}
+                  placeholder="Найти сотрудника..."
+                />
+                {employeeDropdownOpen && filteredEmployees.length > 0 && (
                   <div className="search-results">
                     {filteredEmployees.map(u => (
-                      <div key={u.id} className="search-item" onClick={() => {
-                        if (!selectedEmployees.find(e => e.id === u.id)) {
-                          setSelectedEmployees([...selectedEmployees, u]);
-                        }
-                        setSearchEmployee('');
-                      }}>
-                        {u.fullName}
+                      <div key={u.id} className={`search-item search-item--row${selectedEmployees.find(e => e.id === u.id) ? ' selected' : ''}`}
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => {
+                          if (!selectedEmployees.find(e => e.id === u.id)) setSelectedEmployees([...selectedEmployees, u]);
+                          setSearchEmployee('');
+                          setEmployeeDropdownOpen(false);
+                        }}
+                      >
+                        <span>{u.fullName}<small>{u.position}</small></span>
+                        {u.department && <small className="search-item-dept">{u.department}</small>}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div className="chips-display-zone">
-                {selectedEmployees.map(u => (
-                  <div key={u.id} className="chip">
-                    {u.fullName} 
-                    <img src={cross} className="chip-remove-icon" onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== u.id))} alt="x" />
-                  </div>
-                ))}
-              </div>
+
+              {/* Список выбранных сотрудников */}
+              {selectedEmployees.length > 0 && (
+                <div className="selected-employees-list">
+                  {selectedEmployees.map(u => (
+                    <div key={u.id} className="employee-row">
+                      <div className="employee-row-info">
+                        <span className="employee-name">{u.fullName}</span>
+                        {u.department && <span className="employee-dept">{u.department}</span>}
+                      </div>
+                      <img 
+                        src={cross} 
+                        className="remove-icon" 
+                        onClick={() => setSelectedEmployees(selectedEmployees.filter(e => e.id !== u.id))} 
+                        alt="x" 
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -440,9 +634,9 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   onChange={e => setStages(stages.map(s => s.id === stage.id ? {...s, title: e.target.value} : s))}
                 />
                 <div className="order-controls">
-                  <button className="control-btn" onClick={() => moveStage(index, 'up')}><img src={upIcon} alt="U" /></button>
-                  <button className="control-btn" onClick={() => moveStage(index, 'down')}><img src={downIcon} alt="D" /></button>
-                  <button className="control-btn del-btn" onClick={() => handleDeleteStage(stage.id)}><img src={deleteIcon} alt="X" /></button>
+                  <button type="button" className="control-btn" onClick={() => moveStage(index, 'up')}><img src={upIcon} alt="U" /></button>
+                  <button type="button" className="control-btn" onClick={() => moveStage(index, 'down')}><img src={downIcon} alt="D" /></button>
+                  <button type="button" className="control-btn del-btn" onClick={() => handleDeleteStage(stage.id)}><img src={deleteIcon} alt="X" /></button>
                 </div>
               </div>
 
@@ -460,6 +654,12 @@ export const AdminEditAdaptationRoute: React.FC = () => {
               
               <div className="input-item">
                 <h4>Добавить курс</h4>
+                <button
+                  className="add-test"
+                  onClick={() => handleCreateCourseRedirect(stage.id)}
+                >
+                  + Создать новый курс
+                </button>
                 <div className="nested-courses">
                   {stage.courses.length > 0 && (
                     <div className="courses-grid">

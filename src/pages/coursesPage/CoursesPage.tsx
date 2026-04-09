@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { courseService } from '../../services/course.service';
 import type { Course, TestShort } from '../../services/course.service';
+import { testService, type TestAttempt } from '../../services/test.service';
 
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
@@ -13,6 +14,7 @@ import './CoursesPage.css';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [testAttempts, setTestAttempts] = useState<Record<number, TestAttempt | null>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasRoute, setHasRoute] = useState<boolean>(false);
@@ -28,6 +30,13 @@ const CoursesPage = () => {
       const allCourses = await courseService.getAllUserCourses();
       setCourses(allCourses);
       setHasRoute(allCourses.length > 0 || true);
+
+      const allTestIds = allCourses.flatMap((c: Course) => c.tests.map((t: TestShort) => t.id));
+      const uniqueIds = [...new Set(allTestIds)];
+      const entries = await Promise.all(
+        uniqueIds.map(async (id) => [id, await testService.getMyAttempt(id)] as const)
+      );
+      setTestAttempts(Object.fromEntries(entries));
     } catch (err) {
       console.error(err);
       setError('Не удалось загрузить курсы. Попробуйте позже.');
@@ -108,41 +117,59 @@ const CoursesPage = () => {
                     : course.description || 'Описание отсутствует'}
                 </p>
 
-                {course.tests.length > 0 && (
+                {course.tests.filter((t: TestShort) => t.status !== 'archived').length > 0 && (
                   <div className="tests-container">
-                    {course.tests.slice(0, 2).map((test: TestShort) => (
-                      <div key={test.id} className="card-tests">
-                        {test.title}
-                      </div>
-                    ))}
-                    
-                    {course.tests.length > 2 && (
+                    {course.tests
+                      .filter((t: TestShort) => t.status !== 'archived')
+                      .slice(0, 2)
+                      .map((test: TestShort) => {
+                        const attempt = testAttempts[test.id];
+                        const statusClass = attempt == null ? '' : attempt.isPassed ? 'card-tests--passed' : 'card-tests--failed';
+                        return (
+                          <div key={test.id} className={`card-tests ${statusClass}`}>
+                            <span>{test.title}</span>
+                          </div>
+                        );
+                      })}
+
+                    {course.tests.filter((t: TestShort) => t.status !== 'archived').length > 2 && (
                       <div className="card-tests more-tests">
-                        ...и еще {course.tests.length - 2}
+                        ...и еще {course.tests.filter((t: TestShort) => t.status !== 'archived').length - 2}
                       </div>
                     )}
                   </div>
                 )}
 
                 <div className={`card-actions ${course.tests.length > 0 ? 'has-test' : ''}`}>
-                  {course.tests.length > 0 && (
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleTakeTest(course)}
-                      disabled={course.status === 'not_started'}
-                      title={course.status === 'not_started' ? 'Сначала начните курс' : 'Пройти тест'}
-                    >
-                      Пройти тест
-                    </button>
-                  )}
+                  {course.adminStatus !== 'archived' && course.tests.length > 0 && (() => {
+                    const activeTests = course.tests.filter((t: TestShort) => t.status !== 'archived');
+                    const allArchived = activeTests.length === 0;
+                    return (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => handleTakeTest(course)}
+                        disabled={course.status === 'not_started' || allArchived}
+                        title={
+                          allArchived ? 'Тест недоступен' :
+                          course.status === 'not_started' ? 'Сначала начните курс' : 'Пройти тест'
+                        }
+                      >
+                        Пройти тест
+                      </button>
+                    );
+                  })()}
 
-                  <button
-                    className="btn btn-primary"
-                    disabled={loadingCourseId === course.id}
-                    onClick={() => handleStartCourse(course.id)}
-                  >
-                    {loadingCourseId === course.id ? 'Загрузка...' : 'Изучить курс'}
-                  </button>
+                  {course.adminStatus !== 'archived' ? (
+                    <button
+                      className="btn btn-primary"
+                      disabled={loadingCourseId === course.id}
+                      onClick={() => handleStartCourse(course.id)}
+                    >
+                      {loadingCourseId === course.id ? 'Загрузка...' : 'Изучить курс'}
+                    </button>
+                  ) : (
+                    <span className="course-archived-label">Курс закрыт</span>
+                  )}
                 </div>
               </div>
             </article>

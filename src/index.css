@@ -48,47 +48,125 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
 
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 9px 20px;
+  border-radius: 10px;
 
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 
   cursor: pointer;
-  border: none;
+  border: 1.5px solid transparent;
+  outline: none;
 
-  transition: opacity 0.2s, background-color 0.2s;
+  transition: background-color 0.18s ease, color 0.18s ease,
+              border-color 0.18s ease, box-shadow 0.18s ease,
+              transform 0.1s ease;
 }
 
-/* Hover */
-.btn:hover {
-  opacity: 0.9;
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 /* Disabled */
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.45;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Основная кнопка */
 .btn-primary {
+  min-width: 100px;
   background-color: var(--primary-color);
+  border-color: var(--primary-color);
   color: #fff;
-  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 8px rgba(240, 73, 35, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #d93e1b;
+  border-color: #d93e1b;
+  /* box-shadow: 0 4px 14px rgba(240, 73, 35, 0.35); */
 }
 
 /* Вторичная кнопка */
 .btn-secondary {
-  background-color: var(--bg-bth-secondary);
+  min-width: 100px;
+  background-color: #ffffff;
+  border-color: #D1D5DB;
   color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #F8FAFC;
+  border-color: #9CA3AF;
+  /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); */
 }
 
 /* Кнопка без отступа слева (например в карточках) */
 .btn-no-margin {
   margin-left: 0;
+}
+
+/* --- Поля ввода (единый стиль) --- */
+.input-item {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-item h4 {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input-field,
+.textarea-field,
+select.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.input-field:focus,
+.textarea-field:focus,
+select.input-field:focus {
+  border-color: var(--primary-color);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(240, 73, 35, 0.07);
+}
+
+.input-field:disabled,
+.textarea-field:disabled,
+select.input-field:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.textarea-field {
+  min-height: 80px;
+  height: auto;
+  resize: vertical;
+  overflow: auto;
+  line-height: 1.5;
 }
 
 .text h1 {
@@ -156,4 +234,56 @@ button {
 .chip-remove-icon:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+/* --- Обёртка нативного select с кастомной стрелкой --- */
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select.input-field {
+    padding-right: 36px; /* место под стрелку */
+    cursor: pointer;
+}
+
+/* --- Стрелка выпадающего списка --- */
+.search-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.search-dropdown {
+    width: 12px;
+    height: 12px;
+    opacity: 0.5;
+    transform: rotate(-90deg);
+    transition: transform 0.2s ease, opacity 0.2s;
+}
+
+.search-arrow.open .search-dropdown {
+    transform: rotate(0deg);
+    opacity: 0.8;
+}
+
+.assign-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.assign-divider::before,
+.assign-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-color);
 }

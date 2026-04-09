@@ -54,6 +54,14 @@ export interface UserAnswerRequest {
   }[];
 }
 
+/** Результат последней попытки прохождения теста */
+export interface TestAttempt {
+  testId: number;
+  score: number;
+  isPassed: boolean;
+  attemptDate: string;
+}
+
 // --- СЕРВИС ---
 
 export const testService = {
@@ -100,8 +108,24 @@ export const testService = {
     return response.data;
   },
 
-  /** 
-   * Отправить результаты прохождения теста 
+  /** Получить последнюю попытку прохождения теста текущим пользователем */
+  async getMyAttempt(testId: number): Promise<TestAttempt | null> {
+    try {
+      const res = await api.get<any>(`/onboarding/test/${testId}/my-attempt`);
+      const d = res.data;
+      return {
+        testId: d.testId ?? d.TestId ?? testId,
+        score: d.score ?? d.Score ?? 0,
+        isPassed: d.isPassed ?? d.IsPassed ?? false,
+        attemptDate: d.attemptDate ?? d.AttemptDate ?? d.date ?? d.Date ?? d.completedAt ?? d.CompletedAt ?? '',
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Отправить результаты прохождения теста
    * Принимает объект, где ключ - id вопроса, а значение - массив id выбранных ответов
    */
   async submitTestResults(testId: number, userAnswers: Record<number, number[]>) {

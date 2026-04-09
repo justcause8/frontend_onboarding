@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EditModal.css';
+import downIcon from '@/assets/editMode/DownIcon.png';
 
 interface EditModalProps {
     isOpen: boolean;
@@ -22,6 +23,8 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
     const [inputValue, setInputValue] = useState(initialValue);
     const [selectedCat, setSelectedCat] = useState(currentCategory || 'Общее');
+    const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+    const [catSearchQuery, setCatSearchQuery] = useState('');
 
     useEffect(() => {
         if (isOpen) {
@@ -49,10 +52,10 @@ const EditModal: React.FC<EditModalProps> = ({
                 </div>
                 
                 <div className="modal-body">
-                    <div className="input-group">
-                        <label className="input-label">Название</label>
-                        <input 
-                            className="modal-input"
+                    <div className="input-item">
+                        <h4>Название</h4>
+                        <input
+                            className="input-field"
                             value={inputValue}
                             onChange={e => setInputValue(e.target.value)}
                             autoFocus
@@ -60,22 +63,48 @@ const EditModal: React.FC<EditModalProps> = ({
                     </div>
 
                     {categories && (
-                        <div className="input-group mt-16">
-                            <label className="input-label">Категория</label>
-                            <select 
-                                className="modal-input" 
-                                value={selectedCat} 
-                                onChange={e => setSelectedCat(e.target.value)}
-                            >
-                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                        <div className="input-item">
+                            <h4>Категория</h4>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    className="input-field"
+                                    value={catSearchQuery}
+                                    onChange={e => { setCatSearchQuery(e.target.value); setCatDropdownOpen(true); }}
+                                    onFocus={() => setCatDropdownOpen(true)}
+                                    onBlur={() => setTimeout(() => setCatDropdownOpen(false), 150)}
+                                    placeholder="Выбрать категорию..."
+                                />
+                                <div className={`search-arrow${catDropdownOpen ? ' open' : ''}`} onClick={() => setCatDropdownOpen(v => !v)}>
+                                    <img className="search-dropdown" src={downIcon} alt="" />
+                                </div>
+                                {catDropdownOpen && (
+                                    <div className="search-results">
+                                        {categories
+                                            .filter(c => c.toLowerCase().includes(catSearchQuery.toLowerCase()))
+                                            .map(c => (
+                                                <div
+                                                    key={c}
+                                                    className={`search-item${selectedCat === c ? ' selected' : ''}`}
+                                                    onMouseDown={e => e.preventDefault()}
+                                                    onClick={() => { setSelectedCat(c); setCatSearchQuery(''); setCatDropdownOpen(false); }}
+                                                >
+                                                    {c}
+                                                </div>
+                                            ))
+                                        }
+                                    </div>
+                                )}
+                            </div>
+                            <div className="chips-display-zone" style={{ marginTop: '8px' }}>
+                                <div className="chip department-chip">{selectedCat}</div>
+                            </div>
                         </div>
                     )}
                 </div>
 
                 <div className="modal-footer">
-                    <button className="modal-btn btn-cancel" onClick={onClose}>Отмена</button>
-                    <button className="modal-btn btn-save" onClick={() => onSave(inputValue, selectedCat)}>
+                    <button className="btn btn-secondary" onClick={onClose}>Отмена</button>
+                    <button className="btn btn-primary" onClick={() => onSave(inputValue, selectedCat)}>
                         Сохранить
                     </button>
                 </div>

@@ -28,6 +28,8 @@ export const AdminEditTest: React.FC = () => {
   const [currentCourseId, setCurrentCourseId] = useState<number | null>(null);
   const [searchParams] = useSearchParams();
   const returnToCourse = searchParams.get('returnToCourse');
+  const returnToRoute = searchParams.get('returnToRoute');
+  const returnStageId = searchParams.get('stageId');
 
   const descRef = useRef<HTMLTextAreaElement>(null);
 
@@ -203,8 +205,9 @@ export const AdminEditTest: React.FC = () => {
       }
 
       if (returnToCourse) {
-          const createdId = savedTest?.id || savedTest; 
-          navigate(`/edit/courses/${returnToCourse}?newTestId=${createdId}`);
+          const createdId = savedTest?.testId ?? savedTest?.id ?? Number(savedTest);
+          const routeParams = returnToRoute ? `&returnToRoute=${returnToRoute}&stageId=${returnStageId ?? ''}` : '';
+          navigate(`/edit/courses/${returnToCourse}?newTestId=${createdId}${routeParams}`);
       } else {
           navigate(-1);
       }
