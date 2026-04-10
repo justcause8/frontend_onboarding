@@ -104,7 +104,7 @@ button {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #F8FAFC;
+  background-color: #ededed;
   border-color: #9CA3AF;
   /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); */
 }
@@ -139,11 +139,37 @@ select.input-field {
   font-size: 14px;
   font-family: var(--font-family);
   color: var(--text-primary);
+  text-align: left;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   appearance: none;
   -webkit-appearance: none;
+}
+
+/* --- Поле поиска с иконкой --- */
+.input-search-wrapper {
+  position: relative;
+}
+
+.input-search-wrapper .input-field {
+  padding-right: 38px;
+}
+
+.input-search-icon {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  opacity: 0.35;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.input-search-wrapper:focus-within .input-search-icon {
+  opacity: 0;
 }
 
 .input-field:focus,
@@ -208,6 +234,7 @@ select.input-field:disabled {
 .course-card,
 .folder-card,
 .material-resource-card,
+.card.employee-card,
 .q-type-btn {
   transition: all 0.2s ease-in-out;
 }
@@ -217,6 +244,7 @@ select.input-field:disabled {
 .course-card:hover,
 .folder-card:hover,
 .material-resource-card:hover,
+.card.employee-card:hover,
 .q-type-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -234,6 +262,19 @@ select.input-field:disabled {
 .chip-remove-icon:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+/* --- Pending-файл в списке материалов --- */
+.course-item-mini--pending {
+    border-style: dashed;
+    border-color: var(--primary-color);
+    opacity: 0.85;
+}
+
+.pending-badge {
+    font-size: 11px;
+    color: var(--primary-color);
+    font-style: italic;
 }
 
 /* --- Обёртка нативного select с кастомной стрелкой --- */
@@ -286,4 +327,16 @@ select.input-field:disabled {
     flex: 1;
     height: 1px;
     background-color: var(--border-color);
+}
+
+.broken-link {
+    border: 1px solid #fee2e2 !important;
+    background-color: #fff1f1 !important;
+}
+
+.error-badge {
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 8px;
 }

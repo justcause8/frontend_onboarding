@@ -13,6 +13,7 @@ import upIcon from '@/assets/editMode/UpIcon.png';
 import downIcon from '@/assets/editMode/DownIcon.png';
 import deleteIcon from '@/assets/editMode/DeleteIcon.png';
 import cross from '@/assets/cross.png';
+import searchIcon from '@/assets/search.svg';
 
 interface SelectedCourse {
   id: number;
@@ -460,7 +461,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
           <div className="assign-block input-item">
             <h4>Наставники</h4>
             <div className="search-container">
-              <div style={{ position: 'relative' }}>
+              <div className="input-search-wrapper">
                 <input
                   className="input-field"
                   value={searchMentor}
@@ -469,6 +470,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   onBlur={() => setTimeout(() => setMentorDropdownOpen(false), 150)}
                   placeholder="Найти наставника..."
                 />
+                <img src={searchIcon} alt="" className="input-search-icon" />
                 {mentorDropdownOpen && filteredMentors.length > 0 && (
                   <div className="search-results">
                     {filteredMentors.map(u => (
@@ -527,7 +529,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
             <div className="search-container">
 
               {/* Поиск по отделу */}
-              <div style={{ position: 'relative' }}>
+              <div className="input-search-wrapper">
                 <input
                   className="input-field"
                   value={searchDepartment}
@@ -536,6 +538,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   onBlur={() => setTimeout(() => setDepartmentDropdownOpen(false), 150)}
                   placeholder="Добавить сотрудников из отдела..."
                 />
+                <img src={searchIcon} alt="" className="input-search-icon" />
                 {departmentDropdownOpen && (
                   <div className="search-results">
                     {filteredDepartments.length > 0
@@ -568,7 +571,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
               {/* Поиск отдельных сотрудников */}
               <div className="assign-divider"><span>или добавить вручную</span></div>
-              <div style={{ position: 'relative' }}>
+              <div className="input-search-wrapper">
                 <input
                   className="input-field"
                   value={searchEmployee}
@@ -577,6 +580,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   onBlur={() => setTimeout(() => setEmployeeDropdownOpen(false), 150)}
                   placeholder="Найти сотрудника..."
                 />
+                <img src={searchIcon} alt="" className="input-search-icon" />
                 {employeeDropdownOpen && filteredEmployees.length > 0 && (
                   <div className="search-results">
                     {filteredEmployees.map(u => (

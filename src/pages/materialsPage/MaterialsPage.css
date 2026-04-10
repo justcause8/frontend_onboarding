@@ -26,6 +26,12 @@
     flex-shrink: 0;
 }
 
+.folders-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
 .folder-card h2 {
     margin: 0;
     font-size: 1.1rem;
@@ -54,7 +60,7 @@
 }
 
 .back-navigation span {
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .back-arrow-icon {

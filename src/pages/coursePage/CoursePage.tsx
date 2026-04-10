@@ -23,6 +23,7 @@ const CoursePage = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { setDynamicTitle } = usePageTitle();
+  const [availableFiles, setAvailableFiles] = useState<Record<string, boolean>>({});
 
   const loadCourse = useCallback(async () => {
     try {
@@ -39,6 +40,19 @@ const CoursePage = () => {
         data.tests.map(async (t: TestShort) => [t.id, await testService.getMyAttempt(t.id)] as const)
       );
       setAttempts(Object.fromEntries(entries));
+
+      // Проверяем доступность файлов материалов
+      if (data.materials?.length) {
+        const results: Record<string, boolean> = {};
+        await Promise.all(
+          data.materials.map(async (m: Material) => {
+            results[m.urlDocument] = m.isExternalLink
+              ? true
+              : await materialService.checkFileExists(m.urlDocument);
+          })
+        );
+        setAvailableFiles(results);
+      }
 
       // Загружаем маршрут для поиска следующего этапа
       if (data.stageId) {
@@ -66,9 +80,7 @@ const CoursePage = () => {
 
   useEffect(() => {
     loadCourse();
-    return () => {
-      setDynamicTitle('');
-    };
+    return () => { setDynamicTitle(''); };
   }, [loadCourse]);
 
   const handleRetry = () => {
@@ -163,6 +175,8 @@ const CoursePage = () => {
           <h2>Дополнительная информация</h2>
           <div className="card-item-list">
             {course.materials.map((material: Material, index: number) => {
+              const isExists = availableFiles[material.urlDocument] !== false;
+              if (!isExists) return null;
               const displayTitle = formatDisplayTitle(material, index);
 
               return (

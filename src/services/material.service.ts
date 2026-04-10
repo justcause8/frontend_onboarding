@@ -35,7 +35,7 @@ export const materialService = {
   },
 
   /** Загрузить физический файл на сервер */
-  async uploadFile(file: File, subFolder: string = 'Materials'): Promise<{ relativePath: string, fileName: string }> {
+  async uploadFile(file: File, subFolder: string = 'Onbording'): Promise<{ relativePath: string, fileName: string }> {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -45,8 +45,41 @@ export const materialService = {
     return res.data;
   },
 
+  /** Удалить физический файл с диска */
+  async deleteFile(relativePath: string): Promise<void> {
+    const normalizedPath = relativePath.replace(/\\/g, '/').replace(/^\//, '');
+    await api.delete(`/Files/delete`, { params: { path: normalizedPath } });
+  },
+
   /** Удалить материал из БД */
   async deleteMaterial(id: number): Promise<void> {
     await api.delete(`/onboarding/material/${id}`);
+  },
+
+  /** Удалить материал из БД и физический файл с диска (если не внешняя ссылка) */
+  async deleteMaterialWithFile(id: number, urlDocument: string, isExternalLink: boolean): Promise<void> {
+    if (!isExternalLink && !urlDocument.startsWith('http://') && !urlDocument.startsWith('https://')) {
+      try {
+        await materialService.deleteFile(urlDocument);
+      } catch {
+        // Файл мог уже не существовать — не блокируем удаление записи из БД
+      }
+    }
+    await api.delete(`/onboarding/material/${id}`);
+  },
+
+  /** Проверить физическое наличие файла на сервере */
+  async checkFileExists(path: string): Promise<boolean> {
+    try {
+      // Если это внешняя ссылка, проверку на сервере не делаем (она только для локальных файлов)
+      if (path.startsWith('http')) return true;
+
+      const res = await api.get<{ exists: boolean }>(`/Files/exists`, {
+        params: { path: path.replace(/\\/g, '/').replace(/^\//, '') }
+      });
+      return res.data.exists;
+    } catch (e) {
+      return false;
+    }
   },
 };

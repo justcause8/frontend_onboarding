@@ -27,7 +27,6 @@ export const AdminEditCourse: React.FC = () => {
     const isEditMode = courseId !== 'new';
 
     const [loading, setLoading] = useState(isEditMode);
-    const [uploading, setUploading] = useState(false);
     
     const [courseName, setCourseName] = useState('');
     const [courseDesc, setCourseDesc] = useState('');
@@ -41,6 +40,9 @@ export const AdminEditCourse: React.FC = () => {
     const [allGeneralMaterials, setAllGeneralMaterials] = useState<Material[]>([]);
     const [matSearchQuery, setMatSearchQuery] = useState('');
     const [isMatDropdownOpen, setIsMatDropdownOpen] = useState(false);
+    const [brokenLinks, setBrokenLinks] = useState<string[]>([]);
+
+    const [pendingFiles, setPendingFiles] = useState<{ file: File; previewTitle: string }[]>([]);
     
     const searchRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +58,20 @@ export const AdminEditCourse: React.FC = () => {
     const returnToRoute = searchParams.get('returnToRoute');
     const returnStageId = searchParams.get('stageId');
     const [materialInput, setMaterialInput] = useState('');
+
+    useEffect(() => {
+        if (materials.length > 0) {
+            const check = async () => {
+                const broken: string[] = [];
+                for (const m of materials) {
+                    const exists = await materialService.checkFileExists(m.urlDocument);
+                    if (!exists) broken.push(m.urlDocument);
+                }
+                setBrokenLinks(broken);
+            };
+            check();
+        }
+    }, [materials]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -121,35 +137,22 @@ export const AdminEditCourse: React.FC = () => {
         navigate(`/edit/tests/new?returnToCourse=${courseId}`);
     };
 
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    /** Санирует название курса для использования как имя папки */
+    const getCourseFolder = (): string => {
+        const name = courseName.trim();
+        if (!name) return 'Onbording';
+        const sanitized = name
+            .replace(/[\\/:*?"<>|]/g, '')  // запрещённые символы файловой системы
+            .replace(/\s+/g, '_')           // пробелы → подчёркивание
+            .substring(0, 64);              // ограничение длины
+        return `Onbording/${sanitized}`;
+    };
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-
-        try {
-            setUploading(true);
-            const data = await materialService.uploadFile(file);
-
-            let extractedTitle = extractFileNameFromUrl(data.relativePath);
-            
-            if (extractedTitle.includes('_') && extractedTitle.length > 37) {
-                extractedTitle = extractedTitle.substring(extractedTitle.indexOf('_') + 1);
-            }
-
-            const newMaterial: Material = {
-                id: 0,
-                title: extractedTitle,
-                urlDocument: data.relativePath,
-                isExternalLink: false,
-                category: 'Документ курса'
-            };
-
-            setMaterials([...materials, newMaterial]);
-        } catch (e) {
-            alert("Не удалось загрузить файл");
-        } finally {
-            setUploading(false);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-        }
+        setPendingFiles(prev => [...prev, { file, previewTitle: file.name }]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleAddLink = () => {
@@ -175,13 +178,31 @@ export const AdminEditCourse: React.FC = () => {
     const handleSaveCourse = async () => {
         try {
             setLoading(true);
-             const courseData = {
+
+            // Загружаем pending-файлы только здесь, в папку курса
+            let uploadedMaterials: Material[] = [];
+            if (pendingFiles.length > 0) {
+                const folder = getCourseFolder();
+                uploadedMaterials = await Promise.all(
+                    pendingFiles.map(async ({ file }) => {
+                        const data = await materialService.uploadFile(file, folder);
+                        let title = extractFileNameFromUrl(data.relativePath);
+                        if (title.includes('_') && title.length > 37) {
+                            title = title.substring(title.indexOf('_') + 1);
+                        }
+                        return { id: 0, title, urlDocument: data.relativePath, isExternalLink: false, category: 'Документ курса' } as Material;
+                    })
+                );
+                setPendingFiles([]);
+            }
+
+            const courseData = {
                 title: courseName,
                 description: courseDesc,
-                materials: materials, 
+                materials: [...materials, ...uploadedMaterials],
                 testIds: selectedTests.map(t => t.id),
-                status: isEditMode ? "active" : "active",
-                orderIndex: 0 
+                status: 'active',
+                orderIndex: 0,
             };
 
             if (isEditMode) {
@@ -311,25 +332,46 @@ export const AdminEditCourse: React.FC = () => {
                             <button
                                 className="btn-upload"
                                 onClick={() => fileInputRef.current?.click()}
-                                disabled={uploading}
+                                disabled={loading}
                             >
-                                {uploading ? 'Загрузка...' : 'Выбор файла'}
+                                Выбор файла
                             </button>
                         </div>
 
                         <div className="courses-grid">
-                            {materials.map((mat, idx) => (
-                                <div key={idx} className="course-item-mini">
-                                    <div className="material-info">
-                                        <span className="material-icon">{mat.isExternalLink}</span>
-                                        <span className="truncate-text">{mat.title || mat.urlDocument}</span>
+                            {materials.map((mat, idx) => {
+                                // 1. Сначала вычисляем статус (внутри фигурных скобок)
+                                const isBroken = brokenLinks.includes(mat.urlDocument);
+                                
+                                // 2. Возвращаем ОДИН контейнер для элемента
+                                return (
+                                    <div key={`mat-${idx}`} className={`course-item-mini ${isBroken ? 'broken-link' : ''}`}>
+                                        <div className="material-info">
+                                            <span className="truncate-text">{mat.title || mat.urlDocument}</span>
+                                            {isBroken && (
+                                                <span className="error-badge" title="Файл физически отсутствует на сервере">
+                                                    Файл не найден!
+                                                </span>
+                                            )}
+                                        </div>
+                                        <img 
+                                            src={cross} 
+                                            className="remove-icon" 
+                                            onClick={() => setMaterials(materials.filter((_, i) => i !== idx))} 
+                                            alt="remove" 
+                                        />
                                     </div>
-                                    <img 
-                                        src={cross} 
-                                        className="remove-icon" 
-                                        onClick={() => setMaterials(materials.filter((_, i) => i !== idx))}
-                                        alt="remove" 
-                                    />
+                                );
+                            })}
+                            
+                            {/* Список ожидающих загрузки файлов остается без изменений */}
+                            {pendingFiles.map((pf, idx) => (
+                                <div key={`pf-${idx}`} className="course-item-mini course-item-mini--pending">
+                                    <div className="material-info">
+                                        <span className="truncate-text">{pf.previewTitle}</span>
+                                        <span className="pending-badge">не сохранён</span>
+                                    </div>
+                                    <img src={cross} className="remove-icon" onClick={() => setPendingFiles(pendingFiles.filter((_, i) => i !== idx))} alt="remove" />
                                 </div>
                             ))}
                         </div>

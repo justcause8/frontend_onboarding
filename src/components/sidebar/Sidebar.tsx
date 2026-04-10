@@ -34,9 +34,10 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isEditMode ? ' edit-mode' : ''}`}>
       <nav className='sidebar-header'>
-        <img src={logo} alt="Эн+ Диджитал" style={isEditMode ? { filter: 'grayscale(1) brightness(2)' } : {}}  />
+        <img src={logo} alt="Эн+ Диджитал" />
+        <div className="edit-mode-badge">Режим редактирования</div>
       </nav>
       
       <nav className="sidebar-nav">
@@ -55,7 +56,6 @@ const Sidebar = () => {
                 Обучение и тестирование
               </NavLink>
             </li>
-            <hr className="nav-separator" />
             <li>
               <NavLink to="/materials">
                 <img src={file} className='icon' alt="" />
@@ -68,7 +68,6 @@ const Sidebar = () => {
                 Контактная информация
               </NavLink>
             </li>
-            <hr className="nav-separator" />
             <li>
               <NavLink to="/employees">
                 <img src={people} className='icon' alt="" />
@@ -97,28 +96,24 @@ const Sidebar = () => {
                 Тесты
               </NavLink>
             </li>
-            <hr className="nav-separator" />
             <li>
               <NavLink to="/edit/materials">
                 <img src={materials} className='icon' alt="" />
                 Материалы
               </NavLink>
             </li>
-            <hr className="nav-separator" />
             <li>
               <NavLink to="/edit/users">
                 <img src={people} className='icon' alt="" />
                 Пользователи
               </NavLink>
             </li>
-            <hr className="nav-separator" />
             <li>
               <NavLink to="/analysis">
                 <img src={analysis} className='icon' alt="" />
                 Отчеты
               </NavLink>
             </li>
-            <hr className="nav-separator" />
             {/* <li>
               <NavLink to="/edit/requests">
                 <img src={request} className='icon' alt="" />

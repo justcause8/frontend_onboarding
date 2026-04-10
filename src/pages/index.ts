@@ -3,6 +3,7 @@ export { default as CoursesPage } from './coursesPage/CoursesPage';
 export { default as CoursePage } from './coursePage/CoursePage';
 export { default as PassingTestPage } from './passingTestPage/PassingTestPage';
 export { default as MaterialsPage } from './materialsPage/MaterialsPage';
+export { default as EmployeesPage } from './employeesPage/EmployeesPage';
 
 export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';
 export { default as AdminEditAdaptationRoute } from './editPages/adminAdaptationPage/adminEditAdaptationRoute/AdminEditAdaptationRoute';

@@ -1,15 +1,11 @@
-.sidebar.edit-mode {
-  --primary-color: #6b7280;      /* Серый цвет для админки */
-  --active-bg: #f3f4f6;         /* Светло-серый фон активной ссылки */
-}
-
+/* ===================== ОБЫЧНЫЙ РЕЖИМ ===================== */
 .sidebar {
     background-color: var(--card-bg);
     padding: 15px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
     border-right: 1px solid var(--border-color);
 }
 
@@ -18,6 +14,7 @@
     height: auto;
     display: block;
     padding: 0px 0px 0px 5px;
+    transition: filter 0.3s ease;
 }
 
 .sidebar-nav {
@@ -33,7 +30,7 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 8px;
     text-decoration: none;
     font-weight: 500;
     margin-bottom: 5px;
@@ -47,24 +44,19 @@
     text-align: center;
 }
 
-/* .edit-mode .sidebar-nav li a .icon {
-    filter: brightness(0) invert(1);
-    opacity: 0.8;
-} */
-
 .sidebar-nav li a:hover {
     background-color: var(--bg-light);
 }
 
 .sidebar-nav li a.active {
-background-color: var(--bg-btn-primary);
+    background-color: var(--bg-btn-primary);
     color: var(--primary-color);
     font-weight: 600;
 }
 
 .nav-separator {
     border: none;
-    height: 2px;
+    height: 1px;
     background-color: var(--border-color);
     margin: 10px 0;
 }
@@ -73,26 +65,93 @@ background-color: var(--bg-btn-primary);
     margin-top: auto;
     width: 100%;
     height: 42px;
-
     border-radius: 8px;
-    border: 1px solid var(--primary-color);
-
+    border: 1.5px solid var(--primary-color);
     background-color: transparent;
     color: var(--primary-color);
-
     font-weight: 600;
     font-size: 14px;
-
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .edit-button:hover {
     background-color: var(--primary-color);
-    color: var(--sidebar-bg);
+    color: #ffffff;
 }
 
-.edit-button.active {
-    background-color: var(--primary-color);
-    color: #ffffff; 
+/* ===================== РЕЖИМ РЕДАКТИРОВАНИЯ ===================== */
+.sidebar.edit-mode {
+    background-color: rgb(52, 52, 52);
+    border-right-color: #334155;
+}
+
+.sidebar.edit-mode .sidebar-header img {
+    filter: brightness(0) invert(1);
+}
+
+/* Бейдж режима редактирования под логотипом */
+.sidebar.edit-mode .edit-mode-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+    padding: 5px 8px;
+    background-color: rgba(240, 73, 35, 0.15);
+    border: 1px solid rgba(240, 73, 35, 0.35);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fb923c;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+@keyframes badge-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.edit-mode-badge {
+    display: none;
+}
+
+.sidebar.edit-mode .sidebar-nav li a {
+    color: #ffffff;
+}
+
+.sidebar.edit-mode .sidebar-nav li a .icon {
+    filter: brightness(0) invert(1);
+    opacity: 0.6;
+}
+
+.sidebar.edit-mode .sidebar-nav li a:hover {
+    background-color: rgba(240, 73, 35, 0.18);
+    color: #e2e8f0;
+}
+
+.sidebar.edit-mode .sidebar-nav li a:hover .icon {
+    opacity: 1;
+}
+
+.sidebar.edit-mode .sidebar-nav li a.active {
+    background-color: rgba(240, 73, 35, 0.18);
+    color: #fb923c;
+    font-weight: 600;
+}
+
+.sidebar.edit-mode .sidebar-nav li a.active .icon {
+    filter: brightness(0) saturate(100%) invert(55%) sepia(80%) saturate(500%) hue-rotate(340deg);
+    opacity: 1;
+}
+
+.sidebar.edit-mode .edit-button {
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+.sidebar.edit-mode .edit-button:hover {
+    background-color: #334155;
+    color: #e2e8f0;
+    border-color: #64748b;
 }

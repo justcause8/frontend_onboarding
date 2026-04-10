@@ -48,6 +48,16 @@ export const AdminEditMaterialsPage: React.FC = () => {
             setLoading(true);
             const data = await materialService.getGeneralMaterials();
             setMaterials(data);
+
+            const broken = data.filter(m => !m.isExternalLink);
+            const checks = await Promise.all(
+                broken.map(async m => ({ id: m.id, exists: await materialService.checkFileExists(m.urlDocument) }))
+            );
+            const toDelete = checks.filter(c => !c.exists);
+            if (toDelete.length > 0) {
+                await Promise.all(toDelete.map(c => materialService.deleteMaterial(c.id)));
+                setMaterials(data.filter(m => !toDelete.some(d => d.id === m.id)));
+            }
         } catch (e) {
             console.error("Ошибка загрузки материалов:", e);
         } finally {
@@ -87,17 +97,22 @@ export const AdminEditMaterialsPage: React.FC = () => {
             if (modalConfig.type === 'category') {
                 const oldName = modalConfig.initialValue;
                 const toUpdate = materials.filter(m => (m.category || 'Общее') === oldName);
-                
-                await Promise.all(toUpdate.map(m => 
-                    materialService.updateMaterial(m.id, { 
+
+                await Promise.all(toUpdate.map(m =>
+                    materialService.updateMaterial(m.id, {
                         title: m.title,
-                        category: newValue 
+                        urlDocument: m.urlDocument,
+                        isExternalLink: m.isExternalLink,
+                        category: newValue
                     })
                 ));
-            } else if (modalConfig.type === 'material' && modalConfig.targetId) {
-                await materialService.updateMaterial(modalConfig.targetId, { 
+            } else if (modalConfig.type === 'material' && modalConfig.targetId && modalConfig.materialData) {
+                const m = modalConfig.materialData;
+                await materialService.updateMaterial(modalConfig.targetId, {
                     title: newValue,
-                    category: newCategory 
+                    urlDocument: m.urlDocument,
+                    isExternalLink: m.isExternalLink,
+                    category: newCategory ?? m.category
                 });
             }
             await loadData();
@@ -110,6 +125,15 @@ export const AdminEditMaterialsPage: React.FC = () => {
         }
     };
 
+    /** Санирует название категории для использования как имя папки */
+    const getCategoryFolder = (category: string): string => {
+        const sanitized = category
+            .replace(/[\\/:*?"<>|]/g, '')
+            .replace(/\s+/g, '_')
+            .substring(0, 64);
+        return `Onbording/${sanitized}`;
+    };
+
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -118,8 +142,8 @@ export const AdminEditMaterialsPage: React.FC = () => {
 
         try {
             setUploading(true);
-            const uploadRes = await materialService.uploadFile(file);
-            
+            const uploadRes = await materialService.uploadFile(file, getCategoryFolder(category));
+
             let fileName = uploadRes.fileName || extractFileNameFromUrl(uploadRes.relativePath);
             const underscoreIndex = fileName.indexOf('_');
             if (underscoreIndex !== -1 && underscoreIndex < 37) {
@@ -166,11 +190,13 @@ export const AdminEditMaterialsPage: React.FC = () => {
 
     const handleDeleteCategory = async (categoryName: string) => {
         if (!window.confirm(`Удалить категорию "${categoryName}" и ВСЕ материалы в ней?`)) return;
-        
+
         try {
             setLoading(true);
             const materialsToDelete = materials.filter(m => (m.category || 'Общее') === categoryName);
-            await Promise.all(materialsToDelete.map(m => materialService.deleteMaterial(m.id)));
+            await Promise.all(materialsToDelete.map(m =>
+                materialService.deleteMaterialWithFile(m.id, m.urlDocument, m.isExternalLink)
+            ));
             await loadData();
         } catch (e) {
             alert("Ошибка при удалении категории");
@@ -181,8 +207,10 @@ export const AdminEditMaterialsPage: React.FC = () => {
 
     const handleDeleteMaterial = async (id: number) => {
         if (!window.confirm("Удалить этот материал?")) return;
+        const mat = materials.find(m => m.id === id);
+        if (!mat) return;
         try {
-            await materialService.deleteMaterial(id);
+            await materialService.deleteMaterialWithFile(mat.id, mat.urlDocument, mat.isExternalLink);
             setMaterials(prev => prev.filter(m => m.id !== id));
         } catch (e) { alert("Ошибка при удалении"); }
     };
@@ -253,19 +281,29 @@ export const AdminEditMaterialsPage: React.FC = () => {
             <section className="card text">
                 <h2>Управление категориями</h2>
                 <div className="category-manage-list">
-                    {categories.filter(c => c !== 'Общее').map(cat => (
-                        <div key={cat} className="category-manage-item">
-                            <span>{cat}</span>
-                            <div className="category-actions">
-                                <button className="btn-icon" onClick={() => openCategoryEdit(cat)}>
-                                    <img src={editIcon} className='btn-edit' alt="edit" />
-                                </button>
-                                <button className="btn-icon delete" onClick={() => handleDeleteCategory(cat)}>
-                                    <img src={cross} className='remove-icon' alt="del" />
-                                </button>
+                    {(() => {
+                        const managedCategories = categories.filter(c => c !== 'Общее');
+                        
+                        if (managedCategories.length === 0) {
+                            return (
+                                <p>Категории ещё не созданы</p>
+                            );
+                        }
+
+                        return managedCategories.map(cat => (
+                            <div key={cat} className="category-manage-item">
+                                <span>{cat}</span>
+                                <div className="category-actions">
+                                    <button className="btn-icon" onClick={() => openCategoryEdit(cat)}>
+                                        <img src={editIcon} className='btn-edit' alt="edit" />
+                                    </button>
+                                    <button className="btn-icon delete" onClick={() => handleDeleteCategory(cat)}>
+                                        <img src={cross} className='remove-icon' alt="del" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ));
+                    })()}
                 </div>
             </section>
 
@@ -283,7 +321,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                             <td>
                                 <div className="material-title-cell">
                                     <span className="main-text">{mat.title}</span>
-                                    <span className="sub-text">{mat.urlDocument}</span>
+                                    <span className="sub-text">{mat.urlDocument.replace(/\\/g, '/')}</span>
                                 </div>
                             </td>
                             <td>
