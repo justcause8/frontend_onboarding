@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { userService, type UserShort } from '../../services/user.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
+import { useUserStore } from '../../store/useUserStore';
+import { buildMailto } from '../../utils/mailtoBuilder';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import './EmployeesPage.css';
@@ -35,11 +37,13 @@ const SCROLL_STEP = 200;
 
 const EmployeesPage = () => {
   const { setDynamicTitle } = usePageTitle();
+  const { user } = useUserStore();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeDepart, setActiveDepart] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deptSearch, setDeptSearch] = useState('');
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -86,7 +90,8 @@ const EmployeesPage = () => {
     tabsRef.current?.scrollBy({ left: dir === 'right' ? SCROLL_STEP : -SCROLL_STEP, behavior: 'smooth' });
   };
 
-  const departments = [...new Set(employees.map(e => e.department || 'Без отдела'))].sort();
+  const allDepartments = [...new Set(employees.map(e => e.department || 'Без отдела'))].sort();
+  const departments = allDepartments.filter(d => d.toLowerCase().includes(deptSearch.toLowerCase()));
 
   const filteredEmployees = employees.filter(emp =>
     emp.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,33 +114,55 @@ const EmployeesPage = () => {
 
   return (
     <div className="text">
-      {departments.length > 0 && (
+      {allDepartments.length > 0 && (
         <section className="card employees-section">
-          <h2>Отделы</h2>
-          <div className="department-tabs-wrapper">
-            {canScrollLeft && (
-              <button className="dept-scroll-btn" onClick={() => scroll('left')}>
-                <img src={nextLeft} alt="←" />
-              </button>
-            )}
-            <div className="department-tabs" ref={tabsRef}>
-              {departments.map(dept => (
-                <button
-                  key={dept}
-                  className={`dept-tab${activeDepart === dept ? ' dept-tab--active' : ''}`}
-                  onClick={() => setActiveDepart(dept)}
-                >
-                  {dept}
-                </button>
-              ))}
+          <div className="section-header">
+            <h2>Отделы</h2>
+            <div className="input-search-wrapper dept-search">
+              <input
+                type="text"
+                placeholder="Поиск по отделам..."
+                className="input-field"
+                value={deptSearch}
+                onChange={(e) => setDeptSearch(e.target.value)}
+              />
+              <img src={searchIcon} alt="" className="input-search-icon" />
             </div>
-            {canScrollRight && (
-              <button className="dept-scroll-btn" onClick={() => scroll('right')}>
-                <img src={nextRight} alt="→" />
-              </button>
-            )}
           </div>
-          <div className="input-search-wrapper" style={{ marginTop: '16px' }}>
+          {departments.length === 0 ? (
+            <p>Отдел не найден</p>
+          ) : (
+            <div className="department-tabs-wrapper">
+              {canScrollLeft && (
+                <button className="dept-scroll-btn" onClick={() => scroll('left')}>
+                  <img src={nextLeft} alt="←" />
+                </button>
+              )}
+              <div className="department-tabs" ref={tabsRef}>
+                {departments.map(dept => (
+                  <button
+                    key={dept}
+                    className={`dept-tab${activeDepart === dept ? ' dept-tab--active' : ''}`}
+                    onClick={() => setActiveDepart(dept)}
+                  >
+                    {dept}
+                  </button>
+                ))}
+              </div>
+              {canScrollRight && (
+                <button className="dept-scroll-btn" onClick={() => scroll('right')}>
+                  <img src={nextRight} alt="→" />
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section className="card employees-section">
+        <div className="section-header">
+          <h2>Сотрудники</h2>
+          <div className="input-search-wrapper dept-search">
             <input
               type="text"
               placeholder="Поиск сотрудника..."
@@ -145,31 +172,34 @@ const EmployeesPage = () => {
             />
             <img src={searchIcon} alt="" className="input-search-icon" />
           </div>
-        </section>
-      )}
-
-      {activeDepart && departmentEmployees.length === 0 && (
-        <div className="card employees-empty"><p>В этом отделе нет сотрудников</p></div>
-      )}
-
-      {activeDepart && departmentEmployees.length > 0 && (
-        <div className="employees-grid">
-          {departmentEmployees.map(emp => (
-            <div key={emp.id} className="card employee-card">
-              <div className="employee-avatar">
-                {getInitials(emp.fullName)}
-              </div>
-              <div className="employee-info">
-                <h4>{emp.fullName}</h4>
-                <p className="employee-department">{emp.department || '—'}</p>
-                <p className="employee-position">{emp.position}</p>
-              </div>
-              {/* TODO: подключить реальную ссылку на мессенджер/email при интеграции с внешним API */}
-              <button className="btn btn-secondary employee-contact-btn">Написать</button>
-            </div>
-          ))}
         </div>
-      )}
+
+        {activeDepart && departmentEmployees.length === 0 ? (
+          <p className="sub-text">В этом отделе нет сотрудников</p>
+        ) : (
+          <div className="employees-grid">
+            {departmentEmployees.map(emp => (
+              <div key={emp.id} className="card-item employee-card">
+                <div className="employee-avatar">
+                  {getInitials(emp.fullName)}
+                </div>
+                <div className="employee-info">
+                  <h4>{emp.fullName}</h4>
+                  <p className="employee-dept-label">{emp.department || '—'}</p>
+                  <p className="employee-position-label">{emp.position}</p>
+                </div>
+                <a
+                  href={emp.email ? buildMailto(emp.email, emp.fullName, user?.name ?? '') : undefined}
+                  className={`btn btn-secondary employee-contact-btn${!emp.email ? ' btn-disabled' : ''}`}
+                  onClick={!emp.email ? e => e.preventDefault() : undefined}
+                >
+                  Написать
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 };

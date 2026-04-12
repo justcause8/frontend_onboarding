@@ -1,0 +1,106 @@
+.add-controls-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.contact-add-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contact-add-search {
+    flex: 1;
+    min-width: 0;
+}
+
+.contact-add-link {
+    flex: 1;
+    min-width: 0;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.contacts-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.contact-admin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.contact-admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.contact-admin-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.contact-admin-employee {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.contact-table-employee {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contact-table-employee small {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.icon-btn img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.icon-btn:hover {
+    background-color: var(--bg-light);
+}
+
+.icon-btn--danger:hover {
+    background-color: #fee2e2;
+}

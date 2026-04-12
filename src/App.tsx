@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
-import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage } from "./pages";
-import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage } from './pages';
+import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage } from "./pages";
+import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage, AdminEditContactsPage, AdminEditUsersPage } from './pages';
 import MainLayout from './layout/MainLayout';
 import { PageTitleProvider } from './contexts/PageTitleContext';
+import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
 
 export const App = () => {
   const fetchUser = useUserStore((s) => s.fetchUser);
@@ -25,19 +26,18 @@ export const App = () => {
             <Route path="/courses/course/:courseId/test/:testId" element={<PassingTestPage />} />
             <Route path="/materials/" element={<MaterialsPage />} />
             <Route path="/employees" element={<EmployeesPage />} />
-
+            <Route path="/contacts" element={<ContactsPage />} />
             
             {/* Админские роуты */}
-            <Route path="/edit/adaptationRoutes" element={<AdminAdaptationRoute />} />
-            <Route path="/edit/adaptationRoutes/:adaptationRouteId" element={<AdminEditAdaptationRoute />} />
-            <Route path="/edit/courses" element={<AdminCourses />} />
-            <Route path="/edit/courses/:courseId" element={<AdminEditCourse />} />
-            <Route path="edit/tests" element={<AdminTests />} />
-            <Route path="edit/tests/:testId" element={<AdminEditTest />} />
-            <Route path="edit/materials" element={<AdminEditMaterialsPage />} />
-            
-            {/* <Route path="edit/users" element={< />} />
-            <Route path="edit/requests" element={< />} /> */}
+            <Route path="/edit/adaptationRoutes" element={<ProtectedRoute><AdminAdaptationRoute /></ProtectedRoute>} />
+            <Route path="/edit/adaptationRoutes/:adaptationRouteId" element={<ProtectedRoute><AdminEditAdaptationRoute /></ProtectedRoute>} />
+            <Route path="/edit/courses" element={<ProtectedRoute><AdminCourses /></ProtectedRoute>} />
+            <Route path="/edit/courses/:courseId" element={<ProtectedRoute><AdminEditCourse /></ProtectedRoute>} />
+            <Route path="edit/tests" element={<ProtectedRoute><AdminTests /></ProtectedRoute>} />
+            <Route path="edit/tests/:testId" element={<ProtectedRoute><AdminEditTest /></ProtectedRoute>} />
+            <Route path="edit/materials" element={<ProtectedRoute><AdminEditMaterialsPage /></ProtectedRoute>} />
+            <Route path="edit/contacts" element={<ProtectedRoute><AdminEditContactsPage /></ProtectedRoute>} />
+            <Route path="edit/users" element={<ProtectedRoute><AdminEditUsersPage /></ProtectedRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -67,6 +67,29 @@
 .btn-icon.delete:hover { color: #ef4444; }
 
 .no-padding { padding: 0; overflow: hidden; }
+
+.table-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 24px;
+}
+
+.table-header-row h2 {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dept-search {
+    max-width: 260px;
+    width: 100%;
+}
+
+.users-table-scroll {
+    max-height: 500px;
+    overflow-y: auto;
+}
 .material-icon { font-size: 18px; }
 
 .material-title-cell {
@@ -95,6 +118,8 @@
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .remove-icon-table:hover {

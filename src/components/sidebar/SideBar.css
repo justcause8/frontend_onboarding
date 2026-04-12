@@ -10,15 +10,16 @@
 }
 
 .sidebar-header img {
-    max-width: 65%;
-    height: auto;
+    width: auto;
+    height: 80px;
+    max-width: 100%;
     display: block;
-    padding: 0px 0px 0px 5px;
+    object-fit: contain;
     transition: filter 0.3s ease;
 }
 
 .sidebar-nav {
-    margin-top: 40px;
+    margin-top: 16px;
     flex-grow: 1;
 }
 

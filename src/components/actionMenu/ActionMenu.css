@@ -2,11 +2,14 @@
 .portal-menu {
     position: absolute;
     background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.07),
+        0 10px 24px -4px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.04);
     width: 200px;
     z-index: 9999;
-    padding: 6px;
+    padding: 4px;
     border: 1px solid var(--border-color, #e5e7eb);
 }
 
@@ -15,73 +18,131 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
-    font-size: 14px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-weight: 450;
     color: var(--text-primary, #1f2937);
     cursor: pointer;
-    border-radius: 6px;
-    transition: background 0.2s ease;
+    border-radius: 7px;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
 }
 
 .dropdown-item:hover {
-    background-color: #f3f4f6;
+    background-color: var(--bg-light, #f3f4f6);
 }
 
 /* Иконка внутри пункта */
+.dd-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+}
+
+.dropdown-item:hover .dd-icon {
+    opacity: 0.85;
+}
+
 .dd-icon img {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     display: block;
     object-fit: contain;
 }
 
+/* Разделитель перед блоком delete */
+.dropdown-item.delete:first-of-type,
+.dropdown-item.delete ~ .dropdown-item.delete:first-child {
+    margin-top: 0;
+}
+
+.dropdown-item.delete:not(:first-child) {
+    margin-top: 4px;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    padding-top: 10px;
+}
+
 /* Удаление (красный стиль) */
 .dropdown-item.delete {
-    color: var(--red-color, #ef4444);
+    color: #e53e3e;
 }
 
 .dropdown-item.delete:hover {
-    background-color: #fef2f2;
+    background-color: #fff5f5;
+    color: #c53030;
 }
 
-/* Кнопка-триггер (три точки/иконка меню) */
+.dropdown-item.delete .dd-icon {
+    opacity: 0.6;
+}
+
+.dropdown-item.delete:hover .dd-icon {
+    opacity: 1;
+}
+
+/* Кнопка-триггер */
 .icon-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
+    padding: 6px;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.15s ease;
 }
 
 .icon-btn:hover {
-    background-color: #f3f4f6;
+    background-color: var(--bg-light, #f3f4f6);
 }
 
 .btn-icon-img {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: block;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
 }
 
-/* Анимации появления */
+.icon-btn:hover .btn-icon-img {
+    opacity: 1;
+}
+
+/* Анимация появления */
 .portal-menu {
-    animation: menuFadeIn 0.15s ease-out;
+    animation: menuFadeIn 0.12s ease-out;
+    transform-origin: top right;
 }
 
 @keyframes menuFadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .portal-menu.show-above {
-    animation: menuFadeInAbove 0.15s ease-out;
+    animation: menuFadeInAbove 0.12s ease-out;
+    transform-origin: bottom right;
 }
 
 @keyframes menuFadeInAbove {
-    from { opacity: 0; transform: translateY(-100%) translateY(-4px); }
-    to { opacity: 1; transform: translateY(-100%); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }

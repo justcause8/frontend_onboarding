@@ -161,33 +161,6 @@
     background-color: rgba(240, 73, 35, 0.04);
 }
 
-.employee-row--mentor .employee-name {
-    color: var(--primary-color);
-}
-
-.employee-row-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-}
-
-.employee-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.employee-dept {
-    font-size: 11px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
 .search-item--row {
     display: flex;

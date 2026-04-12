@@ -67,6 +67,8 @@
     width: 11px;
     height: 11px;
     transform: rotate(90deg);
+    display: block;
+    flex-shrink: 0;
 }
 
 .back-navigation:hover {

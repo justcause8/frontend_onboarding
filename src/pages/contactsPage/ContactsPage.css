@@ -1,0 +1,136 @@
+.contacts-empty {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ---- Текст ---- */
+.contact-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  word-break: break-word;
+}
+
+/* ---- Ключевые контакты ---- */
+.key-contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.contact-card-h {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  cursor: default;
+}
+
+.contact-name-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  width: 100%;
+}
+
+.contact-name-row .employee-name {
+  font-size: 15px;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.contact-role-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ---- К кому обратиться ---- */
+.help-contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.contact-card-v {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  cursor: default;
+}
+
+.contact-card-v .employee-name {
+  font-size: 15px;
+  word-break: break-word;
+}
+
+.contact-card-h .employee-dept,
+.contact-card-v .employee-dept {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: break-word;
+}
+
+.contact-problem h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+  word-break: break-word;
+}
+
+.contact-problem .contact-sub {
+  font-size: 13px;
+}
+
+.contact-card-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.contact-ext-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563eb;
+  text-decoration: underline;
+  font-size: 13px;
+  word-break: break-all;
+  cursor: pointer;
+}
+
+.contact-ext-link:hover {
+  color: #1d4ed8;
+}
+
+.contact-ext-link-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.contact-write-btn {
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* ---- Адаптив ---- */
+@media (max-width: 768px) {
+  .key-contacts-grid,
+  .help-contacts-grid {
+    grid-template-columns: 1fr;
+  }
+}

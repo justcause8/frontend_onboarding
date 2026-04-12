@@ -3,7 +3,7 @@ import { useUserStore } from '../../store/useUserStore';
 
 import "./SideBar.css";
 
-import logo from '@/assets/logo/Logo_En_Plus.svg';
+import logo from '@/assets/logo/Logo_En_Plus.png';
 import home from '@/assets/sidebar/home.svg';
 import education from '@/assets/sidebar/education.png';
 import file from '@/assets/sidebar/file.svg';
@@ -100,6 +100,12 @@ const Sidebar = () => {
               <NavLink to="/edit/materials">
                 <img src={materials} className='icon' alt="" />
                 Материалы
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/edit/contacts">
+                <img src={contacts} className='icon' alt="" />
+                Контакты
               </NavLink>
             </li>
             <li>

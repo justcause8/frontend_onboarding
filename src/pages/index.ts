@@ -4,6 +4,7 @@ export { default as CoursePage } from './coursePage/CoursePage';
 export { default as PassingTestPage } from './passingTestPage/PassingTestPage';
 export { default as MaterialsPage } from './materialsPage/MaterialsPage';
 export { default as EmployeesPage } from './employeesPage/EmployeesPage';
+export { default as ContactsPage } from './contactsPage/ContactsPage';
 
 export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';
 export { default as AdminEditAdaptationRoute } from './editPages/adminAdaptationPage/adminEditAdaptationRoute/AdminEditAdaptationRoute';
@@ -12,3 +13,5 @@ export { default as AdminEditCourse } from './editPages/adminCoursePage/adminEdi
 export { default as AdminTests } from './editPages/adminTestPage/adminTests/AdminTests';
 export { default as AdminEditTest } from './editPages/adminTestPage/adminEditTest/AdminEditTest';
 export { default as AdminEditMaterialsPage } from './editPages/adminMaterialsPage/AdminEditMaterialsPage';
+export { default as AdminEditContactsPage } from './editPages/adminContactsPage/AdminEditContactsPage';
+export { default as AdminEditUsersPage } from './editPages/adminUsersPage/AdminEditUsersPage';

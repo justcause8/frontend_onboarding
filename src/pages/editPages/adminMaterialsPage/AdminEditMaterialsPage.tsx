@@ -266,7 +266,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                         <h4>2. Ссылка или файл</h4>
                         <div className="input-with-button">
                             <input className="input-field" placeholder="https://..." value={materialInput} onChange={e => setMaterialInput(e.target.value)} />
-                            <button className="btn btn-secondary" onClick={handleAddLink}>Добавить</button>
+                            <button className="btn btn-primary" onClick={handleAddLink}>Добавить</button>
                         </div>
                         <div className="upload-zone-mini">
                             <input type="file" ref={fileInputRef} hidden onChange={handleFileUpload} />
