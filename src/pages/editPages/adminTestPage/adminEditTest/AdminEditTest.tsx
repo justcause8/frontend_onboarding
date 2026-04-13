@@ -144,7 +144,6 @@ export const AdminEditTest: React.FC = () => {
   const toggleCorrectAnswer = (qId: number, optId: number) => {
     setQuestions(questions.map(q => {
       if (q.id === qId) {
-        // ИСПРАВЛЕНО: Одиночный выбор теперь имеет ID 2
         const isSingleChoice = q.questionTypeId === 2; 
         return {
           ...q,
@@ -255,7 +254,7 @@ export const AdminEditTest: React.FC = () => {
           />
         </div>
         <div className="input-item" style={{ maxWidth: '200px' }}>
-          <h4>Балл для прохождения (%)</h4>
+          <h4>Балл для прохождения(%)</h4>
           <input 
             type="number"
             className="input-field" 

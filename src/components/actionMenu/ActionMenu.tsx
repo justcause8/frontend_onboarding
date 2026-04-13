@@ -15,21 +15,27 @@ export const ICONS = {
 };
 
 interface ActionMenuItemProps {
-    icon: string;
+    icon?: string;
     label: string;
     onClick: () => void;
     className?: string;
+    checkbox?: boolean;
+    checked?: boolean;
 }
 
 // Универсальный элемент меню
-export const ActionMenuItem: React.FC<ActionMenuItemProps> = ({ icon, label, onClick, className = "" }) => (
+export const ActionMenuItem: React.FC<ActionMenuItemProps> = ({ icon, label, onClick, className = "", checkbox, checked }) => (
     <div className={`dropdown-item ${className}`} onClick={(e) => {
         e.stopPropagation();
         onClick();
     }}>
-        <span className="dd-icon">
-            <img src={icon} alt={label} />
-        </span>
+        {checkbox ? (
+            <span className={`dd-checkbox ${checked ? 'dd-checkbox--checked' : ''}`} />
+        ) : icon ? (
+            <span className="dd-icon">
+                <img src={icon} alt={label} />
+            </span>
+        ) : null}
         {label}
     </div>
 );

@@ -9,8 +9,8 @@ import cross from '@/assets/cross.png';
 import '../adminMaterialsPage/AdminEditMaterialsPage.css';
 
 const ROLES: { value: string; label: string }[] = [
-    { value: 'SuperAdmin', label: 'Супер-администратор' },
-    { value: 'HrAdmin',    label: 'HR-администратор' },
+    { value: 'SuperAdmin', label: 'Админ' },
+    { value: 'HrAdmin',    label: 'HR-специалист' },
     { value: 'Mentor',     label: 'Наставник' },
     { value: 'User',       label: 'Пользователь' },
 ];
@@ -73,11 +73,26 @@ const AdminEditUsersPage = () => {
         return () => clearTimeout(timer);
     }, [adQuery]);
 
+    const SYNC_INTERVAL_MS = 1 * 60 * 1000; // 1 минут
+
+    useEffect(() => {
+        const sync = async () => {
+            try {
+                await userService.syncAllFromRims();
+                await loadData();
+            } catch {
+                // синхронизация фоновая — ошибки не показываем
+            }
+        };
+        const id = setInterval(sync, SYNC_INTERVAL_MS);
+        return () => clearInterval(id);
+    }, [loadData]);
+
     const handleImport = async () => {
         if (!selectedAdUser) return;
         try {
             setImporting(true);
-            const result = await userService.importUserFromRims(selectedAdUser.uid);
+            const result = await userService.importUserFromRims(selectedAdUser.uid as string);
             if (result.user.alreadyExisted) {
                 alert(`Пользователь "${result.user.name}" уже существует в системе`);
             } else {
@@ -94,6 +109,8 @@ const AdminEditUsersPage = () => {
     };
 
     const handleRoleChange = async (user: UserShort, role: string) => {
+        const roleLabel = getRoleLabel(role);
+        if (!window.confirm(`Изменить роль "${user.fullName}" на "${roleLabel}"?`)) return;
         try {
             await userService.updateUserRole(user.id, role);
             setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role } : u));
@@ -105,6 +122,7 @@ const AdminEditUsersPage = () => {
     const handleDelete = async (user: UserShort) => {
         if (!window.confirm(`Удалить пользователя "${user.fullName}"?`)) return;
         try {
+            await userService.deleteUser(user.id);
             setUsers(prev => prev.filter(u => u.id !== user.id));
         } catch {
             alert('Ошибка при удалении');
@@ -197,7 +215,7 @@ const AdminEditUsersPage = () => {
             <section className="card no-padding">
                 <div className="table-header-row">
                     <h2>Пользователи</h2>
-                    <div className="input-search-wrapper dept-search">
+<div className="input-search-wrapper dept-search">
                         <input
                             className="input-field"
                             placeholder="Поиск пользователя..."
@@ -238,10 +256,10 @@ const AdminEditUsersPage = () => {
                                                 {ROLES.map(r => (
                                                     <ActionMenuItem
                                                         key={r.value}
-                                                        icon={ICONS.edit}
+                                                        checkbox
+                                                        checked={user.role === r.value}
                                                         label={r.label}
                                                         onClick={() => handleRoleChange(user, r.value)}
-                                                        className={user.role === r.value ? 'active' : ''}
                                                     />
                                                 ))}
                                                 <ActionMenuItem

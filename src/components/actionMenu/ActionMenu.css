@@ -55,6 +55,45 @@
     object-fit: contain;
 }
 
+/* Чекбокс-индикатор */
+.dd-checkbox {
+    position: relative; /* Добавлено для точного позиционирования псевдоэлемента */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; /* Увеличил с 16 до 18 для лучшего баланса */
+    height: 18px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--border-color, #d1d5db);
+    border-radius: 4px;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+
+.dd-checkbox--checked {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+/* Сама галочка */
+.dd-checkbox--checked::after {
+    content: '';
+    position: absolute;
+    /* Центрирование */
+    top: 45%; /* Чуть выше геометрического центра (визуально так ровнее) */
+    left: 50%;
+    
+    /* Размеры сторон галочки */
+    width: 9px;
+    height: 5px;
+    
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    
+    /* Поворот и выравнивание точно по центру */
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 /* Разделитель перед блоком delete */
 .dropdown-item.delete:first-of-type,
 .dropdown-item.delete ~ .dropdown-item.delete:first-child {

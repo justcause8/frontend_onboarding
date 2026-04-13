@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MarkdownEditor } from '../../../../components/markdownEditor/MarkdownEditor';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { courseService } from '../../../../services/course.service';
@@ -46,13 +47,7 @@ export const AdminEditCourse: React.FC = () => {
     
     const searchRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const courseDescRef = useRef<HTMLTextAreaElement>(null);
     const draftProcessedRef = useRef(false);
-
-    useEffect(() => {
-        const el = courseDescRef.current;
-        if (el) { el.style.height = 'inherit'; el.style.height = `${el.scrollHeight}px`; }
-    }, [courseDesc]);
     const [searchParams] = useSearchParams();
     const newTestId = searchParams.get('newTestId');
     const returnToRoute = searchParams.get('returnToRoute');
@@ -223,10 +218,6 @@ export const AdminEditCourse: React.FC = () => {
         }
     };
 
-    const autoResize = (target: HTMLTextAreaElement) => {
-        target.style.height = 'inherit';
-        target.style.height = `${target.scrollHeight}px`;
-    };
 
     if (loading) return <LoadingSpinner />;
 
@@ -252,15 +243,11 @@ export const AdminEditCourse: React.FC = () => {
 
                 <div className="input-item">
                     <h4>Описание</h4>
-                    <textarea
-                        ref={courseDescRef}
-                        className="textarea-field"
+                    <MarkdownEditor
                         value={courseDesc}
-                        onChange={e => {
-                            setCourseDesc(e.target.value);
-                            autoResize(e.target);
-                        }}
+                        onChange={setCourseDesc}
                         placeholder="О чем этот курс..."
+                        minHeight="140px"
                     />
                 </div>
             </section>

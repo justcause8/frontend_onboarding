@@ -1,7 +1,7 @@
 import { api } from '../api/api';
 
 export interface UserShort {
-  id: number;
+  id: string;
   fullName: string;
   department?: string;
   position: string;
@@ -25,7 +25,7 @@ export interface UserProgress {
 }
 
 export interface UserReportItem {
-  userId: number;
+  userId: string;
   fullName: string;
   department: string;
   position: string;
@@ -37,7 +37,7 @@ export const userService = {
   async getAllUsers(): Promise<UserShort[]> {
     const res = await api.get<any[]>('/onboarding/users');
     return res.data.map(u => ({
-      id: u.id,
+      id: u.uid ?? u.guid ?? u.id,
       fullName: u.fullName || u.name,
       email: u.email,
       department: u.department,
@@ -58,8 +58,8 @@ export const userService = {
     return res.data;
   },
 
-  /** Получить прогресс конкретного пользователя по ID (для HR/Наставника) */
-  async getUserProgressById(userId: number): Promise<UserProgress> {
+  /** Получить прогресс конкретного пользователя по GUID (для HR/Наставника) */
+  async getUserProgressById(userId: string): Promise<UserProgress> {
     const res = await api.get<UserProgress>(`/onboarding/user/${userId}/progress`);
     return res.data;
   },
@@ -75,14 +75,29 @@ export const userService = {
     return api.post('/onboarding/recalculate-statuses');
   },
 
+  /** Удалить пользователя из системы онбординга */
+  async deleteUser(userId: string): Promise<void> {
+    await api.delete(`/onboarding/user/${userId}`);
+  },
+
+  /** Синхронизировать всех пользователей из RIMS */
+  async syncAllFromRims(): Promise<void> {
+    await api.post('/onboarding/users/sync-all-from-rims');
+  },
+
+  /** Индивидуальная синхронизация одного пользователя из RIMS */
+  async syncUserFromRims(userId: string): Promise<void> {
+    await api.post(`/onboarding/user/${userId}/sync-from-rims`);
+  },
+
   /** Изменить роль пользователя */
-  async updateUserRole(userId: number, role: string): Promise<void> {
-    await api.put(`/onboarding/users/${userId}/role`, { role });
+  async updateUserRole(userId: string, role: string) {
+      return api.put(`/onboarding/user/${userId}`, { role });
   },
 
   /** Поиск пользователей во внешнем AD/RIMS по части ФИО или логина */
   async searchExternalUsers(query: string): Promise<ExternalUser[]> {
-    const res = await api.get<ExternalUser[]>(`/auth/external-ad/search`, { params: { q: query } });
+    const res = await api.get<ExternalUser[]>(`/rims/user/search`, { params: { q: query } });
     return res.data;
   },
 
@@ -94,6 +109,7 @@ export const userService = {
 };
 
 export interface ExternalUser {
+  id: string;
   login: string;
   fullName: string;
   jobTitle: string;

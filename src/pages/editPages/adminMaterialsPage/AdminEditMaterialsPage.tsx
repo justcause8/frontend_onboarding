@@ -10,7 +10,7 @@ import { AdminTable } from '../../../components/adminTable/AdminTable';
 import EditModal from '../../../components/modals/editModal/EditModal';
 
 import './AdminEditMaterialsPage.css';
-import cross from '@/assets/cross.png';
+import deleteIcon from '@/assets/editMode/DeleteIcon.png';
 import editIcon from '@/assets/editMode/EditIcon.png';
 
 export const AdminEditMaterialsPage: React.FC = () => {
@@ -298,7 +298,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                                         <img src={editIcon} className='btn-edit' alt="edit" />
                                     </button>
                                     <button className="btn-icon delete" onClick={() => handleDeleteCategory(cat)}>
-                                        <img src={cross} className='remove-icon' alt="del" />
+                                        <img src={deleteIcon} className='remove-icon' alt="del" />
                                     </button>
                                 </div>
                             </div>
@@ -330,7 +330,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                             <td className="action-cell">
                                 <div className="table-actions">
                                     <img src={editIcon} className="edit-icon-table" onClick={() => openMaterialEdit(mat)} alt="edit" />
-                                    <img src={cross} className="remove-icon" onClick={() => handleDeleteMaterial(mat.id)} alt="delete" />
+                                    <img src={deleteIcon} className="remove-icon" onClick={() => handleDeleteMaterial(mat.id)} alt="delete" />
                                 </div>
                             </td>
                         </tr>
