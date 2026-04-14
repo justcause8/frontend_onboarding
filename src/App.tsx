@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
+import { useBackgroundSync } from './hooks/useBackgroundSync';
 import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage } from "./pages";
 import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage, AdminEditContactsPage, AdminEditUsersPage } from './pages';
 import MainLayout from './layout/MainLayout';
@@ -13,6 +14,8 @@ export const App = () => {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  useBackgroundSync();
 
   return (
     <PageTitleProvider>

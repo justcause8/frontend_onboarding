@@ -13,7 +13,7 @@ interface EditContactModalProps {
         issueCategory: string;
         description: string;
         messengerLink: string;
-        fkUserId: number;
+        fkUserId: string;
     }) => void;
 }
 

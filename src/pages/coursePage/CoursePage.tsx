@@ -9,6 +9,7 @@ import { userService } from '../../services/user.service';
 
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { extractFileNameFromUrl } from '../../utils/fileUtils';
+import { MarkdownViewer } from '../../components/markdownEditor/MarkdownEditor';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import './CoursePage.css';
@@ -67,7 +68,6 @@ const CoursePage = () => {
             }
           }
         } catch {
-          // Не критично — просто не показываем кнопку
         }
       }
     } catch (e) {
@@ -167,7 +167,10 @@ const CoursePage = () => {
     <div className="text">
       <section className="card course-section">
         <h2>Основная информация</h2>
-        <p>{course.description || 'Описание отсутствует'}</p>
+        {course.description
+          ? <MarkdownViewer content={course.description} />
+          : <p>Описание отсутствует</p>
+        }
       </section>
 
       {course.materials.length > 0 && (

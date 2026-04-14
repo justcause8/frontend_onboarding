@@ -2,7 +2,7 @@ import { api } from '../api/api';
 
 export interface SupportContact {
   id: number;
-  fkUserId: number;
+  fkUserId: string;
   employeeName: string;
   employeeJobTitle: string;
   employeeDepartment: string;
@@ -27,7 +27,7 @@ export const contactsService = {
   },
 
   /** Получить наставника текущего сотрудника */
-  async getMentor(userId: number): Promise<EmployeeContact | null> {
+  async getMentor(userId: string): Promise<EmployeeContact | null> {
     try {
       const res = await api.get<EmployeeContact>(`/onboarding/support-contacts/${userId}/mentor`);
       return res.data;
@@ -37,7 +37,7 @@ export const contactsService = {
   },
 
   /** Получить начальника отдела текущего сотрудника */
-  async getDepartmentHead(userId: number): Promise<EmployeeContact | null> {
+  async getDepartmentHead(userId: string): Promise<EmployeeContact | null> {
     try {
       const res = await api.get<EmployeeContact>(`/onboarding/support-contacts/${userId}/department-head`);
       return res.data;

@@ -153,14 +153,12 @@ export const AdminEditCourse: React.FC = () => {
     const handleAddLink = () => {
         const url = materialInput.trim();
         if (url) {
-            // 1. Извлекаем имя из URL
             const extractedTitle = extractFileNameFromUrl(url);
-            // 2. Опционально форматируем (например, убираем расширение для красоты)
             const finalTitle = formatFileName(extractedTitle, true); 
 
             const newMaterial: Material = {
                 id: 0,
-                title: finalTitle, // Используем полученное имя
+                title: finalTitle, 
                 urlDocument: url,
                 isExternalLink: true,
                 category: 'Ссылка'
@@ -247,7 +245,7 @@ export const AdminEditCourse: React.FC = () => {
                         value={courseDesc}
                         onChange={setCourseDesc}
                         placeholder="О чем этот курс..."
-                        minHeight="140px"
+                        minHeight="120px"
                     />
                 </div>
             </section>

@@ -73,20 +73,6 @@ const AdminEditUsersPage = () => {
         return () => clearTimeout(timer);
     }, [adQuery]);
 
-    const SYNC_INTERVAL_MS = 1 * 60 * 1000; // 1 минут
-
-    useEffect(() => {
-        const sync = async () => {
-            try {
-                await userService.syncAllFromRims();
-                await loadData();
-            } catch {
-                // синхронизация фоновая — ошибки не показываем
-            }
-        };
-        const id = setInterval(sync, SYNC_INTERVAL_MS);
-        return () => clearInterval(id);
-    }, [loadData]);
 
     const handleImport = async () => {
         if (!selectedAdUser) return;

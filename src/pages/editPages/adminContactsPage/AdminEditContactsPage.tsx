@@ -94,7 +94,7 @@ export const AdminEditContactsPage: React.FC = () => {
         issueCategory: string;
         description: string;
         messengerLink: string;
-        fkUserId: number;
+        fkUserId: string;
     }) => {
         if (!editingContact) return;
         try {

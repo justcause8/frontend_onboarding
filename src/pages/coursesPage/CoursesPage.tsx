@@ -112,9 +112,19 @@ const CoursesPage = () => {
                 
                 <h4>{course.title}</h4>
                 <p className="course-description">
-                  {course.description && course.description.length > 150
-                    ? `${course.description.substring(0, 150)}...`
-                    : course.description || 'Описание отсутствует'}
+                  {(() => {
+                    const plain = (course.description || '')
+                      .replace(/#{1,6}\s/g, '')
+                      .replace(/\*\*(.*?)\*\*/g, '$1')
+                      .replace(/\*(.*?)\*/g, '$1')
+                      .replace(/~~(.*?)~~/g, '$1')
+                      .replace(/`(.*?)`/g, '$1')
+                      .replace(/^[-*]\s/gm, '')
+                      .replace(/^\d+\.\s/gm, '')
+                      .replace(/^>\s/gm, '')
+                      .trim();
+                    return plain.length > 150 ? `${plain.substring(0, 150)}...` : plain || 'Описание отсутствует';
+                  })()}
                 </p>
 
                 {course.tests.filter((t: TestShort) => t.status !== 'archived').length > 0 && (

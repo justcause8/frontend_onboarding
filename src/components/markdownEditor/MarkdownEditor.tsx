@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import './MarkdownEditor.css';
 
@@ -12,18 +12,38 @@ function wrapSelection(
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const value = textarea.value;
-    const selected = value.slice(start, end) || placeholder;
 
-    const newValue = value.slice(0, start) + before + selected + after + value.slice(end);
-    onChange(newValue);
+    // Проверяем, уже ли выделенный текст обёрнут в маркер
+    const beforeText = value.slice(0, start);
+    const afterText = value.slice(end);
+    const lastOpen = beforeText.lastIndexOf(before);
+    const isWrapped =
+        lastOpen !== -1 &&
+        !beforeText.slice(lastOpen + before.length).includes(before) &&
+        afterText.startsWith(after);
 
-    // Восстанавливаем фокус и выделение
-    requestAnimationFrame(() => {
-        textarea.focus();
-        const newStart = start + before.length;
-        const newEnd = newStart + selected.length;
-        textarea.setSelectionRange(newStart, newEnd);
-    });
+    if (isWrapped) {
+        // Снимаем маркер
+        const innerStart = lastOpen + before.length;
+        const innerEnd = end;
+        const inner = value.slice(innerStart, innerEnd);
+        const newValue = value.slice(0, lastOpen) + inner + value.slice(end + after.length);
+        onChange(newValue);
+        requestAnimationFrame(() => {
+            textarea.focus();
+            textarea.setSelectionRange(lastOpen, lastOpen + inner.length);
+        });
+    } else {
+        const selected = value.slice(start, end) || placeholder;
+        const newValue = value.slice(0, start) + before + selected + after + value.slice(end);
+        onChange(newValue);
+        requestAnimationFrame(() => {
+            textarea.focus();
+            const newStart = start + before.length;
+            const newEnd = newStart + selected.length;
+            textarea.setSelectionRange(newStart, newEnd);
+        });
+    }
 }
 
 function insertLine(
@@ -61,6 +81,66 @@ interface MarkdownEditorProps {
     minHeight?: string;
 }
 
+/** Считает количество полных (закрытых) пар маркера до позиции */
+function countClosedPairs(text: string, marker: string): number {
+    let count = 0;
+    let i = 0;
+    while (i <= text.length - marker.length) {
+        if (text.slice(i, i + marker.length) === marker) {
+            count++;
+            i += marker.length;
+        } else {
+            i++;
+        }
+    }
+    return count;
+}
+
+/** Определяет, активен ли форматирующий маркер вокруг курсора/выделения */
+function getActiveMarkers(value: string, selStart: number, selEnd: number): Set<string> {
+    const active = new Set<string>();
+
+    const before = value.slice(0, selStart);
+    const after  = value.slice(selEnd);
+
+    // Жирный **...**:
+    // нечётное число ** до курсора => курсор внутри **
+    const boldCount = countClosedPairs(before, '**');
+    if (boldCount % 2 === 1) {
+        // проверяем что есть закрывающий ** после
+        if (after.includes('**')) active.add('bold');
+    }
+
+    // Курсив *...*:
+    // ищем одиночные * (не **), нечётное кол-во => внутри *
+    if (!active.has('bold')) {
+        // убираем все ** из строки перед курсором чтобы не мешали
+        const beforeNoDouble = before.replace(/\*\*/g, '\x00\x00');
+        const italicCount = (beforeNoDouble.match(/\*/g) || []).length;
+        if (italicCount % 2 === 1) {
+            const afterNoDouble = after.replace(/\*\*/g, '\x00\x00');
+            if (/\*/.test(afterNoDouble)) active.add('italic');
+        }
+    }
+
+    // Код `...`:
+    const codeCount = countClosedPairs(before, '`');
+    if (codeCount % 2 === 1) {
+        if (after.includes('`')) active.add('code');
+    }
+
+    // Строчные префиксы — текущая строка
+    const lineStart = value.lastIndexOf('\n', selStart - 1) + 1;
+    const lineEnd   = value.indexOf('\n', selStart);
+    const line      = value.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+    if (line.startsWith('## '))  active.add('h2');
+    if (line.startsWith('### ')) active.add('h3');
+    if (line.startsWith('- '))   active.add('ul');
+    if (line.match(/^\d+\. /))   active.add('ol');
+
+    return active;
+}
+
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     value,
     onChange,
@@ -68,6 +148,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     minHeight = '120px',
 }) => {
     const ref = useRef<HTMLTextAreaElement>(null);
+    const [activeMarkers, setActiveMarkers] = useState<Set<string>>(new Set());
 
     const wrap = (before: string, after: string, placeholder: string) => {
         if (ref.current) wrapSelection(ref.current, before, after, placeholder, onChange);
@@ -77,18 +158,23 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         if (ref.current) insertLine(ref.current, prefix, onChange);
     };
 
-    const buttons: { title: string; label: React.ReactNode; action: () => void }[] = [
-        { title: 'Жирный (Ctrl+B)',    label: <b>B</b>,  action: () => wrap('**', '**', 'жирный текст') },
-        { title: 'Курсив (Ctrl+I)',    label: <i>I</i>,  action: () => wrap('*', '*', 'курсив') },
-        { title: 'Зачёркнутый',        label: <s>S</s>,  action: () => wrap('~~', '~~', 'зачёркнутый') },
-        { title: 'Заголовок H2',       label: 'H2',      action: () => line('## ') },
-        { title: 'Заголовок H3',       label: 'H3',      action: () => line('### ') },
-        { title: 'separator' as any,   label: null,      action: () => {} },
-        { title: 'Маркированный список', label: '•—',    action: () => line('- ') },
-        { title: 'Нумерованный список',  label: '1.',    action: () => line('1. ') },
-        { title: 'separator' as any,   label: null,      action: () => {} },
-        { title: 'Цитата',             label: '❝',       action: () => line('> ') },
-        { title: 'Код',                label: '</>',     action: () => wrap('`', '`', 'код') },
+    const updateActiveMarkers = () => {
+        if (!ref.current) return;
+        const { selectionStart, selectionEnd, value: v } = ref.current;
+        setActiveMarkers(getActiveMarkers(v, selectionStart, selectionEnd));
+    };
+
+    const buttons: { title: string; label: React.ReactNode; action: () => void; activeKey?: string }[] = [
+        { title: 'Жирный (Ctrl+B)',      label: <b>B</b>, action: () => wrap('**', '**', 'жирный текст'), activeKey: 'bold'   },
+        { title: 'Курсив (Ctrl+I)',       label: <i>I</i>, action: () => wrap('*', '*', 'курсив'),          activeKey: 'italic' },
+        { title: 'separator' as any,      label: null,     action: () => {} },
+        { title: 'Заголовок H2',          label: 'H2',     action: () => line('## '),                       activeKey: 'h2'     },
+        { title: 'Заголовок H3',          label: 'H3',     action: () => line('### '),                      activeKey: 'h3'     },
+        { title: 'separator' as any,      label: null,     action: () => {} },
+        { title: 'Маркированный список',  label: '-',      action: () => line('- '),                        activeKey: 'ul'     },
+        { title: 'Нумерованный список',   label: '1.',     action: () => line('1. '),                       activeKey: 'ol'     },
+        { title: 'separator' as any,      label: null,     action: () => {} },
+        { title: 'Код',                   label: '</>',    action: () => wrap('`', '`', 'код'),             activeKey: 'code'   },
     ];
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -106,7 +192,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                         <button
                             key={i}
                             type="button"
-                            className="md-toolbar-btn"
+                            className={`md-toolbar-btn${btn.activeKey && activeMarkers.has(btn.activeKey) ? ' md-toolbar-btn--active' : ''}`}
                             title={btn.title}
                             onMouseDown={e => { e.preventDefault(); btn.action(); }}
                         >
@@ -121,6 +207,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onKeyUp={updateActiveMarkers}
+                onMouseUp={updateActiveMarkers}
+                onSelect={updateActiveMarkers}
                 placeholder={placeholder}
                 style={{ minHeight }}
             />

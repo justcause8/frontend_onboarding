@@ -29,16 +29,13 @@ const ContactsPage = () => {
       setSupportContacts(contacts);
       setAllUsers(users);
 
-      let userId: number | null = user?.id ?? null;
-      if (!userId && user?.name) {
-        const found = users.find(u => u.fullName === user.name);
-        userId = found?.id ?? null;
-      }
+      const currentUser = users.find(u => u.fullName === user?.name);
+      const userGuid = currentUser?.id ?? null;
 
-      if (userId) {
+      if (userGuid) {
         const [mentorData, headData] = await Promise.all([
-          contactsService.getMentor(userId),
-          contactsService.getDepartmentHead(userId),
+          contactsService.getMentor(userGuid),
+          contactsService.getDepartmentHead(userGuid),
         ]);
         setMentor(mentorData);
         setDeptHead(headData);
@@ -69,7 +66,7 @@ const ContactsPage = () => {
       <section className="card">
         <h2>Ключевые контакты</h2>
         {keyContacts.length === 0 ? (
-          <p className="contacts-empty">Ключевые контакты не назначены</p>
+          <p>Ключевые контакты не назначены</p>
         ) : (
           <div className="key-contacts-grid">
             {keyContacts.map(({ role, contact }) => (
@@ -103,7 +100,10 @@ const ContactsPage = () => {
         ) : (
           <div className="help-contacts-grid">
             {supportContacts.map(contact => {
-              const empEmail = allUsers.find(u => u.id === contact.fkUserId)?.email;
+              const empEmail = (
+                allUsers.find(u => u.id === contact.fkUserId) ??
+                allUsers.find(u => u.fullName === contact.employeeName)
+              )?.email;
               return (
                 <div key={contact.id} className="contact-card-v card-item">
                   <div className="contact-problem">
