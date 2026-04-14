@@ -9,7 +9,8 @@ import education from '@/assets/sidebar/education.png';
 import file from '@/assets/sidebar/file.svg';
 import contacts from '@/assets/sidebar/contacts.svg';
 import people from '@/assets/sidebar/people.png';
-import analysis from '@/assets/sidebar/analysis.png';
+import reports from '@/assets/sidebar/reports.png';
+import test from '@/assets/sidebar/test.png';
 import request from '../../assets/sidebar/request.png';
 import materials from '../../assets/fileIcon.svg';
 
@@ -92,7 +93,7 @@ const Sidebar = () => {
             </li>
             <li>
               <NavLink to="/edit/tests">
-                <img src={analysis} className='icon' alt="" />
+                <img src={test} className='icon' alt="" />
                 Тесты
               </NavLink>
             </li>
@@ -115,8 +116,8 @@ const Sidebar = () => {
               </NavLink>
             </li>
             <li>
-              <NavLink to="/analysis">
-                <img src={analysis} className='icon' alt="" />
+              <NavLink to="/edit/total-reports">
+                <img src={reports} className='icon' alt="" />
                 Отчеты
               </NavLink>
             </li>

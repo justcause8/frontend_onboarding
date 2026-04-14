@@ -347,10 +347,6 @@ export const AdminEditMaterialsPage: React.FC = () => {
                 categories={modalConfig?.type === 'material' ? categories : undefined}
                 currentCategory={modalConfig?.materialData?.category}
             />
-
-            <div className="card-footer">
-                <button className="btn btn-secondary" onClick={() => navigate(-1)}>Назад</button>
-            </div>
         </div>
     );
 };

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
 import { useBackgroundSync } from './hooks/useBackgroundSync';
-import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage } from "./pages";
+import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage, TotalReportsPage } from "./pages";
 import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage, AdminEditContactsPage, AdminEditUsersPage } from './pages';
 import MainLayout from './layout/MainLayout';
 import { PageTitleProvider } from './contexts/PageTitleContext';
@@ -41,6 +41,8 @@ export const App = () => {
             <Route path="edit/materials" element={<ProtectedRoute><AdminEditMaterialsPage /></ProtectedRoute>} />
             <Route path="edit/contacts" element={<ProtectedRoute><AdminEditContactsPage /></ProtectedRoute>} />
             <Route path="edit/users" element={<ProtectedRoute><AdminEditUsersPage /></ProtectedRoute>} />
+            <Route path="/edit/total-reports" element={<ProtectedRoute><TotalReportsPage /></ProtectedRoute>} />
+
           </Route>
         </Routes>
       </BrowserRouter>

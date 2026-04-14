@@ -7,6 +7,7 @@ import { ActionMenu, ActionMenuItem, ICONS } from '../../../components/actionMen
 import searchIcon from '@/assets/search.svg';
 import cross from '@/assets/cross.png';
 import '../adminMaterialsPage/AdminEditMaterialsPage.css';
+import '../../employeesPage/EmployeesPage.css';
 
 const ROLES: { value: string; label: string }[] = [
     { value: 'SuperAdmin', label: 'Админ' },
@@ -198,10 +199,10 @@ const AdminEditUsersPage = () => {
             </section>
 
             {/* Таблица пользователей */}
-            <section className="card no-padding">
-                <div className="table-header-row">
+            <section className="card employees-section">
+                <div className="section-header">
                     <h2>Пользователи</h2>
-<div className="input-search-wrapper dept-search">
+                    <div className="input-search-wrapper dept-search">
                         <input
                             className="input-field"
                             placeholder="Поиск пользователя..."
@@ -263,10 +264,6 @@ const AdminEditUsersPage = () => {
                     </table>
                 </div>
             </section>
-
-            <div className="card-footer">
-                <button className="btn btn-secondary" onClick={() => navigate(-1)}>Назад</button>
-            </div>
         </div>
     );
 };

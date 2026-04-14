@@ -1,0 +1,22 @@
+.reports-table,
+.reports-table th,
+.reports-table td {
+    font-size: 13px !important;
+}
+
+.reports-dept-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.reports-empty {
+    padding: 16px 0;
+}
+
+.reports-table .col-status {
+    min-width: 110px;
+    text-align: center;
+    font-size: 13px !important;
+}

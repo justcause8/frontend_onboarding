@@ -32,6 +32,32 @@ export interface UserReportItem {
   progress: UserProgress;
 }
 
+export interface EmployeeReportsRow {
+  userId: number;
+  fullName: string;
+  department: string;
+  position: string;
+  routeTitle: string;
+  status: string;
+  percentCourses: number;
+  totalCourses: number;
+  completedCourses: number;
+  avgTestScore: number;
+  daysToComplete: number | null;
+}
+
+export interface TotalReportsResponse {
+  totalEmployees: number;
+  passedCount: number;
+  inProgressCount: number;
+  avgTestScore: number;
+  avgDaysToComplete: number;
+  avgCoursesProgress: number;
+  avgTestsProgress: number;
+  departments: string[];
+  employees: EmployeeReportsRow[];
+}
+
 export const userService = {
   /** Получить всех пользователей */
   async getAllUsers(): Promise<UserShort[]> {
@@ -64,9 +90,9 @@ export const userService = {
     return res.data;
   },
 
-  /** Получить отчет по всем сотрудникам (для страницы отчетов) */
-  async getAllUsersProgressReport(): Promise<UserReportItem[]> {
-    const res = await api.get<UserReportItem[]>('/onboarding/reports/progress-all');
+  /** Получить сводный отчет по всем сотрудникам */
+  async getTotalReport(): Promise<TotalReportsResponse> {
+    const res = await api.get<TotalReportsResponse>('/onboarding/reports/total');
     return res.data;
   },
 

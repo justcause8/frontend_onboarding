@@ -9,7 +9,6 @@ import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
-import { truncate } from '../../utils/routeUtils';
 import './CoursesPage.css';
 
 const CoursesPage = () => {
@@ -22,7 +21,6 @@ const CoursesPage = () => {
   const navigate = useNavigate();
   const { setDynamicTitle } = usePageTitle();
 
-  // Выносим загрузку в useCallback, чтобы избежать дублирования кода
   const loadData = useCallback(async () => {
     try {
       setLoading(true);

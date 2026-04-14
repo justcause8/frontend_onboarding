@@ -246,10 +246,6 @@ export const AdminEditContactsPage: React.FC = () => {
                 />
             </section>
 
-            <div className="card-footer">
-                <button className="btn btn-secondary" onClick={() => navigate(-1)}>Назад</button>
-            </div>
-
             <EditContactModal
                 isOpen={isModalOpen}
                 contact={editingContact}
