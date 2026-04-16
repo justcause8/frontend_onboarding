@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './TestResultModal.css';
-import done from '@/assets/done.svg';
-import cross from '@/assets/cross.png';
+import done from '@/assets/icons/done.svg';
+import cross from '@/assets/icons/cross.png';
 
 interface TestResultModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface TestResultModalProps {
   message: string;
   courseId: string | undefined;
   onRetry: () => void;
+  onRestartFull: () => void;
 }
 
 const TestResultModal: React.FC<TestResultModalProps> = ({
@@ -19,7 +20,8 @@ const TestResultModal: React.FC<TestResultModalProps> = ({
   isCourseCompleted,
   message,
   courseId,
-  onRetry
+  onRetry,
+  onRestartFull,
 }) => {
   const navigate = useNavigate();
 
@@ -37,22 +39,28 @@ const TestResultModal: React.FC<TestResultModalProps> = ({
         </div>
 
         <h1>
-          {isPassed 
-            ? (isCourseCompleted ? 'Курс завершен!' : 'Тест пройден!') 
-            : 'Нужно потренироваться'}
+          {isPassed
+            ? (isCourseCompleted ? 'Курс завершен!' : 'Тест пройден!')
+            : 'Тест не пройден'}
         </h1>
-        <p className="modal-message">{message}</p>
+
+        {message && <p className="modal-message">{message}</p>}
 
         <div className="modal-actions">
           {isPassed ? (
             isCourseCompleted ? (
-              <button className="btn btn-primary single-btn" onClick={() => navigate('/')}>
-                Вернуться к плану адаптации
-              </button>
+              <div className="button-row">
+                <button className="btn btn-secondary" onClick={onRestartFull}>
+                  Пройти заново
+                </button>
+                <button className="btn btn-primary" onClick={() => navigate('/')}>
+                  К плану адаптации
+                </button>
+              </div>
             ) : (
               <div className="button-row">
-                <button className="btn btn-secondary" onClick={() => navigate('/courses')}>
-                  К списку курсов
+                <button className="btn btn-secondary" onClick={onRestartFull}>
+                  Пройти заново
                 </button>
                 <button className="btn btn-primary" onClick={() => navigate(`/courses/course/${courseId}`)}>
                   Продолжить курс

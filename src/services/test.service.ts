@@ -108,6 +108,12 @@ export const testService = {
     return response.data;
   },
 
+  /** Получить только неправильно отвеченные вопросы для повторного прохождения */
+  async getTestForRetake(testId: number): Promise<TestFullResponse> {
+    const response = await api.get<TestFullResponse>(`/onboarding/test/${testId}/retake`);
+    return response.data;
+  },
+
   /** Получить полные данные теста с правильными ответами (для HR/Наставника) */
   async getTestByIdFull(testId: number): Promise<TestFullResponse> {
     const response = await api.get<TestFullResponse>(`/onboarding/test/${testId}/full`);

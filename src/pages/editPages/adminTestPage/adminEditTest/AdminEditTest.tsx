@@ -8,7 +8,7 @@ import { usePageTitle } from '../../../../contexts/PageTitleContext';
 import './AdminEditTest.css';
 
 import deleteIcon from '@/assets/editMode/DeleteIcon.png';
-import cross from '@/assets/cross.png';
+import cross from '@/assets/icons/cross.png';
 
 export const AdminEditTest: React.FC = () => {
   const { setDynamicTitle } = usePageTitle();

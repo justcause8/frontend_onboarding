@@ -10,8 +10,8 @@ import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
 import './AdaptationPage.css';
 
-import done from '@/assets/done.svg';
-import exclamationmark from '@/assets/exclamation-mark.png';
+import done from '@/assets/icons/done.svg';
+import exclamationmark from '@/assets/icons/exclamation-mark.png';
 
 const emptyProgress: UserProgress = {
   totalCourses: 0,

@@ -32,20 +32,6 @@ export interface UserReportItem {
   progress: UserProgress;
 }
 
-export interface EmployeeReportsRow {
-  userId: number;
-  fullName: string;
-  department: string;
-  position: string;
-  routeTitle: string;
-  status: string;
-  percentCourses: number;
-  totalCourses: number;
-  completedCourses: number;
-  avgTestScore: number;
-  daysToComplete: number | null;
-}
-
 export interface TotalReportsResponse {
   totalEmployees: number;
   passedCount: number;
@@ -53,9 +39,26 @@ export interface TotalReportsResponse {
   avgTestScore: number;
   avgDaysToComplete: number;
   avgCoursesProgress: number;
-  avgTestsProgress: number;
   departments: string[];
-  employees: EmployeeReportsRow[];
+}
+
+export interface EmployeeReportDetail {
+  userId: number;
+  fullName: string;
+  department: string;
+  position: string;
+  routeTitle: string;
+  status: string;
+  startDate: string | null;
+  endDate: string | null;
+  completionPercent: number;
+  completedCourses: number;
+  totalCourses: number;
+  completedTests: number;
+  totalTests: number;
+  avgTestScore: number;
+  completedTasks: number;
+  totalTasks: number;
 }
 
 export const userService = {
@@ -90,9 +93,15 @@ export const userService = {
     return res.data;
   },
 
-  /** Получить сводный отчет по всем сотрудникам */
+  /** Получить сводный отчет (агрегаты + отделы) */
   async getTotalReport(): Promise<TotalReportsResponse> {
     const res = await api.get<TotalReportsResponse>('/onboarding/reports/total');
+    return res.data;
+  },
+
+  /** Получить детальный отчет по конкретному сотруднику */
+  async getEmployeeReport(userId: string): Promise<EmployeeReportDetail> {
+    const res = await api.get<EmployeeReportDetail>(`/onboarding/reports/user/${userId}`);
     return res.data;
   },
 

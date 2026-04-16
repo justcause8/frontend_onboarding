@@ -149,6 +149,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 }) => {
     const ref = useRef<HTMLTextAreaElement>(null);
     const [activeMarkers, setActiveMarkers] = useState<Set<string>>(new Set());
+    const [isPreview, setIsPreview] = useState(false);
 
     const wrap = (before: string, after: string, placeholder: string) => {
         if (ref.current) wrapSelection(ref.current, before, after, placeholder, onChange);
@@ -185,7 +186,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     return (
         <div className="md-editor">
             <div className="md-toolbar">
-                {buttons.map((btn, i) =>
+                {!isPreview && buttons.map((btn, i) =>
                     btn.title === 'separator' ? (
                         <div key={i} className="md-toolbar-separator" />
                     ) : (
@@ -200,19 +201,37 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                         </button>
                     )
                 )}
+                <div className="md-toolbar-spacer" />
+                <button
+                    type="button"
+                    className={`md-toolbar-btn md-preview-btn${isPreview ? ' md-toolbar-btn--active' : ''}`}
+                    title={isPreview ? 'Редактировать' : 'Предпросмотр'}
+                    onMouseDown={e => { e.preventDefault(); setIsPreview(p => !p); }}
+                >
+                    {isPreview ? 'Изменить' : 'Просмотр'}
+                </button>
             </div>
-            <textarea
-                ref={ref}
-                className="md-textarea"
-                value={value}
-                onChange={e => onChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onKeyUp={updateActiveMarkers}
-                onMouseUp={updateActiveMarkers}
-                onSelect={updateActiveMarkers}
-                placeholder={placeholder}
-                style={{ minHeight }}
-            />
+            {isPreview ? (
+                <div className="md-preview-area" style={{ minHeight }}>
+                    {value
+                        ? <MarkdownViewer content={value} />
+                        : <span className="md-preview-placeholder">{placeholder}</span>
+                    }
+                </div>
+            ) : (
+                <textarea
+                    ref={ref}
+                    className="md-textarea"
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onKeyUp={updateActiveMarkers}
+                    onMouseUp={updateActiveMarkers}
+                    onSelect={updateActiveMarkers}
+                    placeholder={placeholder}
+                    style={{ minHeight }}
+                />
+            )}
         </div>
     );
 };

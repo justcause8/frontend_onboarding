@@ -12,8 +12,8 @@ import './AdminEditAdaptationRoute.css';
 import upIcon from '@/assets/editMode/UpIcon.png';
 import downIcon from '@/assets/editMode/DownIcon.png';
 import deleteIcon from '@/assets/editMode/DeleteIcon.png';
-import cross from '@/assets/cross.png';
-import searchIcon from '@/assets/search.svg';
+import cross from '@/assets/icons/cross.png';
+import searchIcon from '@/assets/icons/search.svg';
 
 interface SelectedCourse {
   id: number;

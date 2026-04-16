@@ -12,7 +12,7 @@ import { usePageTitle } from '../../../../contexts/PageTitleContext';
 import { extractFileNameFromUrl, formatFileName } from '../../../../utils/fileUtils';
 
 import './AdminEditCourse.css';
-import cross from '@/assets/cross.png';
+import cross from '@/assets/icons/cross.png';
 import downIcon from '@/assets/editMode/DownIcon.png';
 
 interface TestShort {

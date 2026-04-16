@@ -2,14 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { materialService, type Material } from '../../services/material.service';
 import { courseService, type Course } from '../../services/course.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
-import { extractFileNameFromUrl } from '../../utils/fileUtils';
+import { extractFileNameFromUrl, getFileIcon } from '../../utils/fileUtils';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 
 import './MaterialsPage.css';
-import folderIcon from '@/assets/folderIcon.svg';
-import linkIcon from '@/assets/link.svg';
-import fileIcon from '@/assets/fileIcon.svg';
+import folderIcon from '@/assets/icons/folderIcon.svg';
 import backIcon from '@/assets/editMode/DownIcon.png';
 
 type View = 'root' | 'category' | 'courses' | 'course';
@@ -122,7 +120,7 @@ const MaterialsPage = () => {
           return (
             <div key={item.id} className="card material-resource-card" onClick={() => handleOpen(item)}>
               <div className="resource-icon">
-                <img src={external ? linkIcon : fileIcon} alt={external ? 'link' : 'file'} />
+                <img src={getFileIcon(item.urlDocument, external)} alt={external ? 'link' : 'file'} />
               </div>
               <div className="resource-info">
                 <p className="resource-title">{getDisplayName(item)}</p>

@@ -31,16 +31,14 @@
 }
 
 .material-content img {
-  opacity: 0;
-  transform: translateX(-5px);
-  transition: all 0.2s ease;
   width: 16px;
   height: 16px;
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .card-item.material-item:hover img {
   opacity: 1;
-  transform: translateX(0);
 }
 
 .test-item {

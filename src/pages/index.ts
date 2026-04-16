@@ -5,7 +5,7 @@ export { default as PassingTestPage } from './passingTestPage/PassingTestPage';
 export { default as MaterialsPage } from './materialsPage/MaterialsPage';
 export { default as EmployeesPage } from './employeesPage/EmployeesPage';
 export { default as ContactsPage } from './contactsPage/ContactsPage';
-export { default as TotalReportsPage } from './totalReportsPage/TotalReportsPage';
+export { default as TotalReportsPage } from './AdminTotalReportsPage/AdminEditTotalReportsPage';
 
 export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';
 export { default as AdminEditAdaptationRoute } from './editPages/adminAdaptationPage/adminEditAdaptationRoute/AdminEditAdaptationRoute';

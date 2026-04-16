@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { userService, type UserShort } from '../../../services/user.service';
 import type { SupportContact } from '../../../services/contacts.service';
 import '../editModal/EditModal.css';
-import searchIcon from '@/assets/search.svg';
-import cross from '@/assets/cross.png';
+import searchIcon from '@/assets/icons/search.svg';
+import cross from '@/assets/icons/cross.png';
 
 interface EditContactModalProps {
     isOpen: boolean;

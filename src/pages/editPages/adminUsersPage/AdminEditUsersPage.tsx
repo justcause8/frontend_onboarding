@@ -4,8 +4,8 @@ import { userService, type UserShort, type ExternalUser } from '../../../service
 import { usePageTitle } from '../../../contexts/PageTitleContext';
 import LoadingSpinner from '../../../components/loading/LoadingSpinner';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../components/actionMenu/ActionMenu';
-import searchIcon from '@/assets/search.svg';
-import cross from '@/assets/cross.png';
+import searchIcon from '@/assets/icons/search.svg';
+import cross from '@/assets/icons/cross.png';
 import '../adminMaterialsPage/AdminEditMaterialsPage.css';
 import '../../employeesPage/EmployeesPage.css';
 

@@ -6,9 +6,9 @@ import { buildMailto } from '../../utils/mailtoBuilder';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import './EmployeesPage.css';
-import searchIcon from '@/assets/search.svg';
-import nextRight from '@/assets/next-right.png';
-import nextLeft from '@/assets/next-left.png';
+import searchIcon from '@/assets/icons/search.svg';
+import nextRight from '@/assets/icons/next-right.png';
+import nextLeft from '@/assets/icons/next-left.png';
 
 // TODO: при подключении внешнего API заменить вызов userService.getAllUsers()
 // на соответствующий метод нового сервиса (например externalEmployeeService.getAll())

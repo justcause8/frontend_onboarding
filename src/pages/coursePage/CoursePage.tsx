@@ -8,12 +8,11 @@ import { adaptationService } from '../../services/adaptation.service';
 import { userService } from '../../services/user.service';
 
 import { usePageTitle } from '../../contexts/PageTitleContext';
-import { extractFileNameFromUrl } from '../../utils/fileUtils';
+import { extractFileNameFromUrl, getFileIcon } from '../../utils/fileUtils';
 import { MarkdownViewer } from '../../components/markdownEditor/MarkdownEditor';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import './CoursePage.css';
-import link from '@/assets/link.svg';
 
 const CoursePage = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -191,7 +190,7 @@ const CoursePage = () => {
                 >
                   <div className="material-content">
                     <p>{displayTitle}</p>
-                    <img src={link} alt='Открыть'/>
+                    <img src={getFileIcon(material.urlDocument, material.isExternalLink)} alt='Открыть'/>
                   </div>
                 </div>
               );

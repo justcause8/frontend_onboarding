@@ -4,74 +4,34 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .modal-content {
-  width: 450px; 
-  min-height: 380px;
+  width: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px !important;
+  padding: 40px 32px 32px !important;
   text-align: center;
   box-sizing: border-box;
-  animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.modal-content h1 {
-  font-size: 22px;
-  margin: 0 0 12px 0;
-  font-weight: 600;
-}
-
-.modal-message {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
-  line-height: 1.5;
-}
-
-.modal-actions {
-  width: 100%;
-}
-
-/* Строка кнопок */
-.button-row {
-  display: flex;
-  width: 100%;
-  gap: 12px;
-}
-
-.button-row .btn {
-  flex: 1;
-  white-space: nowrap;
-  padding: 10px 15px;
-}
-
-/* Одиночная кнопка */
-.single-btn {
-  width: 100%;
-  max-width: 280px;
-  margin: 0 auto;
-}
-
-/* ИКОНКИ (Контейнеры) */
 .result-icon {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .success-card .result-icon {
@@ -84,28 +44,49 @@
   box-shadow: 0 8px 16px rgba(244, 67, 54, 0.25);
 }
 
-/* Сами изображения */
-.modal-faild-icon {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-}
-
 .modal-done-icon {
   width: 36px;
   height: 36px;
   object-fit: contain;
 }
 
-/* Цвет кнопки при провале */
-.failed-card .btn-primary {
-  background-color: #f44336;
-  border-color: #f44336;
+.modal-faild-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
 }
 
-.failed-card .btn-primary:hover {
-  background-color: #d32f2f;
-  border-color: #d32f2f;
+.modal-content h1 {
+  font-size: 20px;
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 10px;
+}
+
+.modal-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  width: 100%;
+}
+
+.button-row {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+
+.button-row .btn {
+  flex: 1;
+}
+
+.single-btn {
+  width: 100%;
 }
 
 @keyframes fadeIn {
@@ -114,6 +95,6 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }

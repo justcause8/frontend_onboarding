@@ -11,8 +11,8 @@ import contacts from '@/assets/sidebar/contacts.svg';
 import people from '@/assets/sidebar/people.png';
 import reports from '@/assets/sidebar/reports.png';
 import test from '@/assets/sidebar/test.png';
-import request from '../../assets/sidebar/request.png';
-import materials from '../../assets/fileIcon.svg';
+import request from '@/assets/sidebar/request.png';
+import materials from '@/assets/icons/fileIcon.svg';
 
 const ALLOWED_ROLES = ['HrAdmin', 'Mentor', 'SuperAdmin'];
 

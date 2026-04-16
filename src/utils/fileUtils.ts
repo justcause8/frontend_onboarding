@@ -1,3 +1,31 @@
+const FILE_ICON_MAP: Record<string, string> = {
+  pdf:  new URL('../assets/icons/fileIcons/icon-pdf.png', import.meta.url).href,
+  doc:  new URL('../assets/icons/fileIcons/icon-microsoft-word.png', import.meta.url).href,
+  docx: new URL('../assets/icons/fileIcons/icon-microsoft-word.png', import.meta.url).href,
+  xls:  new URL('../assets/icons/fileIcons/icon-microsoft-excel.png', import.meta.url).href,
+  xlsx: new URL('../assets/icons/fileIcons/icon-microsoft-excel.png', import.meta.url).href,
+  ppt:  new URL('../assets/icons/fileIcons/icon-microsoft-powerpoint.png', import.meta.url).href,
+  pptx: new URL('../assets/icons/fileIcons/icon-microsoft-powerpoint.png', import.meta.url).href,
+  png:  new URL('../assets/icons/fileIcons/icon-png.png', import.meta.url).href,
+  jpg:  new URL('../assets/icons/fileIcons/icon-jpg.png', import.meta.url).href,
+  jpeg: new URL('../assets/icons/fileIcons/icon-jpg.png', import.meta.url).href,
+  txt:  new URL('../assets/icons/fileIcons/icon-txt.png', import.meta.url).href,
+  zip:  new URL('../assets/icons/fileIcons/icon-zip.png', import.meta.url).href,
+  rar:  new URL('../assets/icons/fileIcons/icon-rar.png', import.meta.url).href,
+};
+
+const DEFAULT_FILE_ICON = new URL('../assets/icons/fileIcon.svg', import.meta.url).href;
+const LINK_ICON = new URL('../assets/icons/link.svg', import.meta.url).href;
+
+/** Возвращает иконку по расширению файла или URL */
+export const getFileIcon = (url: string, isExternalLink: boolean): string => {
+  if (isExternalLink) return LINK_ICON;
+  const segment = url.split('/').pop() ?? '';
+  const ext = segment.includes('.') ? segment.split('.').pop()?.toLowerCase() ?? '' : '';
+  if (!ext) return LINK_ICON;
+  return FILE_ICON_MAP[ext] ?? DEFAULT_FILE_ICON;
+};
+
 export const extractFileNameFromUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return 'Документ';
   

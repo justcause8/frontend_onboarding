@@ -5,7 +5,7 @@ import { useUserStore } from '../../store/useUserStore';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import { buildMailto } from '../../utils/mailtoBuilder';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
-import linkIcon from '@/assets/link.svg';
+import linkIcon from '@/assets/icons/link.svg';
 import './ContactsPage.css';
 
 const ContactsPage = () => {

@@ -67,6 +67,28 @@
     flex-shrink: 0;
 }
 
+.md-toolbar-spacer {
+    flex: 1;
+}
+
+.md-preview-btn {
+    width: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.md-preview-area {
+    padding: 10px 14px;
+    box-sizing: border-box;
+}
+
+.md-preview-placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+    font-size: 14px;
+}
+
 /* Само поле ввода */
 .md-textarea {
     width: 100%;
