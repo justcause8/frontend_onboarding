@@ -6,7 +6,6 @@ import type { OnboardingRoute } from '../../../../services/adaptation.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
-import '../../adminPagesWithTables.css';
 
 export const AdminAdaptationRoute = () => {
     const { setDynamicTitle } = usePageTitle();

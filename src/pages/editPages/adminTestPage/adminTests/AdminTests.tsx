@@ -7,7 +7,6 @@ import { testService, type Test } from '../../../../services/test.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
-import '../../adminPagesWithTables.css';
 
 export const AdminTests = () => {
     const { setDynamicTitle } = usePageTitle();

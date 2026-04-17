@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 
 import { testService } from '../../services/test.service';
@@ -17,6 +17,7 @@ const PassingTestPage = () => {
   const { courseId, testId } = useParams<{ courseId: string; testId: string }>();
   const { setDynamicTitle } = usePageTitle();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [test, setTest] = useState<TestFullResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,47 +33,36 @@ const PassingTestPage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [testResult, setTestResult] = useState<{
     isPassed: boolean;
-    message: string;
     isCourseCompleted: boolean;
   } | null>(null);
+  // 0 = первый вход (полный тест), >0 = повторная попытка (только неверные)
+  const [retryCount, setRetryCount] = useState(() => searchParams.get('retry') === '1' ? 1 : 0);
 
-  const loadTest = useCallback(async (mode: 'auto' | 'retake' | 'full' = 'auto') => {
+  const loadTest = useCallback(async () => {
     try {
       setLoading(true);
       if (!testId || !courseId) return;
 
-      let testData: TestFullResponse = null!;
-      const courseData = await courseService.getCourseById(Number(courseId));
+      const isRetry = retryCount > 0;
 
-      if (mode === 'full') {
-        testData = await testService.getTestById(Number(testId));
-      } else if (mode === 'retake') {
-        testData = await testService.getTestForRetake(Number(testId));
-        // Если все вопросы были отвечены правильно — грузим полный тест
-        if (!testData.questions || testData.questions.length === 0) {
-          testData = await testService.getTestById(Number(testId));
-          setTestResult({ isPassed: true, message: 'Все вопросы пройдены правильно! Вы можете пройти тест заново.', isCourseCompleted: false });
-          setIsSubmitted(true);
-        }
-      } else {
-        // auto: проверяем наличие предыдущей попытки
-        const attempt = await testService.getMyAttempt(Number(testId));
-        if (attempt) {
-          const retakeData = await testService.getTestForRetake(Number(testId));
-          testData = (!retakeData.questions || retakeData.questions.length === 0)
-            ? await testService.getTestById(Number(testId))
-            : retakeData;
-          if (!retakeData.questions || retakeData.questions.length === 0) {
-            setTestResult({ isPassed: true, message: 'Все вопросы пройдены правильно! Вы можете пройти тест заново.', isCourseCompleted: false });
-            setIsSubmitted(true);
-          }
-        } else {
-          testData = await testService.getTestById(Number(testId));
-        }
-      }
+      const [courseData, testData] = await Promise.all([
+        courseService.getCourseById(Number(courseId)),
+        isRetry
+          ? testService.getTestForRetake(Number(testId))
+          : testService.getTestById(Number(testId)),
+      ]);
 
       if (testData.status === 'archived') {
         navigate(`/courses/course/${courseId}`, { replace: true });
+        return;
+      }
+
+      // При retry: если 0 вопросов — все ошибки уже исправлены
+      if (isRetry && (!testData.questions || testData.questions.length === 0)) {
+        setTest(testData);
+        setDynamicTitle(`${courseData.title} | ${testData.title}`);
+        setTestResult({ isPassed: true, isCourseCompleted: false });
+        setIsSubmitted(true);
         return;
       }
 
@@ -84,31 +74,28 @@ const PassingTestPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [testId, courseId, setDynamicTitle, navigate]);
+  }, [testId, courseId, retryCount, setDynamicTitle, navigate]);
 
   useEffect(() => {
-    loadTest('auto');
+    loadTest();
     return () => setDynamicTitle('');
   }, [loadTest, setDynamicTitle]);
 
   useEffect(() => {
-    if (!testId) return;
-    if (Object.keys(userAnswers).length > 0) {
-      localStorage.setItem(`test_answers_${testId}`, JSON.stringify(userAnswers));
-    }
+    if (!testId || Object.keys(userAnswers).length === 0) return;
+    localStorage.setItem(`test_answers_${testId}`, JSON.stringify(userAnswers));
   }, [userAnswers, testId]);
 
   const handleOptionSelect = (questionId: number, optionId: number, isMultiple: boolean) => {
     setUserAnswers(prev => {
-      const currentAnswers = prev[questionId] || [];
+      const current = prev[questionId] || [];
       if (isMultiple) {
-        const newAnswers = currentAnswers.includes(optionId)
-          ? currentAnswers.filter(id => id !== optionId)
-          : [...currentAnswers, optionId];
-        return { ...prev, [questionId]: newAnswers };
-      } else {
-        return { ...prev, [questionId]: [optionId] };
+        const next = current.includes(optionId)
+          ? current.filter(id => id !== optionId)
+          : [...current, optionId];
+        return { ...prev, [questionId]: next };
       }
+      return { ...prev, [questionId]: [optionId] };
     });
   };
 
@@ -118,11 +105,10 @@ const PassingTestPage = () => {
       if (!testId) return;
 
       const response = await testService.submitTestResults(Number(testId), userAnswers);
-
       if (testId) localStorage.removeItem(`test_answers_${testId}`);
+
       setTestResult({
         isPassed: response.isPassed,
-        message: response.message,
         isCourseCompleted: response.isCourseCompleted,
       });
       setIsSubmitted(true);
@@ -134,26 +120,13 @@ const PassingTestPage = () => {
     }
   };
 
-  const clearSavedAnswers = () => {
-    if (testId) localStorage.removeItem(`test_answers_${testId}`);
-  };
-
-  // Повторить только неправильные вопросы
+  // После неудачи — грузим retake (только неверные вопросы)
   const handleRetry = () => {
-    clearSavedAnswers();
+    if (testId) localStorage.removeItem(`test_answers_${testId}`);
     setIsSubmitted(false);
     setTestResult(null);
     setUserAnswers({});
-    loadTest('retake');
-  };
-
-  // Пройти весь тест заново
-  const handleRestartFull = () => {
-    clearSavedAnswers();
-    setIsSubmitted(false);
-    setTestResult(null);
-    setUserAnswers({});
-    loadTest('full');
+    setRetryCount(c => c + 1);
   };
 
   if (loading && !isSubmitted) return <LoadingSpinner />;
@@ -165,10 +138,8 @@ const PassingTestPage = () => {
         isOpen={isSubmitted && testResult !== null}
         isPassed={testResult?.isPassed ?? false}
         isCourseCompleted={testResult?.isCourseCompleted ?? false}
-        message={testResult?.message ?? ''}
         courseId={courseId}
         onRetry={handleRetry}
-        onRestartFull={handleRestartFull}
       />
 
       <div className="card text">

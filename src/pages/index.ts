@@ -16,3 +16,4 @@ export { default as AdminEditTest } from './editPages/adminTestPage/adminEditTes
 export { default as AdminEditMaterialsPage } from './editPages/adminMaterialsPage/AdminEditMaterialsPage';
 export { default as AdminEditContactsPage } from './editPages/adminContactsPage/AdminEditContactsPage';
 export { default as AdminEditUsersPage } from './editPages/adminUsersPage/AdminEditUsersPage';
+export { default as AdminEditUserReportPage } from './AdminUserReportsPage/AdminEditUserReportPage';

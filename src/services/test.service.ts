@@ -1,7 +1,5 @@
 import { api } from '../api/api';
 
-// --- ИНТЕРФЕЙСЫ ---
-
 /** Базовая информация о тесте (для списков) */
 export interface Test {
   id: number;

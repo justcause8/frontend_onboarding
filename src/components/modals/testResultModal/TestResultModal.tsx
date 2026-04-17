@@ -8,20 +8,16 @@ interface TestResultModalProps {
   isOpen: boolean;
   isPassed: boolean;
   isCourseCompleted: boolean;
-  message: string;
   courseId: string | undefined;
   onRetry: () => void;
-  onRestartFull: () => void;
 }
 
 const TestResultModal: React.FC<TestResultModalProps> = ({
   isOpen,
   isPassed,
   isCourseCompleted,
-  message,
   courseId,
   onRetry,
-  onRestartFull,
 }) => {
   const navigate = useNavigate();
 
@@ -44,36 +40,23 @@ const TestResultModal: React.FC<TestResultModalProps> = ({
             : 'Тест не пройден'}
         </h1>
 
-        {message && <p className="modal-message">{message}</p>}
-
         <div className="modal-actions">
           {isPassed ? (
-            isCourseCompleted ? (
-              <div className="button-row">
-                <button className="btn btn-secondary" onClick={onRestartFull}>
-                  Пройти заново
-                </button>
-                <button className="btn btn-primary" onClick={() => navigate('/')}>
-                  К плану адаптации
-                </button>
-              </div>
-            ) : (
-              <div className="button-row">
-                <button className="btn btn-secondary" onClick={onRestartFull}>
-                  Пройти заново
-                </button>
-                <button className="btn btn-primary" onClick={() => navigate(`/courses/course/${courseId}`)}>
-                  Продолжить курс
-                </button>
-              </div>
-            )
+            <div className="button-row">
+              <button className="btn btn-secondary" onClick={() => navigate(`/courses/course/${courseId}`)}>
+                Вернуться к курсу
+              </button>
+              <button className="btn btn-primary" onClick={() => navigate('/')}>
+                К плану адаптации
+              </button>
+            </div>
           ) : (
             <div className="button-row">
               <button className="btn btn-secondary" onClick={() => navigate(`/courses/course/${courseId}`)}>
                 Вернуться к курсу
               </button>
               <button className="btn btn-primary" onClick={onRetry}>
-                Попробовать снова
+                Пройти снова
               </button>
             </div>
           )}

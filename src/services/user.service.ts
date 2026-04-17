@@ -44,6 +44,7 @@ export interface TotalReportsResponse {
 
 export interface EmployeeReportDetail {
   userId: number;
+  userUid: string;
   fullName: string;
   department: string;
   position: string;

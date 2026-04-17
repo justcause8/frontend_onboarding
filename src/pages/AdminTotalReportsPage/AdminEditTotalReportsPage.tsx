@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userService, type TotalReportsResponse, type EmployeeReportDetail } from '../../services/user.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
@@ -19,6 +20,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const TotalReportsPage = () => {
     const { setDynamicTitle } = usePageTitle();
+    const navigate = useNavigate();
 
     const [summary, setSummary] = useState<TotalReportsResponse | null>(null);
     const [employees, setEmployees] = useState<EmployeeReportDetail[]>([]);
@@ -42,7 +44,9 @@ const TotalReportsPage = () => {
             // Запрашиваем отчёт только для пользователей с ролью User
             const onboardingUsers = users.filter(u => u.role === 'User');
             const reports = await Promise.allSettled(
-                onboardingUsers.map(u => userService.getEmployeeReport(u.id))
+                onboardingUsers.map(u =>
+                    userService.getEmployeeReport(u.id).then(r => ({ ...r, userUid: u.id }))
+                )
             );
 
             const details: EmployeeReportDetail[] = reports
@@ -143,7 +147,7 @@ const TotalReportsPage = () => {
                                     </td>
                                 </tr>
                             ) : filtered.map(emp => (
-                                <tr key={emp.userId}>
+                                <tr key={emp.userId} className="table-row-clickable" onClick={() => navigate(`/edit/total-reports/${emp.userUid}`)}>
                                     <td><div className="main-text">{emp.fullName}</div></td>
                                     <td><span className="sub-text">{emp.department || '—'}</span></td>
                                     <td><span className="sub-text">{emp.routeTitle || '—'}</span></td>

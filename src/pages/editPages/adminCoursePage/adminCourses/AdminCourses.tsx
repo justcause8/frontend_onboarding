@@ -6,7 +6,6 @@ import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
 import { extractFileNameFromUrl } from '../../../../utils/fileUtils';
-import '../../adminPagesWithTables.css';
 
 export const AdminCourses = () => {
     const { setDynamicTitle } = usePageTitle();

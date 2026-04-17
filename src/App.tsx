@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
 import { useBackgroundSync } from './hooks/useBackgroundSync';
 import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage, TotalReportsPage } from "./pages";
-import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage, AdminEditContactsPage, AdminEditUsersPage } from './pages';
+import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage, AdminEditContactsPage, AdminEditUsersPage, AdminEditUserReportPage } from './pages';
 import MainLayout from './layout/MainLayout';
 import { PageTitleProvider } from './contexts/PageTitleContext';
 import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
@@ -42,6 +42,7 @@ export const App = () => {
             <Route path="edit/contacts" element={<ProtectedRoute><AdminEditContactsPage /></ProtectedRoute>} />
             <Route path="edit/users" element={<ProtectedRoute><AdminEditUsersPage /></ProtectedRoute>} />
             <Route path="/edit/total-reports" element={<ProtectedRoute><TotalReportsPage /></ProtectedRoute>} />
+            <Route path="/edit/total-reports/:userId" element={<ProtectedRoute><AdminEditUserReportPage /></ProtectedRoute>} />
 
           </Route>
         </Routes>

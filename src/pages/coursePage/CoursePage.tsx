@@ -18,7 +18,7 @@ const CoursePage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [attempts, setAttempts] = useState<Record<number, TestAttempt | null>>({});
-  const [nextStage, setNextStage] = useState<{ id: number; title: string } | null>(null);
+  const [nextTarget, setNextTarget] = useState<{ courseId: number; label: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -54,16 +54,31 @@ const CoursePage = () => {
         setAvailableFiles(results);
       }
 
-      // Загружаем маршрут для поиска следующего этапа
+      // Загружаем маршрут для поиска следующего курса/этапа
       if (data.stageId) {
         try {
           const routeId = await userService.getMyRouteId();
           if (routeId) {
             const route = await adaptationService.getRoute(routeId);
             const sorted = [...route.stages].sort((a, b) => a.orderIndex - b.orderIndex);
-            const currentIdx = sorted.findIndex(s => s.id === data.stageId);
-            if (currentIdx !== -1 && currentIdx + 1 < sorted.length) {
-              setNextStage({ id: sorted[currentIdx + 1].id, title: sorted[currentIdx + 1].title });
+            const currentStageIdx = sorted.findIndex(s => s.id === data.stageId);
+            if (currentStageIdx !== -1) {
+              const currentStage = sorted[currentStageIdx];
+              const stageCourses = [...(currentStage.courses || [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+              const currentCourseIdx = stageCourses.findIndex((c: any) => c.id === Number(courseId));
+
+              if (currentCourseIdx !== -1 && currentCourseIdx + 1 < stageCourses.length) {
+                // Следующий курс в этом же этапе
+                const next = stageCourses[currentCourseIdx + 1];
+                setNextTarget({ courseId: next.id, label: 'Следующий курс' });
+              } else if (currentStageIdx + 1 < sorted.length) {
+                // Первый курс следующего этапа
+                const nextStage = sorted[currentStageIdx + 1];
+                const nextStageCourses = [...(nextStage.courses || [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+                if (nextStageCourses.length > 0) {
+                  setNextTarget({ courseId: nextStageCourses[0].id, label: 'Следующий этап' });
+                }
+              }
             }
           }
         } catch {
@@ -232,7 +247,10 @@ const CoursePage = () => {
                   {!isArchived && (
                     <button
                       className="btn btn-secondary"
-                      onClick={() => navigate(`/courses/course/${courseId}/test/${test.id}`)}
+                      onClick={() => {
+                        const isRetry = attempt && !attempt.isPassed;
+                        navigate(`/courses/course/${courseId}/test/${test.id}${isRetry ? '?retry=1' : ''}`);
+                      }}
                     >
                       {attempt ? 'Пройти снова' : 'Пройти тест'}
                     </button>
@@ -254,15 +272,14 @@ const CoursePage = () => {
         const isCourseCompleted = activeTests.length === 0
           ? (course.status === 'completed' || course.status === 'in_process')
           : activeTests.every(t => attempts[t.id]?.isPassed === true);
-        if (!isCourseCompleted || !nextStage) return null;
-        
+        if (!isCourseCompleted || !nextTarget) return null;
+
         return (
           <button
             className="btn btn-primary"
-            title={nextStage.title}
-            onClick={() => navigate('/adaptation')}
+            onClick={() => navigate(`/courses/course/${nextTarget.courseId}`)}
           >
-            Следующий этап
+            {nextTarget.label}
           </button>
         );
       })()}
