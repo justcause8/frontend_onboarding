@@ -89,9 +89,10 @@ button {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #d93e1b;
-  border-color: #d93e1b;
-  /* box-shadow: 0 4px 14px rgba(240, 73, 35, 0.35); */
+  background-color: var(--bg-btn-primary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: none;
 }
 
 /* Вторичная кнопка */

@@ -1,51 +1,329 @@
-.user-report-header {
+.emp-report-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* --- Хедер: имя + статус --- */
+.emp-report-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 16px;
 }
 
-.user-report-info h2 {
-    margin: 0 0 8px;
+.emp-report-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
 }
 
-.user-report-meta {
+.emp-report-meta {
     display: flex;
     flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.emp-meta-item {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 2px 10px;
+}
+
+.emp-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.emp-status-completed   { background: #dcfce7; color: #15803d; }
+.emp-status-in_progress { background: #fef9c3; color: #854d0e; }
+.emp-status-in_process  { background: #fef9c3; color: #854d0e; }
+.emp-status-not_started { background: #f1f5f9; color: #64748b; }
+.emp-status-failed      { background: #fee2e2; color: #b91c1c; }
+
+/* --- Разделитель секций --- */
+.emp-section-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 0;
+}
+
+/* --- Строка прогресса: даты + бар --- */
+.emp-progress-section {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
     gap: 12px;
-}
-
-.user-report-progress {
-    display: flex;
     align-items: center;
-    gap: 16px;
-    margin: 16px 0 12px;
 }
 
-.user-report-percent {
-    font-size: 28px;
+/* --- Строка метрик: плашки по контенту --- */
+.emp-metrics-section {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+/* --- Плашка метрики --- */
+.emp-metric-box {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.2s ease-in-out;
+}
+
+.emp-metric-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+
+.emp-metric-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.emp-metric-value {
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
-    min-width: 60px;
 }
 
-.user-report-track {
+/* --- Блок прогресса (бар) --- */
+.emp-progress-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.emp-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.emp-progress-percent {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    min-width: 58px;
+}
+
+.emp-progress-track {
     flex: 1;
-    height: 10px;
+    height: 14px;
     background: var(--border-color);
-    border-radius: 5px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
-.user-report-fill {
+.emp-progress-fill {
     height: 100%;
-    background: var(--primary-color);
-    border-radius: 5px;
+    background: var(--green-color);
+    border-radius: 4px;
     transition: width 0.4s ease;
 }
 
-.user-report-dates {
+.emp-progress-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding-left: 70px;
+}
+
+/* --- Круговая диаграмма --- */
+.emp-donut-box {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 8px 12px;
     display: flex;
-    gap: 24px;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease-in-out;
+}
+
+.emp-donut-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+
+.emp-donut {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: grid;
+    place-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background:
+        radial-gradient(closest-side, var(--bg-light) 78%, transparent 0%),
+        conic-gradient(var(--green-color) calc(var(--p) * 1%), var(--border-color) 0);
+}
+
+.emp-donut-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 110px;
+    line-height: 1.3;
+}
+
+/* --- Кнопки --- */
+.emp-report-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+}
+
+/* === Карточка ответов по тестам === */
+
+.answers-card .section-header {
+    margin-bottom: 16px;
+}
+
+.answers-course-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.answers-course-tab {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-light);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.answers-course-tab:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.answers-course-tab--active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+.answers-test-block {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.answers-test-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.answers-questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.answers-question-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+
+.answers-question-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.answers-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.answers-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: default;
+}
+
+.answers-option--selected {
+    color: var(--primary-color);
+}
+
+.answers-option-mark {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--border-color);
+}
+
+.answers-option-mark--single  { border-radius: 50%; }
+.answers-option-mark--multiple { border-radius: 3px; }
+
+.answers-option--selected .answers-option-mark {
+    border-color: var(--primary-color);
+    background: var(--bg-btn-primary);
+}
+
+.answers-score {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+}
+
+.answers-score-correct { color: var(--green-color); }
+.answers-score-wrong   { color: var(--red-color); }
+
+@media (max-width: 900px) {
+    .emp-progress-section {
+        grid-template-columns: 1fr 1fr;
+    }
+    .emp-progress-block {
+        grid-column: 1 / -1;
+    }
+    .emp-metrics-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .emp-donut-box {
+        grid-column: 1 / -1;
+    }
 }
