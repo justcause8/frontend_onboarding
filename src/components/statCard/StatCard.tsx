@@ -13,6 +13,19 @@ export const StatCard: React.FC<StatCardProps> = ({ value, label }) => (
     </div>
 );
 
+export const StatDonutCard: React.FC<StatCardProps> = ({ value, label }) => {
+    const numeric = parseFloat(String(value));
+    const p = isNaN(numeric) ? 0 : Math.min(Math.max(numeric, 0), 100);
+    return (
+        <div className="stat-donut-box">
+            <div className="stat-donut" style={{ '--p': p } as React.CSSProperties}>
+                <span>{value}</span>
+            </div>
+            <span className="stat-donut-label">{label}</span>
+        </div>
+    );
+};
+
 export const StatCardsGrid: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <div className="stat-cards-grid">{children}</div>
 );

@@ -110,7 +110,7 @@ export const AdminEditCourse: React.FC = () => {
                     setSelectedTests(course.tests || []);
                     setDynamicTitle(course.title);
                 } else {
-                    setDynamicTitle('Создание нового курса');
+                    setDynamicTitle('Создание нового модуля');
                 }
             } catch (e) {
                 console.error("Ошибка загрузки:", e);
@@ -183,7 +183,7 @@ export const AdminEditCourse: React.FC = () => {
                         if (title.includes('_') && title.length > 37) {
                             title = title.substring(title.indexOf('_') + 1);
                         }
-                        return { id: 0, title, urlDocument: data.relativePath, isExternalLink: false, category: 'Документ курса' } as Material;
+                        return { id: 0, title, urlDocument: data.relativePath, isExternalLink: false, category: 'Документ модуля' } as Material;
                     })
                 );
                 setPendingFiles([]);
@@ -210,7 +210,7 @@ export const AdminEditCourse: React.FC = () => {
                 }
             }
         } catch (e) {
-            alert("Не удалось сохранить курс.");
+            alert("Не удалось сохранить модуль.");
         } finally {
             setLoading(false);
         }
@@ -227,10 +227,10 @@ export const AdminEditCourse: React.FC = () => {
     return (
         <div className="admin-edit-container">
             <section className="card text">
-                <h2>{isEditMode ? 'Редактирование курса' : 'Информация о курсе'}</h2>
+                <h2>{isEditMode ? 'Редактирование модуля' : 'Информация о модуле'}</h2>
                 
                 <div className="input-item">
-                    <h4>Название курса</h4>
+                    <h4>Название модуля</h4>
                     <input 
                         className="input-field" 
                         value={courseName}
@@ -244,7 +244,7 @@ export const AdminEditCourse: React.FC = () => {
                     <MarkdownEditor
                         value={courseDesc}
                         onChange={setCourseDesc}
-                        placeholder="О чем этот курс..."
+                        placeholder="О чем этот модуль..."
                         minHeight="120px"
                     />
                 </div>
@@ -309,13 +309,13 @@ export const AdminEditCourse: React.FC = () => {
                                 value={materialInput}
                                 onChange={e => setMaterialInput(e.target.value)}
                             />
-                            <button className="btn btn-secondary" onClick={handleAddLink}>Добавить ссылку</button>
+                            <button className="btn btn-primary" onClick={handleAddLink}>Добавить ссылку</button>
                         </div>
 
                         <div className="upload-zone">
                             <input type="file" ref={fileInputRef} hidden onChange={handleFileUpload} />
                             <button
-                                className="btn-upload"
+                                className="btn-dashed"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={loading}
                             >
@@ -366,69 +366,71 @@ export const AdminEditCourse: React.FC = () => {
                 {/* Секция тестов: Выпадающий список при фокусе */}
                 <div className="input-item">
                     <h4>Привязанные тесты</h4>
-                    <button 
-                        className="add-test" 
-                        onClick={handleCreateTestRedirect}
-                    >
-                        + Создать новый тест
-                    </button>
-                    
-                    <div className="search-container" ref={searchRef}>
-                        <div style={{ position: 'relative' }}>
-                            <input 
-                                className="input-field" 
-                                value={searchTestQuery} 
-                                onChange={e => {
-                                    setSearchTestQuery(e.target.value);
-                                    setIsDropdownOpen(true);
-                                }} 
-                                onFocus={() => setIsDropdownOpen(true)}
-                                placeholder="Найти или выбрать тест из списка..." 
-                            />
-                            
-                            <div 
-                                className={`search-arrow ${isDropdownOpen ? 'open' : ''}`}
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            >
-                                <img className='search-dropdown' src={downIcon} alt="" />
+                    <div className='nested-courses'>
+                        <button 
+                            className="btn-dashed" 
+                            onClick={handleCreateTestRedirect}
+                        >
+                            + Создать новый тест
+                        </button>
+                        
+                        <div className="search-container" ref={searchRef}>
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    className="input-field" 
+                                    value={searchTestQuery} 
+                                    onChange={e => {
+                                        setSearchTestQuery(e.target.value);
+                                        setIsDropdownOpen(true);
+                                    }} 
+                                    onFocus={() => setIsDropdownOpen(true)}
+                                    placeholder="Найти или выбрать тест из списка..." 
+                                />
+                                
+                                <div 
+                                    className={`search-arrow ${isDropdownOpen ? 'open' : ''}`}
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                >
+                                    <img className='search-dropdown' src={downIcon} alt="" />
+                                </div>
+
+                                {isDropdownOpen && filteredTests.length > 0 && (
+                                    <div className="search-results">
+                                        {filteredTests.map(t => {
+                                            const isSelected = selectedTests.find(st => st.id === t.id);
+                                            return (
+                                                <div 
+                                                    key={t.id} 
+                                                    className={`search-item ${isSelected ? 'selected' : ''}`} 
+                                                    onClick={() => {
+                                                        if (!isSelected) {
+                                                            setSelectedTests([...selectedTests, t]);
+                                                        }
+                                                        setIsDropdownOpen(false);
+                                                        setSearchTestQuery('');
+                                                    }}
+                                                >
+                                                    {t.title}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
-                            {isDropdownOpen && filteredTests.length > 0 && (
-                                <div className="search-results">
-                                    {filteredTests.map(t => {
-                                        const isSelected = selectedTests.find(st => st.id === t.id);
-                                        return (
-                                            <div 
-                                                key={t.id} 
-                                                className={`search-item ${isSelected ? 'selected' : ''}`} 
-                                                onClick={() => {
-                                                    if (!isSelected) {
-                                                        setSelectedTests([...selectedTests, t]);
-                                                    }
-                                                    setIsDropdownOpen(false);
-                                                    setSearchTestQuery('');
-                                                }}
-                                            >
-                                                {t.title}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="chips-display-zone">
-                            {selectedTests.map(t => (
-                                <div key={t.id} className="chip mentor-chip">
-                                    {t.title}
-                                    <img 
-                                        src={cross} 
-                                        className="chip-remove-icon" 
-                                        onClick={() => setSelectedTests(selectedTests.filter(st => st.id !== t.id))} 
-                                        alt="remove" 
-                                    />
-                                </div>
-                            ))}
+                            <div className="chips-display-zone">
+                                {selectedTests.map(t => (
+                                    <div key={t.id} className="chip mentor-chip">
+                                        {t.title}
+                                        <img 
+                                            src={cross} 
+                                            className="chip-remove-icon" 
+                                            onClick={() => setSelectedTests(selectedTests.filter(st => st.id !== t.id))} 
+                                            alt="remove" 
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -437,7 +439,7 @@ export const AdminEditCourse: React.FC = () => {
             <div className="card-footer">
                 <button className="btn btn-secondary" onClick={() => navigate(-1)}>Отмена</button>
                 <button className="btn btn-primary" onClick={handleSaveCourse}>
-                    {isEditMode ? 'Сохранить изменения' : 'Создать курс'}
+                    {isEditMode ? 'Сохранить изменения' : 'Создать модуль'}
                 </button>
             </div>
         </div>

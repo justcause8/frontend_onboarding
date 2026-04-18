@@ -4,13 +4,6 @@
     font-size: 13px !important;
 }
 
-.reports-dept-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-}
-
 .reports-empty {
     padding: 16px 0;
 }

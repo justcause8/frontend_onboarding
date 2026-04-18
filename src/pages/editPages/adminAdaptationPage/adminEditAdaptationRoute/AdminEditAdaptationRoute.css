@@ -29,63 +29,6 @@
     gap: 12px;
 }
 
-/* Обертка поля ввода поиска */
-.search-input-field {
-    position: relative;
-    background-color: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 8px 12px;
-    transition: all 0.2s ease;
-}
-
-.search-input-field:focus-within {
-    border-color: var(--primary-color, #f04923);
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(240, 73, 35, 0.05);
-}
-
-.ghost-input {
-    width: 100%;
-    border: none !important;
-    background: transparent !important;
-    outline: none !important;
-    font-size: 14px;
-}
-
-/* Выпадающий список результатов */
-.search-results {
-    position: absolute;
-    top: calc(100% + 5px);
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.search-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s;
-}
-
-.search-item:hover {
-    background-color: var(--bg-light);
-    color: var(--primary-color);
-}
-
-.search-item small {
-    display: block;
-    font-size: 11px;
-    opacity: 0.6;
-}
-
 /* --- Чипсы (Выбранные элементы) --- */
 .chips-display-zone {
     display: flex;
@@ -162,34 +105,6 @@
 }
 
 
-.search-item--row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-}
-
-.search-item-dept {
-    flex-shrink: 0;
-    font-size: 11px;
-    color: var(--text-secondary);
-    text-align: right;
-    opacity: 0.75;
-}
-
-.search-item.selected {
-    background-color: var(--bg-light);
-    color: var(--text-secondary);
-    cursor: default;
-}
-
-.search-item.disabled {
-    color: var(--text-secondary);
-    cursor: default;
-    font-style: italic;
-}
-
-
 
 /* --- Этапы адаптации --- */
 .stage-card {
@@ -226,7 +141,7 @@
     padding: 16px;
     background-color: #F8FAFC;
     border-radius: 12px;
-    border: 1px dashed #E2E8F0;
+    border: 1px solid #E2E8F0;
 }
 
 .courses-grid {
@@ -244,7 +159,7 @@
     background-color: #ffffff;
     border: 1px solid #E2E8F0;
     border-radius: 10px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-primary);
 }
 
@@ -300,23 +215,7 @@
     opacity: 1;
 }
 
-/* Кнопка добавления этапа */
-.btn-add-stage-dashed {
-    width: 100%;
-    padding: 16px;
-    background: #ffffff;
-    border: 2px dashed #E2E8F0;
-    border-radius: 14px;
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
+.btn-dashed + .btn-dashed,
+.stage-card ~ .btn-dashed {
     margin-top: 10px;
-}
-
-.btn-add-stage-dashed:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background-color: rgba(240, 73, 35, 0.02);
 }

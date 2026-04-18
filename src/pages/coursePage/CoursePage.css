@@ -52,15 +52,6 @@
   gap: 4px;
 }
 
-.course-chip {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.course-chip--completed { background: rgba(34, 197, 94, 0.1); color: var(--green-color); }
-.course-chip--failed    { background: rgba(239, 68, 68, 0.1); color: var(--red-color); }
 
 .test-attempt-result {
   display: flex;

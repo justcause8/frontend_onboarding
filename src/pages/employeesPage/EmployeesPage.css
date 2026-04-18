@@ -2,108 +2,11 @@
   margin-bottom: 0;
 }
 
-/* --- Заголовок секции с поиском --- */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.section-header h2 {
-  margin: 0;
-  white-space: nowrap;
-}
-
 .dept-search {
   max-width: 240px;
   width: 100%;
 }
 
-/* --- Вкладки отделов --- */
-.department-tabs-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.department-tabs {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  flex: 1;
-}
-
-.department-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.dept-tab {
-  padding: 8px 20px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border-color);
-  background-color: #ffffff;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.dept-tab:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.dept-tab--active {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #ffffff;
-}
-
-.dept-tab--active:hover {
-  background-color: #d93e1b;
-  border-color: #d93e1b;
-  color: #ffffff;
-}
-
-.dept-scroll-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border-color);
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.dept-scroll-btn:hover {
-  border-color: var(--primary-color);
-  background-color: rgba(240, 73, 35, 0.05);
-}
-
-.dept-scroll-btn img {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  opacity: 0.6;
-}
-
-.dept-scroll-btn:hover img {
-  opacity: 1;
-}
 
 /* --- Сетка карточек --- */
 .employees-grid {

@@ -1,13 +1,16 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import nextRight from '@/assets/icons/next-right.png';
+import nextLeft from '@/assets/icons/next-left.png';
 import { userService, type TotalReportsResponse, type EmployeeReportDetail } from '../../services/user.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import searchIcon from '@/assets/icons/search.svg';
-import { StatCard, StatCardsGrid } from '../../components/statCard/StatCard';
+import { StatCard, StatDonutCard, StatCardsGrid } from '../../components/statCard/StatCard';
 import '../editPages/adminMaterialsPage/AdminEditMaterialsPage.css';
 import './AdminEditTotalReportsPage.css';
+import '../../components/adminTable/AdminTable.css';
 import '../employeesPage/EmployeesPage.css';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -28,6 +31,20 @@ const TotalReportsPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [activeDept, setActiveDept] = useState<string | null>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+    const tabsRef = useRef<HTMLDivElement>(null);
+
+    const updateScrollState = () => {
+        const el = tabsRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 0);
+        setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+
+    const scroll = (dir: 'left' | 'right') => {
+        tabsRef.current?.scrollBy({ left: dir === 'right' ? 200 : -200, behavior: 'smooth' });
+    };
 
     const loadData = useCallback(async () => {
         try {
@@ -67,6 +84,16 @@ const TotalReportsPage = () => {
         return () => setDynamicTitle('');
     }, [setDynamicTitle, loadData]);
 
+    useEffect(() => {
+        updateScrollState();
+        const el = tabsRef.current;
+        if (!el) return;
+        el.addEventListener('scroll', updateScrollState);
+        const ro = new ResizeObserver(updateScrollState);
+        ro.observe(el);
+        return () => { el.removeEventListener('scroll', updateScrollState); ro.disconnect(); };
+    }, [summary]);
+
     if (loading) return <LoadingSpinner />;
     if (error || !summary) return <ErrorState message={error ?? 'Нет данных'} onRetry={loadData} />;
 
@@ -87,9 +114,9 @@ const TotalReportsPage = () => {
                     <StatCard label="Сотрудников на адаптации" value={summary.totalEmployees} />
                     <StatCard label="Завершили адаптацию" value={summary.passedCount} />
                     <StatCard label="В процессе" value={summary.inProgressCount} />
-                    <StatCard label="Средний балл тестов" value={summary.avgTestScore} />
+                    <StatDonutCard label="Средний балл тестов" value={summary.avgTestScore} />
                     <StatCard label="Среднее время (дней)" value={summary.avgDaysToComplete} />
-                    <StatCard label="Прогресс по курсам" value={`${summary.avgCoursesProgress}%`} />
+                    <StatDonutCard label="Прогресс по курсам" value={`${summary.avgCoursesProgress}%`} />
                 </StatCardsGrid>
             </section>
 
@@ -109,22 +136,34 @@ const TotalReportsPage = () => {
                 </div>
 
                 {summary.departments.length > 0 && (
-                    <div className="reports-dept-tabs">
-                        <button
-                            className={`dept-tab${activeDept === null ? ' dept-tab--active' : ''}`}
-                            onClick={() => setActiveDept(null)}
-                        >
-                            Все
-                        </button>
-                        {summary.departments.map(dept => (
-                            <button
-                                key={dept}
-                                className={`dept-tab${activeDept === dept ? ' dept-tab--active' : ''}`}
-                                onClick={() => setActiveDept(activeDept === dept ? null : dept)}
-                            >
-                                {dept}
+                    <div className="department-tabs-wrapper">
+                        {canScrollLeft && (
+                            <button className="dept-scroll-btn" onClick={() => scroll('left')}>
+                                <img src={nextLeft} alt="<-" />
                             </button>
-                        ))}
+                        )}
+                        <div className="department-tabs" ref={tabsRef}>
+                            <button
+                                className={`dept-tab${activeDept === null ? ' dept-tab--active' : ''}`}
+                                onClick={() => setActiveDept(null)}
+                            >
+                                Все
+                            </button>
+                            {summary.departments.map(dept => (
+                                <button
+                                    key={dept}
+                                    className={`dept-tab${activeDept === dept ? ' dept-tab--active' : ''}`}
+                                    onClick={() => setActiveDept(activeDept === dept ? null : dept)}
+                                >
+                                    {dept}
+                                </button>
+                            ))}
+                        </div>
+                        {canScrollRight && (
+                            <button className="dept-scroll-btn" onClick={() => scroll('right')}>
+                                <img src={nextRight} alt="->" />
+                            </button>
+                        )}
                     </div>
                 )}
 
@@ -152,12 +191,12 @@ const TotalReportsPage = () => {
                                     <td><span className="sub-text">{emp.department || '—'}</span></td>
                                     <td><span className="sub-text">{emp.routeTitle || '—'}</span></td>
                                     <td className="col-status">
-                                        <span className={`status-table-badge status-${emp.status}`}>
+                                        <span className={`badge ${emp.status === 'completed' ? 'badge--success' : emp.status === 'failed' ? 'badge--danger' : emp.status === 'in_progress' || emp.status === 'in_process' ? 'badge--warning' : 'badge--neutral'}`}>
                                             {STATUS_LABELS[emp.status] ?? emp.status}
                                         </span>
                                     </td>
                                     <td>
-                                        <span className="category-badge">{emp.completionPercent}%</span>
+                                        <span className="badge">{emp.completionPercent}%</span>
                                     </td>
                                 </tr>
                             ))}

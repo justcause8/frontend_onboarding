@@ -1,11 +1,3 @@
-/* ---- Текст ---- */
-.contact-sub {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0;
-  word-break: break-word;
-}
-
 /* ---- Ключевые контакты ---- */
 .key-contacts-grid {
   display: grid;
@@ -38,10 +30,6 @@
   word-break: break-word;
 }
 
-.contact-role-badge {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
 
 /* ---- К кому обратиться ---- */
 .help-contacts-grid {
@@ -80,9 +68,7 @@
   word-break: break-word;
 }
 
-.contact-problem .contact-sub {
-  font-size: 13px;
-}
+
 
 .contact-card-footer {
   display: flex;

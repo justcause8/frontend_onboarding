@@ -88,7 +88,7 @@ const Sidebar = () => {
             <li>
               <NavLink to="/edit/Courses">
                 <img src={education} className='icon' alt="" />
-                Обучающие курсы
+                Модули адаптации
               </NavLink>
             </li>
             <li>

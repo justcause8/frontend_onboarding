@@ -232,7 +232,7 @@ const CoursePage = () => {
                         <div className="text-info">Проходной балл: {test.passingScore}</div>
                         {attempt && (
                           <div className="test-attempt-result">
-                            <span className={`course-chip course-chip--${attempt.isPassed ? 'completed' : 'failed'}`}>
+                            <span className={attempt.isPassed ? 'badge badge--success' : 'badge badge--danger'}>
                               {attempt.isPassed ? 'Пройден' : 'Не пройден'}
                             </span>
                             <span className={`test-attempt-score ${attempt.isPassed ? 'passed' : 'failed'}`}>

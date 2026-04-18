@@ -30,7 +30,7 @@ export const AdminCourses = () => {
             setLoading(true);
             const data = await courseService.getAllCoursesAdmin();
             setCourses(sortCourses(data));
-            setDynamicTitle('Редактирование обучающих курсов');
+            setDynamicTitle('Модули адаптации');
         } catch (error) {
             console.error('Ошибка загрузки курсов:', error);
         } finally {
@@ -116,7 +116,7 @@ export const AdminCourses = () => {
                 className="btn btn-primary create-btn" 
                 onClick={() => navigate('/edit/courses/new')}
             >
-                Создать обучающий курс
+                Создать модуль
             </button>
 
             <AdminTable 
@@ -131,7 +131,7 @@ export const AdminCourses = () => {
                             </span>
                         </td>
                         <td>
-                            <span className={`status-badge status-${course.status}`}>
+                            <span className={course.status === 'active' ? 'badge badge--success' : 'badge badge--neutral'}>
                                 {course.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>
                         </td>

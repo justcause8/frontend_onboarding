@@ -101,7 +101,7 @@ export const AdminAdaptationRoute = () => {
                             </span>
                         </td>
                         <td>
-                            <span className={`status-badge status-${route.status}`}>
+                            <span className={route.status === 'active' ? 'badge badge--success' : 'badge badge--neutral'}>
                                 {route.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>
                         </td>

@@ -657,14 +657,14 @@ export const AdminEditAdaptationRoute: React.FC = () => {
               </div>
               
               <div className="input-item">
-                <h4>Добавить курс</h4>
+                <h4>Добавить модуль</h4>
                 <button
-                  className="add-test"
+                  className="btn-dashed"
                   onClick={() => handleCreateCourseRedirect(stage.id)}
                 >
-                  + Создать новый курс
+                  + Создать новый модуль
                 </button>
-                <div className="nested-courses">
+                <div className="nested-courses" style={{ marginTop: '10px' }}>
                   {stage.courses.length > 0 && (
                     <div className="courses-grid">
                       {stage.courses.map(c => (
@@ -682,8 +682,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                         <div style={{ position: 'relative' }}>
                             <input
                                 className="input-field"
-                                style={{ fontSize: '13px', padding: '8px 12px' }}
-                                placeholder="Выбрать курс..."
+                                placeholder="Выбрать модуль..."
                                 value={activeStageId === stage.id ? courseSearchQuery : ''}
                                 onFocus={() => {
                                     setActiveStageId(stage.id);
@@ -728,7 +727,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                                         );
                                     })}
                                     {getFilteredCourses(courseSearchQuery).length === 0 && (
-                                        <div className="search-item disabled">Курсы не найдены</div>
+                                        <div className="search-item disabled">Модули не найдены</div>
                                     )}
                                 </div>
                             )}
@@ -741,7 +740,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
           ))}
         </div>
         
-        <button className="btn-add-stage-dashed" onClick={() => setStages([...stages, { id: Date.now().toString(), title: '', description: '', courses: [] }])}>
+        <button className="btn-dashed" onClick={() => setStages([...stages, { id: Date.now().toString(), title: '', description: '', courses: [] }])}>
           + Добавить новый этап
         </button>
       </section>

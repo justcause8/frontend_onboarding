@@ -4,18 +4,20 @@ export const PAGE_TITLES: Record<string, string> = {
   '/test': 'Тест',
   '/edit': 'Редактирование',
   '/edit/adaptationRoutes': 'Планы адаптации',
-  '/edit/courses': 'Обучающие курсы',
+  '/edit/courses': 'Модули адаптации',
   '/edit/tests': 'Редактирование тестов',
+  '/edit/total-reports': 'Общие отчеты',
 };
 
 export const BREADCRUMB_NAMES: Record<string, string> = {
   '': 'Главная',
-  'courses': 'Обучающие курсы',
-  'course': 'Обучающий курс',
+  'courses': 'Модули адаптации',
+  'course': 'Модуль адаптации',
   'test': 'Тест',
   'tests': 'Тесты',
   'edit': 'Редактирование', 
   'adaptationRoutes': 'Редактирование планов адаптации',
+  'total-reports': 'Общие отчёты',
   'new': 'Создание',
 };
 

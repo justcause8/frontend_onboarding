@@ -270,7 +270,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                         </div>
                         <div className="upload-zone-mini">
                             <input type="file" ref={fileInputRef} hidden onChange={handleFileUpload} />
-                            <button className="btn-upload-outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                            <button className="btn-dashed" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                                 {uploading ? 'Загрузка...' : 'Загрузить файл'}
                             </button>
                         </div>
@@ -325,7 +325,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                                 </div>
                             </td>
                             <td>
-                                <span className="category-badge">{mat.category || 'Общее'}</span>
+                                <span className="badge">{mat.category || 'Общее'}</span>
                             </td>
                             <td className="action-cell">
                                 <div className="table-actions">

@@ -101,7 +101,7 @@ const CoursesPage = () => {
             <article key={course.id} className="course-card">
               <div className="card-image">{getImagePlaceholder(course.id)}</div>
               <div className="card-content text">
-                <div className={`course-status status-${course.status}`}>
+                <div className={`course-status badge ${course.status === 'completed' ? 'badge--success' : course.status === 'failed' ? 'badge--danger' : course.status === 'in_process' ? 'badge--warning' : 'badge--neutral'}`}>
                   {course.status === 'not_started' && 'Не начат'}
                   {course.status === 'in_process' && 'В процессе'}
                   {course.status === 'completed' && 'Завершен'}

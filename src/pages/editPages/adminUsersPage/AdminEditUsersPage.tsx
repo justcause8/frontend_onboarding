@@ -8,6 +8,7 @@ import searchIcon from '@/assets/icons/search.svg';
 import cross from '@/assets/icons/cross.png';
 import '../adminMaterialsPage/AdminEditMaterialsPage.css';
 import '../../employeesPage/EmployeesPage.css';
+import '../../../components/adminTable/AdminTable.css';
 
 const ROLES: { value: string; label: string }[] = [
     { value: 'SuperAdmin', label: 'Админ' },
@@ -236,7 +237,7 @@ const AdminEditUsersPage = () => {
                                     <td><div className="main-text">{user.fullName}</div></td>
                                     <td><span className="sub-text">{user.department || '—'}</span></td>
                                     <td><span className="sub-text">{user.position || '—'}</span></td>
-                                    <td><span className="category-badge">{getRoleLabel(user.role)}</span></td>
+                                    <td><span className="badge">{getRoleLabel(user.role)}</span></td>
                                     <td className="action-cell">
                                         <div className="table-actions">
                                             <ActionMenu>

@@ -73,11 +73,11 @@ const ContactsPage = () => {
               <div key={role} className="contact-card-h card-item">
                 <div className="contact-name-row">
                   <span className="employee-name">{contact.name}</span>
-                  <span className="category-badge contact-role-badge">{role}</span>
+                  <span className="badge">{role}</span>
                 </div>
                 <div className="employee-row-info">
-                  <span className="employee-dept">{contact.jobTitle}</span>
-                  <span className="employee-dept">{contact.department}</span>
+                  <span className="text-info">{contact.jobTitle}</span>
+                  <span className="text-info">{contact.department}</span>
                 </div>
                 <a
                   href={contact.email ? buildMailto(contact.email, contact.name, user?.name ?? '') : undefined}
@@ -108,13 +108,13 @@ const ContactsPage = () => {
                 <div key={contact.id} className="contact-card-v card-item">
                   <div className="contact-problem">
                     <h4>{contact.issueCategory}</h4>
-                    <p className="contact-sub">{contact.description}</p>
+                    <p>{contact.description}</p>
                   </div>
                   <div className="contact-card-footer">
                     <div className="employee-row-info">
                       <span className="employee-name">{contact.employeeName}</span>
-                      <span className="employee-dept">{contact.employeeJobTitle}</span>
-                      <span className="employee-dept">{contact.employeeDepartment}</span>
+                      <span className="text-info">{contact.employeeJobTitle}</span>
+                      <span className="text-info">{contact.employeeDepartment}</span>
                     </div>
                     {contact.messengerLink && (
                       <a

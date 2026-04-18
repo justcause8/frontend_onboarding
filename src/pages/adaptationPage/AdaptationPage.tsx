@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adaptationService } from '../../services/adaptation.service';
 import { userService, type UserProgress } from '../../services/user.service';
@@ -9,6 +9,7 @@ import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
 import './AdaptationPage.css';
+import '../../components/statCard/StatCard.css';
 
 import done from '@/assets/icons/done.svg';
 import exclamationmark from '@/assets/icons/exclamation-mark.png';
@@ -99,7 +100,7 @@ const AdaptationPage = () => {
     }
   };
 
-  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' | 'not_started' => {
+  const getStageStatus = (stageId: number): 'completed' | 'failed' | 'current' | 'not_started' | 'in_process' => {
     const s = progress.stageProgress?.find(item => item.stageId === stageId);
       if (!s) return 'not_started';
       
@@ -117,29 +118,27 @@ const AdaptationPage = () => {
       {/* Прогресс */}
       <section className="card text">
         <h2>Мой прогресс</h2>
-        <div className="progress-items">
-          <div className="progress-item">
-            <div className="progress-circle stages">{percentStages}%</div>
-            <div>
-              <p className="progress-label">Этапы</p>
-              <p className="progress-value">{progress.completedStages} / {progress.totalStages}</p>
+        <div className="emp-progress-section">
+          <div className="emp-donut-box">
+            <div className="emp-donut" style={{ '--p': percentStages } as React.CSSProperties}>
+              <span>{percentStages}%</span>
             </div>
+            <span className="emp-donut-label">Прогресс по этапам</span>
           </div>
-          <div className="progress-item">
-            <div className="progress-circle courses">{percent}%</div>
-            <div>
-              <p className="progress-label">Курсы</p>
-              <p className="progress-value">{progress.completedCourses} / {progress.totalCourses}</p>
+          <div className="emp-donut-box">
+            <div className="emp-donut" style={{ '--p': percent } as React.CSSProperties}>
+              <span>{percent}%</span>
             </div>
+            <span className="emp-donut-label">Прогресс по курсам</span>
           </div>
-          <div className="progress-bar-block">
-            <div className="progress-bar-header">
-              <span className="progress-bar-percent">{percentStages}%</span>
-              <span className="progress-label">Прогресс обучения</span>
+          <div className="emp-progress-block">
+            <div className="emp-progress-row">
+              <span className="emp-progress-percent">{percentStages} %</span>
+              <div className="emp-progress-track">
+                <div className="emp-progress-fill" style={{ width: `${percentStages}%` }} />
+              </div>
             </div>
-            <div className="progress-bar-track">
-              <div className="progress-bar-fill" style={{ width: `${percentStages}%` }} />
-            </div>
+            <span className="emp-progress-label">Прогресс обучения</span>
           </div>
         </div>
       </section>
@@ -177,7 +176,7 @@ const AdaptationPage = () => {
                         <span className="step-desc">{stage.description}</span>
                       )}
                     </div>
-                    <span className={`step-badge step-badge--${status}`}>
+                    <span className={`badge ${status === 'completed' ? 'badge--success' : status === 'failed' ? 'badge--danger' : status === 'current' || status === 'in_process' ? 'badge--warning' : 'badge--neutral'}`}>
                       {STATUS_LABEL[status]}
                     </span>
                   </div>

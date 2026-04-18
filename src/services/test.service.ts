@@ -60,6 +60,38 @@ export interface TestAttempt {
   attemptDate: string;
 }
 
+/** Вопрос внутри попытки (для просмотра ответов HR) */
+export interface AttemptQuestion {
+  questionId: number;
+  questionText: string;
+  isCorrect: boolean;
+  userAnswerText: string | null;
+  userSelectedOptions: string[];
+  correctOptions: string[];
+}
+
+/** Одна попытка прохождения теста */
+export interface TestAttemptDetail {
+  attemptId: number;
+  attemptNumber: number;
+  score: number;
+  isPassed: boolean;
+  finishedAt: string;
+  questions: AttemptQuestion[];
+}
+
+/** Полный отчёт по попыткам сотрудника на тест */
+export interface UserTestAttemptsReport {
+  testId: number;
+  testTitle: string;
+  passingScore: number;
+  userId: number;
+  userName: string;
+  totalAttempts: number;
+  everPassed: boolean;
+  attempts: TestAttemptDetail[];
+}
+
 // --- СЕРВИС ---
 
 export const testService = {
@@ -150,5 +182,11 @@ export const testService = {
 
     const response = await api.post('/onboarding/test/submit', payload);
     return response.data;
-  }
+  },
+
+  /** Получить все попытки сотрудника по тесту (для HR/Наставника) */
+  async getUserTestAttempts(testId: number, userUid: string): Promise<UserTestAttemptsReport> {
+    const res = await api.get<UserTestAttemptsReport>(`/onboarding/test/${testId}/user/${userUid}/attempts`);
+    return res.data;
+  },
 };

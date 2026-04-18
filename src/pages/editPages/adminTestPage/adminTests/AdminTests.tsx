@@ -95,7 +95,7 @@ export const AdminTests = () => {
                     <tr key={test.id} className={test.status === 'archived' ? 'row-archived' : ''}>
                         <td><span className="route-title">{test.title}</span></td>
                         <td>
-                            <span className={`status-badge status-${test.status}`}>
+                            <span className={test.status === 'active' ? 'badge badge--success' : 'badge badge--neutral'}>
                                 {test.status === 'active' ? 'Открыт' : 'Закрыт'}
                             </span>
                         </td>

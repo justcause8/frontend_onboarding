@@ -50,15 +50,18 @@ export const AdminEditTest: React.FC = () => {
         }
 
         if (isEditMode) {
-          const data = await testService.getTestById(Number(testId));
+          const data = await testService.getTestByIdFull(Number(testId));
           setTitle(data.title);
           // 3. Если редактирование — ставим название теста
-          setDynamicTitle(data.title); 
-          
+          setDynamicTitle(data.title);
+
           setDescription(data.description || '');
           setPassingScore(data.passingScore);
           setStatus(data.status);
-          setQuestions(data.questions || []);
+          setQuestions((data.questions || []).map(q => ({
+            ...q,
+            options: q.options.map(o => ({ ...o, correctAnswer: !!o.correctAnswer }))
+          })));
           setCurrentCourseId(data.courseId);
         }
       } catch (e) {
@@ -269,11 +272,11 @@ export const AdminEditTest: React.FC = () => {
         <h2>Вопросы теста</h2>
         <div className="stages-list">
           {questions.map((q, index) => (
-            <div key={q.id} className="stage-card">
+            <div key={q.id} className="nested-courses">
               <div className="stage-card-header">
                 <div className="stage-number">{index + 1}</div>
-                <input
-                  className="input-field"
+                <textarea
+                  className="textarea-field"
                   value={q.textQuestion}
                   placeholder="Введите текст вопроса..."
                   onChange={(e) => updateQuestionText(q.id, e.target.value)}
@@ -291,14 +294,13 @@ export const AdminEditTest: React.FC = () => {
                   {q.options.map((opt, i) => (
                     <div key={opt.id} className="answer-row">
                       <div 
-                        className={`answer-marker ${q.questionTypeId === 2 ? 'round' : 'square'} ${opt.correctAnswer ? 'active' : ''}`}
+                        className={`answer-marker ${q.questionTypeId === 2 ? 'round' : 'square'} ${!!opt.correctAnswer ? 'active' : ''}`}
                         onClick={() => toggleCorrectAnswer(q.id, opt.id)}
                       ></div>
                       
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={`Вариант ${i + 1}`}
+                      <textarea
+                        className="textarea-field"
+                        placeholder={`Вариант ответа ${i + 1}`}
                         value={opt.text}
                         onChange={(e) => updateOption(q.id, opt.id, { text: e.target.value })}
                       />
@@ -312,8 +314,8 @@ export const AdminEditTest: React.FC = () => {
                     </div>
                   ))}
                   
-                  <button type="button" className="add-answer-link" onClick={() => addOption(q.id)}>
-                    Добавить вариант ответа
+                  <button type="button" className="btn-dashed" onClick={() => addOption(q.id)}>
+                    + Добавить вариант ответа
                   </button>
                 </div>
               </div>

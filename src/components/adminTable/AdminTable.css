@@ -26,6 +26,24 @@
     font-size: 14px;
 }
 
+/* --- Текст в ячейках таблицы --- */
+.main-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.sub-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.table-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 /* --- Стили статусов (теперь в общем компоненте) --- */
 .status-text {
     font-size: 14px;

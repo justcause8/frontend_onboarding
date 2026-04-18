@@ -9,7 +9,6 @@ import { courseService } from '../../services/course.service';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import TestResultModal from '../../components/modals/testResultModal/TestResultModal';
 import './PassingTestPage.css';
-import done from '@/assets/icons/done.svg';
 
 type UserAnswers = Record<number, number[]>;
 
@@ -22,7 +21,7 @@ const PassingTestPage = () => {
   const [test, setTest] = useState<TestFullResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>(() => {
-    if (!testId) return {};
+    if (!testId || searchParams.get('retry') === '1') return {};
     try {
       const saved = localStorage.getItem(`test_answers_${testId}`);
       return saved ? JSON.parse(saved) : {};
@@ -44,6 +43,8 @@ const PassingTestPage = () => {
       if (!testId || !courseId) return;
 
       const isRetry = retryCount > 0;
+
+      if (isRetry) setUserAnswers({});
 
       const [courseData, testData] = await Promise.all([
         courseService.getCourseById(Number(courseId)),
@@ -170,15 +171,7 @@ const PassingTestPage = () => {
                       className={`card-item option-item ${isSelected ? 'selected' : ''}`}
                       onClick={() => handleOptionSelect(question.id, option.id, isMultiple)}
                     >
-                      <div className={`control ${isMultiple ? 'checkbox' : 'radio'}`}>
-                        {isSelected && (
-                          isMultiple ? (
-                            <img src={done} className="control-icon" alt="done" />
-                          ) : (
-                            <div className="control-inner" />
-                          )
-                        )}
-                      </div>
+                      <div className={`control ${isMultiple ? 'checkbox' : 'radio'}`} />
                       <span className="option-text">{option.text}</span>
                     </div>
                   );
@@ -196,7 +189,10 @@ const PassingTestPage = () => {
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
-          disabled={Object.keys(userAnswers).length < (test.questions?.length || 0)}
+          disabled={
+            !test.questions || 
+            test.questions.some(q => !userAnswers[q.id] || userAnswers[q.id].length === 0)
+          }
         >
           Завершить тест
         </button>
