@@ -6,6 +6,7 @@ import { usePageTitle } from '../../contexts/PageTitleContext';
 import { buildMailto } from '../../utils/mailtoBuilder';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import linkIcon from '@/assets/icons/link.svg';
+import searchIcon from '@/assets/icons/search.svg';
 import './ContactsPage.css';
 
 const ContactsPage = () => {
@@ -17,6 +18,7 @@ const ContactsPage = () => {
   const [supportContacts, setSupportContacts] = useState<SupportContact[]>([]);
   const [allUsers, setAllUsers] = useState<UserShort[]>([]);
   const [loading, setLoading] = useState(true);
+  const [supportSearch, setSupportSearch] = useState('');
 
   const loadData = useCallback(async () => {
     try {
@@ -76,8 +78,8 @@ const ContactsPage = () => {
                   <span className="badge">{role}</span>
                 </div>
                 <div className="employee-row-info">
-                  <span className="text-info">{contact.jobTitle}</span>
-                  <span className="text-info">{contact.department}</span>
+                  <span className="meta-item meta-item--white">{contact.jobTitle}</span>
+                  <span className="meta-item meta-item--white">{contact.department}</span>
                 </div>
                 <a
                   href={contact.email ? buildMailto(contact.email, contact.name, user?.name ?? '') : undefined}
@@ -94,14 +96,29 @@ const ContactsPage = () => {
 
       {/* К кому обратиться */}
       <section className="card">
-        <h2>К кому обратиться за помощью?</h2>
+        <div className="section-header">
+          <h2>К кому обратиться за помощью?</h2>
+          <div className="input-search-wrapper">
+            <input
+              type="text"
+              placeholder="Поиск..."
+              className="input-field"
+              value={supportSearch}
+              onChange={e => setSupportSearch(e.target.value)}
+            />
+            <img src={searchIcon} alt="" className="input-search-icon" />
+          </div>
+        </div>
         {supportContacts.length === 0 ? (
           <p className="contacts-empty">Категории помощи не добавлены</p>
         ) : (
           <div className="help-contacts-grid">
-            {supportContacts.map(contact => {
+            {supportContacts.filter(c => {
+              const q = supportSearch.toLowerCase();
+              return !q || c.issueCategory.toLowerCase().includes(q) || c.employeeName.toLowerCase().includes(q);
+            }).map(contact => {
               const empEmail = (
-                allUsers.find(u => u.id === contact.fkUserId) ??
+                allUsers.find(u => u.numericId === contact.fkUserId) ??
                 allUsers.find(u => u.fullName === contact.employeeName)
               )?.email;
               return (
@@ -113,8 +130,8 @@ const ContactsPage = () => {
                   <div className="contact-card-footer">
                     <div className="employee-row-info">
                       <span className="employee-name">{contact.employeeName}</span>
-                      <span className="text-info">{contact.employeeJobTitle}</span>
-                      <span className="text-info">{contact.employeeDepartment}</span>
+                      <span className="meta-item meta-item--white">{contact.employeeJobTitle}</span>
+                      <span className="meta-item meta-item--white">{contact.employeeDepartment}</span>
                     </div>
                     {contact.messengerLink && (
                       <a

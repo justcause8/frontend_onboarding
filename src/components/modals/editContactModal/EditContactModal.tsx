@@ -13,7 +13,7 @@ interface EditContactModalProps {
         issueCategory: string;
         description: string;
         messengerLink: string;
-        fkUserId: string;
+        fkUserId: number;
     }) => void;
 }
 
@@ -44,7 +44,7 @@ const EditContactModal: React.FC<EditContactModalProps> = ({ isOpen, contact, on
 
     useEffect(() => {
         if (contact && allUsers.length > 0) {
-            const found = allUsers.find(u => u.id === contact.fkUserId) || null;
+            const found = allUsers.find(u => u.numericId === contact.fkUserId) || null;
             setSelectedUser(found);
             if (found) setUserSearch(found.fullName);
         }
@@ -64,7 +64,7 @@ const EditContactModal: React.FC<EditContactModalProps> = ({ isOpen, contact, on
             issueCategory: issueCategory.trim(),
             description: description.trim(),
             messengerLink: messengerLink.trim(),
-            fkUserId: selectedUser.id,
+            fkUserId: selectedUser.numericId!,
         });
     };
 

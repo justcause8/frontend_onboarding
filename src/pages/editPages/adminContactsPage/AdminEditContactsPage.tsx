@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import downIcon from '@/assets/editMode/DownIcon.png';
 import { contactsService, type SupportContact } from '../../../services/contacts.service';
 import { usePageTitle } from '../../../contexts/PageTitleContext';
 import { AdminTable } from '../../../components/adminTable/AdminTable';
@@ -22,12 +23,23 @@ export const AdminEditContactsPage: React.FC = () => {
     const [allUsers, setAllUsers] = useState<UserShort[]>([]);
 
     // Форма создания
-    const [issueCategory, setIssueCategory] = useState('');
-    const [description, setDescription] = useState('');
-    const [messengerLink, setMessengerLink] = useState('');
+    const DRAFT_KEY = 'admin_contact_draft';
+    const savedDraft = (() => { try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : null; } catch { return null; } })();
+    const [issueCategory, setIssueCategory] = useState<string>(savedDraft?.issueCategory ?? '');
+    const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+    const [description, setDescription] = useState<string>(savedDraft?.description ?? '');
+    const [messengerLink, setMessengerLink] = useState<string>(savedDraft?.messengerLink ?? '');
     const [selectedUser, setSelectedUser] = useState<UserShort | null>(null);
-    const [userSearch, setUserSearch] = useState('');
+    const [userSearch, setUserSearch] = useState<string>(savedDraft?.userSearch ?? '');
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
+    const existingCategories = useMemo(
+        () => [...new Set(contacts.map(c => c.issueCategory))],
+        [contacts]
+    );
+    const filteredCategories = existingCategories.filter(c =>
+        c.toLowerCase().includes(issueCategory.toLowerCase())
+    );
 
     // Модальное окно редактирования
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,12 +72,18 @@ export const AdminEditContactsPage: React.FC = () => {
         return () => setDynamicTitle('');
     }, [setDynamicTitle, loadData]);
 
+    useEffect(() => {
+        if (!issueCategory && !description && !messengerLink && !userSearch) return;
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ issueCategory, description, messengerLink, userSearch }));
+    }, [issueCategory, description, messengerLink, userSearch]);
+
     const resetForm = () => {
         setIssueCategory('');
         setDescription('');
         setMessengerLink('');
         setSelectedUser(null);
         setUserSearch('');
+        localStorage.removeItem(DRAFT_KEY);
     };
 
     const handleCreate = async () => {
@@ -76,7 +94,7 @@ export const AdminEditContactsPage: React.FC = () => {
         try {
             setLoading(true);
             await contactsService.createSupportContact({
-                fkUserId: selectedUser.id,
+                fkUserId: selectedUser.numericId!,
                 issueCategory: issueCategory.trim(),
                 description: description.trim(),
                 messengerLink: messengerLink.trim() || undefined,
@@ -94,7 +112,7 @@ export const AdminEditContactsPage: React.FC = () => {
         issueCategory: string;
         description: string;
         messengerLink: string;
-        fkUserId: string;
+        fkUserId: number;
     }) => {
         if (!editingContact) return;
         try {
@@ -134,12 +152,33 @@ export const AdminEditContactsPage: React.FC = () => {
                 <div className="add-controls-column">
                     <div className="input-item">
                         <h4>1. Категория и описание</h4>
-                        <input
-                            className="input-field"
-                            placeholder="Название категории..."
-                            value={issueCategory}
-                            onChange={e => setIssueCategory(e.target.value)}
-                        />
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                className="input-field"
+                                placeholder="Название категории..."
+                                value={issueCategory}
+                                onChange={e => { setIssueCategory(e.target.value); setCatDropdownOpen(true); }}
+                                onFocus={() => setCatDropdownOpen(true)}
+                                onBlur={() => setTimeout(() => setCatDropdownOpen(false), 150)}
+                            />
+                            <div className={`search-arrow${catDropdownOpen ? ' open' : ''}`} onClick={() => setCatDropdownOpen(v => !v)}>
+                                <img className="search-dropdown" src={downIcon} alt="" />
+                            </div>
+                            {catDropdownOpen && filteredCategories.length > 0 && (
+                                <div className="search-results">
+                                    {filteredCategories.map(cat => (
+                                        <div
+                                            key={cat}
+                                            className={`search-item${issueCategory === cat ? ' selected' : ''}`}
+                                            onMouseDown={e => e.preventDefault()}
+                                            onClick={() => { setIssueCategory(cat); setCatDropdownOpen(false); }}
+                                        >
+                                            {cat}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <textarea
                             className="textarea-field mt-8"
                             placeholder="Описание..."

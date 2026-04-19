@@ -106,7 +106,7 @@ const PassingTestPage = () => {
       if (!testId) return;
 
       const response = await testService.submitTestResults(Number(testId), userAnswers);
-      if (testId) localStorage.removeItem(`test_answers_${testId}`);
+      localStorage.removeItem(`test_answers_${testId}`);
 
       setTestResult({
         isPassed: response.isPassed,

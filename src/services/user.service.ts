@@ -2,6 +2,7 @@ import { api } from '../api/api';
 
 export interface UserShort {
   id: string;
+  numericId?: number;
   fullName: string;
   department?: string;
   position: string;
@@ -68,6 +69,7 @@ export const userService = {
     const res = await api.get<any[]>('/onboarding/users');
     return res.data.map(u => ({
       id: u.uid ?? u.guid ?? u.id,
+      numericId: typeof u.id === 'number' ? u.id : undefined,
       fullName: u.fullName || u.name,
       email: u.email,
       department: u.department,

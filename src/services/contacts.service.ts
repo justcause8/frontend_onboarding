@@ -2,7 +2,7 @@ import { api } from '../api/api';
 
 export interface SupportContact {
   id: number;
-  fkUserId: string;
+  fkUserId: number;
   employeeName: string;
   employeeJobTitle: string;
   employeeDepartment: string;

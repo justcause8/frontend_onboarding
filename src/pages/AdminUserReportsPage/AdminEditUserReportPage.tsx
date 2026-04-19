@@ -94,19 +94,19 @@ const AdminEditUserReportPage = () => {
         return () => setDynamicTitle('');
     }, [userId, setDynamicTitle]);
 
-    // Загружаем маршрут сотрудника для получения курсов с тестами
+    // Загружаем план адаптации сотрудника для получения модулей с тестами
     useEffect(() => {
         if (!showAnswers || !report || !userId) return;
         const load = async () => {
             try {
-                // Ищем маршрут по названию из отчёта среди всех маршрутов
+                // Ищем план адаптации по названию из отчёта среди всех планов
                 const routes = await adaptationService.getAllRoutes();
                 const found = routes.find(r => r.title === report.routeTitle) ?? routes[0];
                 const routeId: number | null = found?.id ?? null;
 
                 if (!routeId) return;
 
-                // Загружаем полный маршрут, затем каждый курс отдельно для получения тестов
+                // Загружаем полный план адаптации, затем каждый модуль отдельно для получения тестов
                 const fullRoute = await adaptationService.getRoute(routeId);
                 const courseIds: { id: number; title: string }[] = [];
                 fullRoute.stages.forEach(stage => {
@@ -183,7 +183,7 @@ const AdminEditUserReportPage = () => {
                         <div className="emp-report-meta">
                             {report.department && <span className="meta-item">{report.department}</span>}
                             {report.position && <span className="meta-item">{report.position}</span>}
-                            {report.routeTitle && <span className="meta-item">Маршрут: {report.routeTitle}</span>}
+                            {report.routeTitle && <span className="meta-item">План адаптации: {report.routeTitle}</span>}
                         </div>
                     </div>
                     <span className={statusBadgeClass(report.status)}>
@@ -217,7 +217,7 @@ const AdminEditUserReportPage = () => {
 
                 <div className="emp-metrics-section">
                     <div className="emp-metric-box">
-                        <span className="emp-metric-label">Пройдено курсов</span>
+                        <span className="emp-metric-label">Пройдено модулей</span>
                         <span className="emp-metric-value">{report.completedCourses} из {report.totalCourses}</span>
                     </div>
                     <div className="emp-metric-box">
@@ -270,7 +270,7 @@ const AdminEditUserReportPage = () => {
                         <div className="input-search-wrapper">
                             <input
                                 className="input-field"
-                                placeholder="Поиск по курсу..."
+                                placeholder="Поиск по модулю..."
                                 value={courseSearch}
                                 onChange={e => setCourseSearch(e.target.value)}
                             />
@@ -278,7 +278,7 @@ const AdminEditUserReportPage = () => {
                         </div>
                     </div>
 
-                    {/* Вкладки тестов по курсам */}
+                    {/* Вкладки тестов по модулям */}
                     <div className="department-tabs-wrapper">
                         {canScrollLeft && (
                             <button className="dept-scroll-btn" onClick={() => scrollTabs('left')}>

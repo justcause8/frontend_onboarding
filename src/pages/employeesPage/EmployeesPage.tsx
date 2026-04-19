@@ -180,13 +180,17 @@ const EmployeesPage = () => {
           <div className="employees-grid">
             {departmentEmployees.map(emp => (
               <div key={emp.id} className="card-item employee-card">
-                <div className="employee-avatar">
-                  {getInitials(emp.fullName)}
-                </div>
-                <div className="employee-info">
-                  <h4>{emp.fullName}</h4>
-                  <p className="employee-dept-label">{emp.department || '—'}</p>
-                  <p className="employee-position-label">{emp.position}</p>
+                <div className="employee-card-top">
+                  <div className="employee-avatar">
+                    {getInitials(emp.fullName)}
+                  </div>
+                  <div className="employee-info">
+                    <h4>{emp.fullName}</h4>
+                    <div className="employee-info-chips">
+                      {emp.position && <span className="meta-item meta-item--white">{emp.position}</span>}
+                      {emp.department && <span className="meta-item meta-item--white">{emp.department}</span>}
+                    </div>
+                  </div>
                 </div>
                 <a
                   href={emp.email ? buildMailto(emp.email, emp.fullName, user?.name ?? '') : undefined}

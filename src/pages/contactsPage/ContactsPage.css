@@ -1,7 +1,7 @@
 /* ---- Ключевые контакты ---- */
 .key-contacts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
 }
 
@@ -12,24 +12,45 @@
   gap: 10px;
   min-width: 0;
   cursor: default;
+  height: 100%;
 }
 
 .contact-name-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   min-width: 0;
   width: 100%;
 }
 
 .contact-name-row .employee-name {
   font-size: 15px;
+  font-weight: 600;
   flex: 1;
   min-width: 0;
   word-break: break-word;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
 }
 
+.contact-name-row .badge {
+  flex-shrink: 0;
+}
+
+.contact-card-h .employee-row-info {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.contact-card-h .btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
 
 /* ---- К кому обратиться ---- */
 .help-contacts-grid {

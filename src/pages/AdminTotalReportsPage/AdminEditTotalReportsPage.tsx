@@ -116,7 +116,7 @@ const TotalReportsPage = () => {
                     <StatCard label="В процессе" value={summary.inProgressCount} />
                     <StatDonutCard label="Средний балл тестов" value={summary.avgTestScore} />
                     <StatCard label="Среднее время (дней)" value={summary.avgDaysToComplete} />
-                    <StatDonutCard label="Прогресс по курсам" value={`${summary.avgCoursesProgress}%`} />
+                    <StatDonutCard label="Прогресс по модулям" value={`${summary.avgCoursesProgress}%`} />
                 </StatCardsGrid>
             </section>
 
@@ -173,7 +173,7 @@ const TotalReportsPage = () => {
                             <tr>
                                 <th>ФИО</th>
                                 <th>Отдел</th>
-                                <th>Маршрут</th>
+                                <th>План адаптации</th>
                                 <th className="col-status">Статус</th>
                                 <th>Прогресс</th>
                             </tr>

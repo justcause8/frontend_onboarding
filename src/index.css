@@ -457,6 +457,7 @@ select.input-field:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 16px;
 }
 
 .department-tabs {
@@ -468,7 +469,6 @@ select.input-field:disabled {
   -ms-overflow-style: none;
   scrollbar-width: none;
   flex: 1;
-  margin-bottom: 16px;
 }
 
 .department-tabs::-webkit-scrollbar {
