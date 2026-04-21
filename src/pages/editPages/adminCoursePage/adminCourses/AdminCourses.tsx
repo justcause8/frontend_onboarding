@@ -6,6 +6,7 @@ import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
 import { extractFileNameFromUrl } from '../../../../utils/fileUtils';
+import { stripMarkdown } from '../../../../utils/markdownUtils';
 
 export const AdminCourses = () => {
     const { setDynamicTitle } = usePageTitle();
@@ -127,7 +128,7 @@ export const AdminCourses = () => {
                     <tr key={course.id} className={course.status === 'archived' ? 'row-archived' : ''}>
                         <td>
                             <span className="route-title">
-                                {course.title}
+                                {stripMarkdown(course.title)}
                             </span>
                         </td>
                         <td>

@@ -36,6 +36,7 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
     const [selectedRoute, setSelectedRoute] = useState<OnboardingRoute | null>(null);
     const [routeSearch, setRouteSearch] = useState('');
     const [routeDropdownOpen, setRouteDropdownOpen] = useState(false);
+    const [routeLoading, setRouteLoading] = useState(false);
 
     const [selectedStage, setSelectedStage] = useState<StageOption | null>(null);
     const [stageSearch, setStageSearch] = useState('');
@@ -50,6 +51,15 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
         return () => setDynamicTitle('');
     }, [isEditMode, setDynamicTitle]);
 
+    const normalizeRoute = (r: OnboardingRoute): OnboardingRoute => ({
+        ...r,
+        assignedEmployees: (r.assignedEmployees ?? []).map((u: any) => ({
+            ...u,
+            fullName: u.fullName || u.name || '',
+            numericId: u.numericId ?? (typeof u.id === 'number' ? u.id : Number(u.id)),
+        })),
+    });
+
     useEffect(() => {
         const load = async () => {
             try {
@@ -58,14 +68,29 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
 
                 if (stageIdParam) {
                     const stageId = Number(stageIdParam);
-                    const foundRoute = routes.find(r => r.stages.some(s => s.id === stageId));
-                    if (foundRoute) {
-                        setSelectedRoute(foundRoute);
-                        setRouteSearch(foundRoute.title);
-                        const foundStage = foundRoute.stages.find(s => s.id === stageId);
+                    const matchRoute = routes.find(r =>
+                        r.stages?.some(s => s.id === stageId)
+                    );
+                    if (matchRoute) {
+                        const fullRoute = normalizeRoute(await adaptationService.getRoute(matchRoute.id));
+                        setSelectedRoute(fullRoute);
+                        setRouteSearch(fullRoute.title);
+                        const foundStage = fullRoute.stages.find(s => s.id === stageId);
                         if (foundStage) {
                             setSelectedStage(foundStage);
                             setStageSearch(foundStage.title);
+                        }
+                    } else {
+                        for (const r of routes) {
+                            const full = normalizeRoute(await adaptationService.getRoute(r.id));
+                            const foundStage = full.stages.find(s => s.id === stageId);
+                            if (foundStage) {
+                                setSelectedRoute(full);
+                                setRouteSearch(full.title);
+                                setSelectedStage(foundStage);
+                                setStageSearch(foundStage.title);
+                                break;
+                            }
                         }
                     }
                 }
@@ -74,17 +99,22 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
                     const t = await taskService.getTask(Number(taskId));
                     setDescription(t.description);
                     setTaskType(t.taskType);
-                    const foundRoute = routes.find(r => r.stages.some(s => s.id === t.fkOnboardingStageId));
-                    if (foundRoute) {
-                        setSelectedRoute(foundRoute);
-                        setRouteSearch(foundRoute.title);
-                        const foundStage = foundRoute.stages.find(s => s.id === t.fkOnboardingStageId);
-                        if (foundStage) {
-                            setSelectedStage(foundStage);
-                            setStageSearch(foundStage.title);
+                    let foundFullRoute: OnboardingRoute | null = null;
+                    for (const r of routes) {
+                        const full = await adaptationService.getRoute(r.id);
+                        if (full.stages.some(s => s.id === t.fkOnboardingStageId)) {
+                            foundFullRoute = full;
+                            break;
                         }
+                    }
+                    if (foundFullRoute) {
+                        const normalizedRoute = normalizeRoute(foundFullRoute);
+                        setSelectedRoute(normalizedRoute);
+                        setRouteSearch(normalizedRoute.title);
+                        const foundStage = normalizedRoute.stages.find(s => s.id === t.fkOnboardingStageId);
+                        if (foundStage) { setSelectedStage(foundStage); setStageSearch(foundStage.title); }
                         if (t.fkUserId) {
-                            const found = (foundRoute.assignedEmployees ?? []).find(u => u.numericId === t.fkUserId);
+                            const found = (normalizedRoute.assignedEmployees ?? []).find((u: any) => u.numericId === t.fkUserId || u.id === t.fkUserId);
                             if (found) { setSelectedUser(found); setUserSearch(found.fullName); }
                         }
                     }
@@ -106,7 +136,7 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
     );
 
     const filteredUsers = (selectedRoute?.assignedEmployees ?? []).filter((u: UserShort) =>
-        u.fullName.toLowerCase().includes(userSearch.toLowerCase()) ||
+        (u.fullName ?? '').toLowerCase().includes(userSearch.toLowerCase()) ||
         (u.department ?? '').toLowerCase().includes(userSearch.toLowerCase())
     ).slice(0, 20);
 
@@ -119,7 +149,7 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
             } else {
                 await taskService.createTask({
                     fkOnboardingStageId: selectedStage.id,
-                    fkUserId: taskType === 'individual' ? (selectedUser?.numericId ?? null) : null,
+                    fkUserId: taskType === 'individual' ? (selectedUser ? (selectedUser.numericId ?? Number(selectedUser.id)) : null) : null,
                     description: description.trim(),
                     taskType,
                     status: 'active',
@@ -170,12 +200,18 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
                                         key={r.id}
                                         className={`search-item${selectedRoute?.id === r.id ? ' selected' : ''}`}
                                         onMouseDown={e => e.preventDefault()}
-                                        onClick={() => {
-                                            setSelectedRoute(r);
+                                        onClick={async () => {
                                             setRouteSearch(r.title);
                                             setRouteDropdownOpen(false);
                                             setSelectedStage(null);
                                             setStageSearch('');
+                                            setRouteLoading(true);
+                                            try {
+                                                const full = await adaptationService.getRoute(r.id);
+                                                setSelectedRoute(normalizeRoute(full));
+                                            } finally {
+                                                setRouteLoading(false);
+                                            }
                                         }}
                                     >
                                         {r.title}
@@ -192,9 +228,9 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
                     <div style={{ position: 'relative' }}>
                         <input
                             className="input-field"
-                            placeholder={selectedRoute ? 'Выбрать этап...' : 'Сначала выберите маршрут'}
+                            placeholder={routeLoading ? 'Загрузка этапов...' : selectedRoute ? 'Выбрать этап...' : 'Сначала выберите маршрут'}
                             value={stageSearch}
-                            disabled={!selectedRoute}
+                            disabled={!selectedRoute || routeLoading}
                             onChange={e => {
                                 setStageSearch(e.target.value);
                                 setStageDropdownOpen(true);
@@ -278,8 +314,9 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
                         <div className="input-search-wrapper">
                             <input
                                 className="input-field"
-                                placeholder="Найти сотрудника..."
+                                placeholder={routeLoading ? 'Загрузка сотрудников...' : 'Найти сотрудника...'}
                                 value={userSearch}
+                                disabled={routeLoading}
                                 onChange={e => { setUserSearch(e.target.value); setUserDropdownOpen(true); setSelectedUser(null); }}
                                 onFocus={() => setUserDropdownOpen(true)}
                                 onBlur={() => setTimeout(() => setUserDropdownOpen(false), 150)}
@@ -305,7 +342,7 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
                             <div className="selected-employees-list">
                                 <div className="employee-row employee-row--mentor">
                                     <div className="employee-row-info">
-                                        <span className="employee-name">{selectedUser.fullName}</span>
+                                        <span className="employee-name">{selectedUser.fullName || (selectedUser as any).name}</span>
                                         <span className="employee-dept">{selectedUser.department || selectedUser.position}</span>
                                     </div>
                                     <img src={cross} className="remove-icon" alt="x"

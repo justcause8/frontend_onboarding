@@ -189,7 +189,7 @@ select.input-field:disabled {
 }
 
 .textarea-field {
-  min-height: 80px;
+  min-height: 50px;
   height: auto;
   resize: vertical;
   overflow: auto;

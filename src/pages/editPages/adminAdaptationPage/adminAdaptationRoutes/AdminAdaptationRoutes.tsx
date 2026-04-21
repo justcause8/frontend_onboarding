@@ -6,6 +6,7 @@ import type { OnboardingRoute } from '../../../../services/adaptation.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
+import { stripMarkdown } from '../../../../utils/markdownUtils';
 
 export const AdminAdaptationRoute = () => {
     const { setDynamicTitle } = usePageTitle();
@@ -96,7 +97,7 @@ export const AdminAdaptationRoute = () => {
                     <tr key={route.id} className={route.status === 'archived' ? 'row-archived' : ''}>
                         <td>
                             <span className="route-title">
-                                {route.title}
+                                {stripMarkdown(route.title)}
                                 {route.status === 'archived' && <small style={{marginLeft: '10px', color: '#888'}}></small>}
                             </span>
                         </td>

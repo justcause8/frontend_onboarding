@@ -6,6 +6,7 @@ import { materialService, type Material } from '../../../services/material.servi
 import LoadingSpinner from '../../../components/loading/LoadingSpinner';
 import { usePageTitle } from '../../../contexts/PageTitleContext';
 import { extractFileNameFromUrl } from '../../../utils/fileUtils';
+import { stripMarkdown } from '../../../utils/markdownUtils';
 import { AdminTable } from '../../../components/adminTable/AdminTable';
 import EditModal from '../../../components/modals/editModal/EditModal';
 
@@ -320,7 +321,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                         <tr key={mat.id}>
                             <td>
                                 <div className="material-title-cell">
-                                    <span className="main-text">{mat.title}</span>
+                                    <span className="main-text">{stripMarkdown(mat.title)}</span>
                                     <span className="sub-text">{mat.urlDocument.replace(/\\/g, '/')}</span>
                                 </div>
                             </td>

@@ -1,3 +1,7 @@
+.input-item .selected-employees-list {
+    margin-top: 8px;
+}
+
 .task-type-options {
     display: flex;
     flex-direction: column;

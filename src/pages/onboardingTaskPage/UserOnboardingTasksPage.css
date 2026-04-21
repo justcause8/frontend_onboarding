@@ -1,0 +1,46 @@
+.task-user-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.task-user-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.task-user-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.task-user-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.task-user-card__desc {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.task-user-card__status {
+    display: flex;
+    justify-content: flex-end;
+}

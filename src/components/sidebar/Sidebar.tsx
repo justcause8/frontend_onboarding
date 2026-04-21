@@ -59,6 +59,12 @@ const Sidebar = () => {
               </NavLink>
             </li>
             <li>
+              <NavLink to="/tasks">
+                <img src={task} className='icon' alt="" />
+                Задания
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/materials">
                 <img src={file} className='icon' alt="" />
                 Документы и ресурсы

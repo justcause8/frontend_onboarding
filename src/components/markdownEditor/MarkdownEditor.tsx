@@ -79,6 +79,7 @@ interface MarkdownEditorProps {
     onChange: (val: string) => void;
     placeholder?: string;
     minHeight?: string;
+    className?: string;
 }
 
 /** Считает количество полных (закрытых) пар маркера до позиции */
@@ -146,6 +147,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     onChange,
     placeholder = 'Введите текст...',
     minHeight = '120px',
+    className = '',
 }) => {
     const ref = useRef<HTMLTextAreaElement>(null);
     const [activeMarkers, setActiveMarkers] = useState<Set<string>>(new Set());
@@ -184,7 +186,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     };
 
     return (
-        <div className="md-editor">
+        <div className={`md-editor${className ? ' ' + className : ''}`}>
             <div className="md-toolbar">
                 {!isPreview && buttons.map((btn, i) =>
                     btn.title === 'separator' ? (
@@ -208,7 +210,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     title={isPreview ? 'Редактировать' : 'Предпросмотр'}
                     onMouseDown={e => { e.preventDefault(); setIsPreview(p => !p); }}
                 >
-                    {isPreview ? 'Изменить' : 'Просмотр'}
+                    {isPreview ? 'Изменить' : 'Предпросмотр'}
                 </button>
             </div>
             {isPreview ? (

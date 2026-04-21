@@ -83,6 +83,17 @@
     box-sizing: border-box;
 }
 
+.md-preview-area--clickable {
+    cursor: text;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.15s;
+}
+
+.md-preview-area--clickable:hover {
+    border-color: var(--primary-color);
+}
+
 .md-preview-placeholder {
     color: var(--text-secondary);
     opacity: 0.7;
@@ -108,6 +119,15 @@
 .md-textarea::placeholder {
     color: var(--text-secondary);
     opacity: 0.7;
+}
+
+.md-editor--white .md-textarea {
+    background: #fff;
+    border: 1px solid var(--border-color);
+}
+
+.md-editor--white .md-preview-area--clickable {
+    background: #fff;
 }
 
 /* MarkdownViewer — рендер markdown */

@@ -25,7 +25,12 @@ export interface TaskSubmission {
 
 export const taskService = {
   async getAllTasks(): Promise<OnboardingTask[]> {
-    const res = await api.get<OnboardingTask[]>('/onboarding/tasks');
+    const res = await api.get<OnboardingTask[]>('/onboarding/tasks/all');
+    return res.data;
+  },
+
+  async getUserTasks(): Promise<OnboardingTask[]> {
+    const res = await api.get<OnboardingTask[]>('/onboarding/tasks/my');
     return res.data;
   },
 
@@ -50,7 +55,7 @@ export const taskService = {
     return res.data;
   },
 
-  async updateTask(taskId: number, data: { description?: string; taskType?: string }): Promise<void> {
+  async updateTask(taskId: number, data: { description?: string; taskType?: string; status?: string }): Promise<void> {
     await api.put(`/onboarding/task/${taskId}`, data);
   },
 

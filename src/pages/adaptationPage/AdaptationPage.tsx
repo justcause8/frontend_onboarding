@@ -6,6 +6,7 @@ import { courseService } from '../../services/course.service';
 import { taskService, type OnboardingTask, type TaskSubmission } from '../../services/task.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
+import { stripMarkdown } from '../../utils/markdownUtils';
 import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
 import './AdaptationPage.css';
@@ -193,9 +194,9 @@ const AdaptationPage = () => {
                 <div className="step-body">
                   <div className="step-head">
                     <div className="step-head-left">
-                      <span className="step-title">{stage.title}</span>
+                      <span className="step-title">{stripMarkdown(stage.title)}</span>
                       {stage.description && (
-                        <span className="step-desc">{stage.description}</span>
+                        <span className="step-desc">{stripMarkdown(stage.description)}</span>
                       )}
                     </div>
                     <span className={`badge ${status === 'completed' ? 'badge--success' : status === 'failed' ? 'badge--danger' : status === 'current' || status === 'in_process' ? 'badge--warning' : 'badge--neutral'}`}>
@@ -216,7 +217,7 @@ const AdaptationPage = () => {
                           <div key={course.id} className={`course-row course-row--${cs}`}>
                             <div className="course-row-left">
                               <span className={`course-dot course-dot--${cs}`} />
-                              <span className="course-row-title">{course.title}</span>
+                              <span className="course-row-title">{stripMarkdown(course.title)}</span>
                             </div>
                             <div className="course-row-right">
                               {/* <span className={`course-chip course-chip--${cs}`}>
@@ -251,14 +252,14 @@ const AdaptationPage = () => {
                           <div key={task.id} className={`course-row course-row--${dotColor}`}>
                             <div className="course-row-left">
                               <span className={`course-dot course-dot--${dotColor}`} />
-                              <span className="course-row-title">{task.description}</span>
+                              <span className="course-row-title">{stripMarkdown(task.description)}</span>
                             </div>
                             <div className="course-row-right">
                               <button
                                 className={`btn-go btn-go--${dotColor}`}
                                 onClick={() => navigate(`/tasks/${task.id}`)}
                               >
-                                {sub ? (subStatus === 'approved' ? 'Просмотр' : 'Изменить') : 'Ответить'}
+                                {sub ? (subStatus === 'approved' ? 'Просмотр' : 'Изменить') : 'Выполнить'}
                               </button>
                             </div>
                           </div>

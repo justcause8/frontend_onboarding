@@ -8,6 +8,7 @@ import LoadingSpinner from '../../../components/loading/LoadingSpinner';
 import EditContactModal from '../../../components/modals/editContactModal/EditContactModal';
 import editIcon from '@/assets/editMode/EditIcon.png';
 import deleteIcon from '@/assets/editMode/DeleteIcon.png';
+import { stripMarkdown } from '../../../utils/markdownUtils';
 import searchIcon from '@/assets/icons/search.svg';
 import cross from '@/assets/icons/cross.png';
 import { userService, type UserShort } from '../../../services/user.service';
@@ -263,7 +264,7 @@ export const AdminEditContactsPage: React.FC = () => {
                                 <b><span className="main-text">{contact.issueCategory}</span></b>
                             </td>
                             <td>
-                                <span className="sub-text">{contact.description}</span>
+                                <span className="sub-text">{stripMarkdown(contact.description)}</span>
                             </td>
                             <td>
                                 <div className="material-title-cell">

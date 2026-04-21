@@ -8,10 +8,12 @@ import { adaptationService } from '../../services/adaptation.service';
 import { courseService } from '../../services/course.service';
 import { taskService, type OnboardingTask, type TaskSubmission } from '../../services/task.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
+import { stripMarkdown } from '../../utils/markdownUtils';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import searchIcon from '@/assets/icons/search.svg';
 import { getFileIcon, extractFileNameFromUrl } from '../../utils/fileUtils';
+import { MarkdownEditor } from '../../components/markdownEditor/MarkdownEditor';
 import '../employeesPage/EmployeesPage.css';
 import './AdminEditUserReportPage.css';
 import '../../components/statCard/StatCard.css';
@@ -431,13 +433,11 @@ const AdminEditUserReportPage = () => {
                                             className={`task-attempt-btn${isActive ? ' task-attempt-btn--active' : ''}`}
                                             onClick={() => setActiveTask(isActive ? null : task)}
                                         >
-                                            <span className="task-title-truncated">{task.description}</span>
-                                            <span className="meta-item meta-item--white">{task.taskType === 'general' ? 'Общее' : 'Индивидуальное'}</span>
-                                            {sub?.updatedAt
-                                                ? <span className="answers-attempt-date">{formatDateTime(sub.updatedAt)}</span>
-                                                : <span />
-                                            }
-                                            <span className={`${subStatusBadge} task-status-badge`}>{subStatusLabel}</span>
+                                            <span className="task-title-truncated">{stripMarkdown(task.description)}</span>
+                                            <div className="task-attempt-meta">
+                                                <span className="meta-item meta-item--white">{task.taskType === 'general' ? 'Общее' : 'Индивидуальное'}</span>
+                                                <span className={`${subStatusBadge} task-status-badge`}>{subStatusLabel}</span>
+                                            </div>
                                         </button>
                                     );
                                 })}
@@ -448,7 +448,7 @@ const AdminEditUserReportPage = () => {
                                 <div className="answers-test-block task-detail-block">
                                     <div className="answers-test-header">
                                         <div>
-                                            <h4 className="answers-test-title">{activeTask.description}</h4>
+                                            <h4 className="answers-test-title">{stripMarkdown(activeTask.description)}</h4>
                                             <div className="task-accordion-meta">
                                                 {activeSub?.updatedAt && (
                                                     <span className="text-info">Изменено: {formatDateTime(activeSub.updatedAt)}</span>
@@ -478,7 +478,7 @@ const AdminEditUserReportPage = () => {
                                                         className="textarea-field task-readonly-textarea"
                                                         value={activeSub.answerText}
                                                         readOnly
-                                                        rows={4}
+                                                        rows={2}
                                                     />
                                                 </div>
                                             )}
@@ -501,7 +501,7 @@ const AdminEditUserReportPage = () => {
 
                                             <hr className="task-divider" />
 
-                                            {cleanMentorComment && (
+                                            {(cleanMentorComment || mentorFileUrlParsed) && (
                                                 <div className="task-mentor-prev">
                                                     {mentorFileUrlParsed && (
                                                         <a href={mentorFileUrlParsed} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
@@ -519,30 +519,22 @@ const AdminEditUserReportPage = () => {
 
                                             <div className="input-item">
                                                 <h4>Добавить комментарий</h4>
-                                                <textarea
-                                                    className="textarea-field"
-                                                    placeholder="Введите комментарий..."
+                                                <MarkdownEditor
                                                     value={reviewComment}
-                                                    onChange={e => setReviewComment(e.target.value)}
-                                                    rows={3}
+                                                    onChange={setReviewComment}
+                                                    placeholder="Введите комментарий..."
+                                                    minHeight="80px"
+                                                    className="md-editor--white"
                                                 />
                                             </div>
-                                            <div className="input-item">
-                                                <h4>Добавить материал (необязательно)</h4>
-                                                <input
-                                                    className="input-field"
-                                                    placeholder="https://..."
-                                                    value={reviewFileUrl}
-                                                    onChange={e => setReviewFileUrl(e.target.value)}
-                                                />
-                                            </div>
+
                                             <div className="task-review-actions">
                                                 <button
                                                     className="btn btn-secondary"
                                                     disabled={reviewSaving}
                                                     onClick={() => handleReview(activeTask, reviewComment, reviewFileUrl, 'rejected')}
                                                 >
-                                                    Не принять
+                                                    Отправить на доработку
                                                 </button>
                                                 <button
                                                     className="btn btn-primary"

@@ -7,6 +7,7 @@ import { testService, type Test } from '../../../../services/test.service';
 import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import { AdminTable } from '../../../../components/adminTable/AdminTable';
 import { ActionMenu, ActionMenuItem, ICONS } from '../../../../components/actionMenu/ActionMenu';
+import { stripMarkdown } from '../../../../utils/markdownUtils';
 
 export const AdminTests = () => {
     const { setDynamicTitle } = usePageTitle();
@@ -93,7 +94,7 @@ export const AdminTests = () => {
                 emptyText="Тесты не найдены"
                 renderRow={(test) => (
                     <tr key={test.id} className={test.status === 'archived' ? 'row-archived' : ''}>
-                        <td><span className="route-title">{test.title}</span></td>
+                        <td><span className="route-title">{stripMarkdown(test.title)}</span></td>
                         <td>
                             <span className={test.status === 'active' ? 'badge badge--success' : 'badge badge--neutral'}>
                                 {test.status === 'active' ? 'Открыт' : 'Закрыт'}
