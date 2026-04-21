@@ -6,6 +6,7 @@ export { default as MaterialsPage } from './materialsPage/MaterialsPage';
 export { default as EmployeesPage } from './employeesPage/EmployeesPage';
 export { default as ContactsPage } from './contactsPage/ContactsPage';
 export { default as TotalReportsPage } from './AdminTotalReportsPage/AdminEditTotalReportsPage';
+export { default as OnboardingTaskPage } from './onboardingTaskPage/OnboardingTaskPage';
 
 export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';
 export { default as AdminEditAdaptationRoute } from './editPages/adminAdaptationPage/adminEditAdaptationRoute/AdminEditAdaptationRoute';
@@ -17,3 +18,5 @@ export { default as AdminEditMaterialsPage } from './editPages/adminMaterialsPag
 export { default as AdminEditContactsPage } from './editPages/adminContactsPage/AdminEditContactsPage';
 export { default as AdminEditUsersPage } from './editPages/adminUsersPage/AdminEditUsersPage';
 export { default as AdminEditUserReportPage } from './AdminUserReportsPage/AdminEditUserReportPage';
+export { default as AdminEditOnboardingTaskPage } from './editPages/adminOnboardingTaskPage/AdminEditOnboardingTaskPage';
+export { default as AdminOnboardingTasks } from './editPages/adminOnboardingTaskPage/AdminOnboardingTasks';

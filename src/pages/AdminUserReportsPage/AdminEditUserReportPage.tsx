@@ -6,10 +6,12 @@ import { userService, type EmployeeReportDetail } from '../../services/user.serv
 import { testService, type UserTestAttemptsReport, type TestAttemptDetail } from '../../services/test.service';
 import { adaptationService } from '../../services/adaptation.service';
 import { courseService } from '../../services/course.service';
+import { taskService, type OnboardingTask, type TaskSubmission } from '../../services/task.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
 import searchIcon from '@/assets/icons/search.svg';
+import { getFileIcon, extractFileNameFromUrl } from '../../utils/fileUtils';
 import '../employeesPage/EmployeesPage.css';
 import './AdminEditUserReportPage.css';
 import '../../components/statCard/StatCard.css';
@@ -60,6 +62,22 @@ const AdminEditUserReportPage = () => {
     // Карточка ответов
     const [showAnswers, setShowAnswers] = useState(false);
     const [showTasks, setShowTasks] = useState(false);
+
+    // Задания
+    const [taskStages, setTaskStages] = useState<{ id: number; title: string }[]>([]);
+    const [activeStageId, setActiveStageId] = useState<number | null>(null);
+    const [stageTasks, setStageTasks] = useState<OnboardingTask[]>([]);
+    const [taskSubmissions, setTaskSubmissions] = useState<Record<number, TaskSubmission | null>>({});
+    const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
+    const [activeTask, setActiveTask] = useState<OnboardingTask | null>(null);
+    const [reviewComment, setReviewComment] = useState('');
+    const [reviewFileUrl, setReviewFileUrl] = useState('');
+    const [reviewSaving, setReviewSaving] = useState(false);
+    const [tasksLoading, setTasksLoading] = useState(false);
+    const [taskStageSearch, setTaskStageSearch] = useState('');
+    const [canScrollLeftTasks, setCanScrollLeftTasks] = useState(false);
+    const [canScrollRightTasks, setCanScrollRightTasks] = useState(false);
+    const tabsTasksRef = useRef<HTMLDivElement>(null);
     const [courses, setCourses] = useState<CourseWithTests[]>([]);
     const [courseSearch, setCourseSearch] = useState('');
     const [activeTestId, setActiveTestId] = useState<number | null>(null);
@@ -164,6 +182,87 @@ const AdminEditUserReportPage = () => {
             .finally(() => setAttemptsLoading(false));
     }, [activeTestId, userId]);
 
+    // Загружаем этапы и задания сотрудника при открытии блока заданий
+    useEffect(() => {
+        if (!showTasks || !report) return;
+        const load = async () => {
+            setTasksLoading(true);
+            try {
+                const routes = await adaptationService.getAllRoutes();
+                const found = routes.find(r => r.title === report.routeTitle) ?? routes[0];
+                if (!found) return;
+                const fullRoute = await adaptationService.getRoute(found.id);
+                const stages = fullRoute.stages.map((s: any) => ({ id: s.id, title: s.title }));
+                setTaskStages(stages);
+                if (stages.length > 0) setActiveStageId(stages[0].id);
+            } catch { /* ignore */ } finally {
+                setTasksLoading(false);
+            }
+        };
+        load();
+    }, [showTasks, report]);
+
+    // Загружаем задания при смене этапа
+    useEffect(() => {
+        if (!activeStageId) return;
+        const load = async () => {
+            setTasksLoading(true);
+            try {
+                const tasks = await taskService.getTasksByStage(activeStageId);
+                setStageTasks(tasks);
+                setActiveTask(tasks.length > 0 ? tasks[0] : null);
+                const subResults = await Promise.allSettled(
+                    tasks.map(t => taskService.getSubmissionsByTask(t.id)
+                        .then(subs => ({ taskId: t.id, sub: subs.length > 0 ? subs[subs.length - 1] : null })))
+                );
+                const map: Record<number, TaskSubmission | null> = {};
+                subResults.forEach(r => { if (r.status === 'fulfilled') map[r.value.taskId] = r.value.sub; });
+                setTaskSubmissions(map);
+            } catch { /* ignore */ } finally {
+                setTasksLoading(false);
+            }
+        };
+        load();
+    }, [activeStageId]);
+
+    // Сброс комментария при смене задания
+    useEffect(() => {
+        const sub = activeTask ? taskSubmissions[activeTask.id] : null;
+        setReviewComment(sub?.mentorComment ?? '');
+        setReviewFileUrl('');
+    }, [activeTask, taskSubmissions]);
+
+    // Скролл вкладок заданий
+    const updateScrollStateTasks = () => {
+        const el = tabsTasksRef.current;
+        if (!el) return;
+        setCanScrollLeftTasks(el.scrollLeft > 0);
+        setCanScrollRightTasks(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+
+    const scrollTaskTabs = (dir: 'left' | 'right') => {
+        tabsTasksRef.current?.scrollBy({ left: dir === 'right' ? 200 : -200, behavior: 'smooth' });
+    };
+
+    const handleReview = async (task: OnboardingTask, comment: string, fileUrl: string, status: 'approved' | 'rejected') => {
+        const sub = taskSubmissions[task.id];
+        if (!sub) return;
+        setReviewSaving(true);
+        const fullComment = fileUrl
+            ? `${comment}\n[Файл от проверяющего]: ${fileUrl}`.trim()
+            : comment;
+        try {
+            await taskService.reviewSubmission(sub.id, { mentorComment: fullComment, status });
+            const reviewedAt = new Date().toISOString();
+            setTaskSubmissions(prev => ({
+                ...prev,
+                [task.id]: { ...sub, status, mentorComment: fullComment, updatedAt: reviewedAt },
+            }));
+        } catch { alert('Ошибка при сохранении'); } finally {
+            setReviewSaving(false);
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
     if (error || !report) return <ErrorState message={error ?? 'Нет данных'} onRetry={() => navigate(-1)} />;
 
@@ -254,11 +353,214 @@ const AdminEditUserReportPage = () => {
 
             {/* Карточка заданий */}
             {showTasks && (
-                <div className="card answers-card text">
-                    <h2>Задания</h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                        Раздел заданий находится в разработке. Здесь будут отображаться задания, назначенные наставником.
-                    </p>
+                <div className="card answers-card">
+                    <div className="section-header">
+                        <h2>Задания</h2>
+                        <div className="input-search-wrapper">
+                            <input
+                                className="input-field"
+                                placeholder="Поиск по этапу..."
+                                value={taskStageSearch}
+                                onChange={e => setTaskStageSearch(e.target.value)}
+                            />
+                            <img src={searchIcon} alt="" className="input-search-icon" />
+                        </div>
+                    </div>
+
+                    {/* Вкладки этапов */}
+                    <div className="department-tabs-wrapper">
+                        {canScrollLeftTasks && (
+                            <button className="dept-scroll-btn" onClick={() => scrollTaskTabs('left')}>
+                                <img src={nextLeft} alt="<-" />
+                            </button>
+                        )}
+                        <div className="department-tabs" ref={tabsTasksRef} onScroll={updateScrollStateTasks}>
+                            {taskStages
+                                .filter(s => s.title.toLowerCase().includes(taskStageSearch.toLowerCase()))
+                                .map(s => (
+                                    <button
+                                        key={s.id}
+                                        className={`dept-tab${activeStageId === s.id ? ' dept-tab--active' : ''}`}
+                                        onClick={() => { setActiveStageId(s.id); setExpandedTaskId(null); }}
+                                    >
+                                        {s.title}
+                                    </button>
+                                ))}
+                        </div>
+                        {canScrollRightTasks && (
+                            <button className="dept-scroll-btn" onClick={() => scrollTaskTabs('right')}>
+                                <img src={nextRight} alt="->" />
+                            </button>
+                        )}
+                    </div>
+
+                    {tasksLoading && <LoadingSpinner />}
+
+                    {!tasksLoading && stageTasks.length === 0 && (
+                        <p className="answers-empty">Заданий для этого этапа нет</p>
+                    )}
+
+                    {!tasksLoading && stageTasks.length > 0 && (() => {
+                        const activeSub = activeTask ? taskSubmissions[activeTask.id] : null;
+                        const mentorFileLine = activeSub?.mentorComment?.split('\n').find(l => l.startsWith('[Файл от проверяющего]:'));
+                        const mentorFileUrlParsed = mentorFileLine ? mentorFileLine.replace('[Файл от проверяющего]:', '').trim() : null;
+                        const cleanMentorComment = activeSub?.mentorComment
+                            ? activeSub.mentorComment.split('\n').filter(l => !l.startsWith('[Файл от проверяющего]:')).join('\n').trim()
+                            : null;
+
+                        return (
+                        <>
+                            {/* Список кнопок заданий */}
+                            <div className="answers-attempts-list">
+                                {stageTasks.map(task => {
+                                    const sub = taskSubmissions[task.id];
+                                    const isActive = activeTask?.id === task.id;
+                                    const subStatusBadge = sub
+                                        ? sub.status === 'approved' ? 'badge badge--success'
+                                        : sub.status === 'rejected' ? 'badge badge--danger'
+                                        : 'badge badge--warning'
+                                        : 'badge badge--neutral';
+                                    const subStatusLabel = sub
+                                        ? sub.status === 'approved' ? 'Принято'
+                                        : sub.status === 'rejected' ? 'Не принято'
+                                        : 'На проверке'
+                                        : 'Нет ответа';
+                                    return (
+                                        <button
+                                            key={task.id}
+                                            className={`task-attempt-btn${isActive ? ' task-attempt-btn--active' : ''}`}
+                                            onClick={() => setActiveTask(isActive ? null : task)}
+                                        >
+                                            <span className="task-title-truncated">{task.description}</span>
+                                            <span className="meta-item meta-item--white">{task.taskType === 'general' ? 'Общее' : 'Индивидуальное'}</span>
+                                            {sub?.updatedAt
+                                                ? <span className="answers-attempt-date">{formatDateTime(sub.updatedAt)}</span>
+                                                : <span />
+                                            }
+                                            <span className={`${subStatusBadge} task-status-badge`}>{subStatusLabel}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Детализация выбранного задания */}
+                            {activeTask && (
+                                <div className="answers-test-block task-detail-block">
+                                    <div className="answers-test-header">
+                                        <div>
+                                            <h4 className="answers-test-title">{activeTask.description}</h4>
+                                            <div className="task-accordion-meta">
+                                                {activeSub?.updatedAt && (
+                                                    <span className="text-info">Изменено: {formatDateTime(activeSub.updatedAt)}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {activeSub && (
+                                            <span className={`${activeSub.status === 'approved' ? 'badge badge--success' : activeSub.status === 'rejected' ? 'badge badge--danger' : 'badge badge--warning'} task-status-badge`}>
+                                                {activeSub.status === 'approved' ? 'Принято' : activeSub.status === 'rejected' ? 'Не принято' : 'На проверке'}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {activeSub ? (
+                                        <>
+                                            <div className="task-answer-type">
+                                                <span className="meta-item meta-item--white">
+                                                    Ответ представлен в виде:{' '}
+                                                    {activeSub.answerText && activeSub.fileUrl ? 'текст и файл' : activeSub.fileUrl ? 'файл' : 'текст'}
+                                                </span>
+                                            </div>
+
+                                            {activeSub.answerText && (
+                                                <div className="input-item">
+                                                    <h4>Ответ сотрудника</h4>
+                                                    <textarea
+                                                        className="textarea-field task-readonly-textarea"
+                                                        value={activeSub.answerText}
+                                                        readOnly
+                                                        rows={4}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {activeSub.fileUrl && (
+                                                <div className="task-file-block">
+                                                    <h4>Файл сотрудника</h4>
+                                                    <a href={activeSub.fileUrl} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
+                                                        <div className="material-content">
+                                                            <p className="task-file-name">{extractFileNameFromUrl(activeSub.fileUrl)}</p>
+                                                            <img src={getFileIcon(activeSub.fileUrl, !activeSub.fileUrl.match(/\.(pdf|doc|docx|xls|xlsx|png|jpg|jpeg|gif|zip|rar)$/i))} alt="" />
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            )}
+
+                                            {!activeSub.answerText && !activeSub.fileUrl && (
+                                                <p className="answers-empty">Ответ пуст</p>
+                                            )}
+
+                                            <hr className="task-divider" />
+
+                                            {cleanMentorComment && (
+                                                <div className="task-mentor-prev">
+                                                    {mentorFileUrlParsed && (
+                                                        <a href={mentorFileUrlParsed} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
+                                                            <div className="material-content">
+                                                                <p className="task-file-name">{extractFileNameFromUrl(mentorFileUrlParsed)}</p>
+                                                                <img src={getFileIcon(mentorFileUrlParsed, !mentorFileUrlParsed.match(/\.(pdf|doc|docx|xls|xlsx|png|jpg|jpeg|gif|zip|rar)$/i))} alt="" />
+                                                            </div>
+                                                        </a>
+                                                    )}
+                                                    {activeSub.updatedAt && (
+                                                        <p className="text-info task-review-date">Дата проверки: {formatDateTime(activeSub.updatedAt)}</p>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="input-item">
+                                                <h4>Добавить комментарий</h4>
+                                                <textarea
+                                                    className="textarea-field"
+                                                    placeholder="Введите комментарий..."
+                                                    value={reviewComment}
+                                                    onChange={e => setReviewComment(e.target.value)}
+                                                    rows={3}
+                                                />
+                                            </div>
+                                            <div className="input-item">
+                                                <h4>Добавить материал (необязательно)</h4>
+                                                <input
+                                                    className="input-field"
+                                                    placeholder="https://..."
+                                                    value={reviewFileUrl}
+                                                    onChange={e => setReviewFileUrl(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="task-review-actions">
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    disabled={reviewSaving}
+                                                    onClick={() => handleReview(activeTask, reviewComment, reviewFileUrl, 'rejected')}
+                                                >
+                                                    Не принять
+                                                </button>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    disabled={reviewSaving}
+                                                    onClick={() => handleReview(activeTask, reviewComment, reviewFileUrl, 'approved')}
+                                                >
+                                                    Принять
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p className="answers-empty">Сотрудник ещё не отправил ответ</p>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                        );
+                    })()}
                 </div>
             )}
 

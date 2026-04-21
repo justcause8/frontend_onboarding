@@ -736,10 +736,22 @@ export const AdminEditAdaptationRoute: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="input-item">
+                <h4>Добавить задание</h4>
+                <button
+                  className="btn-dashed"
+                  onClick={() => navigate(`/edit/tasks/new?stageId=${stage.id}&returnTo=/edit/adaptationRoutes/${adaptationRouteId}`)}
+                  disabled={typeof stage.id === 'string'}
+                  title={typeof stage.id === 'string' ? 'Сохраните план перед добавлением заданий' : undefined}
+                >
+                  + Добавить задание
+                </button>
+              </div>
             </div>
           ))}
         </div>
-        
+
         <button className="btn-dashed" onClick={() => setStages([...stages, { id: Date.now().toString(), title: '', description: '', courses: [] }])}>
           + Добавить новый этап
         </button>

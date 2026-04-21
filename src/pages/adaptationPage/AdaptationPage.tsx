@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adaptationService } from '../../services/adaptation.service';
+import { adaptationService, type OnboardingRoute } from '../../services/adaptation.service';
 import { userService, type UserProgress } from '../../services/user.service';
 import { courseService } from '../../services/course.service';
-import type { OnboardingRoute } from '../../services/adaptation.service';
+import { taskService, type OnboardingTask, type TaskSubmission } from '../../services/task.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import ErrorState from '../../components/error/ErrorState';
@@ -39,6 +39,8 @@ const AdaptationPage = () => {
   const [route,          setRoute]          = useState<OnboardingRoute | null>(null);
   const [progress,       setProgress]       = useState<UserProgress>(emptyProgress);
   const [courseStatuses, setCourseStatuses] = useState<Record<number, string>>({});
+  const [stageTasks,     setStageTasks]     = useState<Record<number, OnboardingTask[]>>({});
+  const [taskSubmissions,setTaskSubmissions]= useState<Record<number, TaskSubmission | null>>({});
   const [loading,        setLoading]        = useState(true);
   const [loadingCourseId,setLoadingCourseId]= useState<number | null>(null);
   const [error,          setError]          = useState<string | null>(null);
@@ -64,13 +66,33 @@ const AdaptationPage = () => {
       const allCourseIds: number[] = routeData.stages.flatMap((s: any) =>
         (s.courses || []).map((c: any) => c.id)
       );
-      const entries = await Promise.all(
-        allCourseIds.map(async (id) => [id, await courseService.getUserCourseStatus(id)] as const)
+      const allStageIds: number[] = routeData.stages.map((s: any) => s.id);
+
+      const [courseEntries, taskResults] = await Promise.all([
+        Promise.all(allCourseIds.map(async (id) => [id, await courseService.getUserCourseStatus(id)] as const)),
+        Promise.allSettled(allStageIds.map(id => taskService.getTasksByStage(id).then(tasks => ({ id, tasks })))),
+      ]);
+
+      const tasksMap: Record<number, OnboardingTask[]> = {};
+      taskResults.forEach(r => {
+        if (r.status === 'fulfilled') tasksMap[r.value.id] = r.value.tasks;
+      });
+
+      // load submissions for all tasks
+      const allTasks = Object.values(tasksMap).flat();
+      const subResults = await Promise.allSettled(
+        allTasks.map(t => taskService.getSubmissionsByTask(t.id).then(subs => ({ taskId: t.id, sub: subs.length > 0 ? subs[subs.length - 1] : null })))
       );
+      const subsMap: Record<number, TaskSubmission | null> = {};
+      subResults.forEach(r => {
+        if (r.status === 'fulfilled') subsMap[r.value.taskId] = r.value.sub;
+      });
 
       setProgress(progressData);
       setRoute(routeData);
-      setCourseStatuses(Object.fromEntries(entries));
+      setCourseStatuses(Object.fromEntries(courseEntries));
+      setStageTasks(tasksMap);
+      setTaskSubmissions(subsMap);
     } catch (e) {
       console.error('Ошибка загрузки', e);
       setError('Не удалось загрузить данные');
@@ -217,6 +239,32 @@ const AdaptationPage = () => {
                   )}
                   {sortedCourses.length === 0 && isActive && (
                     <p className="step-no-courses">Курсы для этого этапа ещё не назначены</p>
+                  )}
+
+                  {(stageTasks[stage.id] ?? []).length > 0 && (
+                    <div className="course-list" style={{ marginTop: sortedCourses.length > 0 ? '8px' : '0' }}>
+                      {(stageTasks[stage.id] ?? []).map(task => {
+                        const sub = taskSubmissions[task.id];
+                        const subStatus = sub?.status ?? 'no_answer';
+                        const dotColor = subStatus === 'approved' ? 'completed' : subStatus === 'rejected' ? 'failed' : subStatus === 'pending' ? 'in_process' : 'not_started';
+                        return (
+                          <div key={task.id} className={`course-row course-row--${dotColor}`}>
+                            <div className="course-row-left">
+                              <span className={`course-dot course-dot--${dotColor}`} />
+                              <span className="course-row-title">{task.description}</span>
+                            </div>
+                            <div className="course-row-right">
+                              <button
+                                className={`btn-go btn-go--${dotColor}`}
+                                onClick={() => navigate(`/tasks/${task.id}`)}
+                              >
+                                {sub ? (subStatus === 'approved' ? 'Просмотр' : 'Изменить') : 'Ответить'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               </div>

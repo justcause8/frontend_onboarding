@@ -13,6 +13,7 @@ import reports from '@/assets/sidebar/reports.png';
 import test from '@/assets/sidebar/test.png';
 import request from '@/assets/sidebar/request.png';
 import materials from '@/assets/icons/fileIcon.svg';
+import task from '@/assets/icons/task.png';
 
 const ALLOWED_ROLES = ['HrAdmin', 'Mentor', 'SuperAdmin'];
 
@@ -95,6 +96,12 @@ const Sidebar = () => {
               <NavLink to="/edit/tests">
                 <img src={test} className='icon' alt="" />
                 Тесты
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/edit/tasks">
+                <img src={task} className='icon' alt="" />
+                Задания
               </NavLink>
             </li>
             <li>
