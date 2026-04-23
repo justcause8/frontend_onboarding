@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { taskService } from '../../../services/task.service';
-import { adaptationService, type OnboardingRoute } from '../../../services/adaptation.service';
-import type { UserShort } from '../../../services/user.service';
+import { taskService } from '../../../../services/task.service';
+import { adaptationService, type OnboardingRoute } from '../../../../services/adaptation.service';
+import type { UserShort } from '../../../../services/user.service';
 
-import { usePageTitle } from '../../../contexts/PageTitleContext';
-import { MarkdownEditor } from '../../../components/markdownEditor/MarkdownEditor';
-import LoadingSpinner from '../../../components/loading/LoadingSpinner';
+import { usePageTitle } from '../../../../contexts/PageTitleContext';
+import { MarkdownEditor } from '../../../../components/markdownEditor/MarkdownEditor';
+import LoadingSpinner from '../../../../components/loading/LoadingSpinner';
 import downIcon from '@/assets/editMode/DownIcon.png';
 import cross from '@/assets/icons/cross.png';
 import searchIcon from '@/assets/icons/search.svg';

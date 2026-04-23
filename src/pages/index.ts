@@ -5,7 +5,7 @@ export { default as PassingTestPage } from './passingTestPage/PassingTestPage';
 export { default as MaterialsPage } from './materialsPage/MaterialsPage';
 export { default as EmployeesPage } from './employeesPage/EmployeesPage';
 export { default as ContactsPage } from './contactsPage/ContactsPage';
-export { default as TotalReportsPage } from './AdminTotalReportsPage/AdminEditTotalReportsPage';
+export { default as TotalReportsPage } from './editPages/adminTotalReportsPage/AdminEditTotalReportsPage';
 export { default as OnboardingTaskPage } from './onboardingTaskPage/OnboardingTaskPage';
 export { default as UserOnboardingTasksPage } from './onboardingTaskPage/UserOnboardingTasksPage';
 
@@ -18,6 +18,6 @@ export { default as AdminEditTest } from './editPages/adminTestPage/adminEditTes
 export { default as AdminEditMaterialsPage } from './editPages/adminMaterialsPage/AdminEditMaterialsPage';
 export { default as AdminEditContactsPage } from './editPages/adminContactsPage/AdminEditContactsPage';
 export { default as AdminEditUsersPage } from './editPages/adminUsersPage/AdminEditUsersPage';
-export { default as AdminEditUserReportPage } from './AdminUserReportsPage/AdminEditUserReportPage';
-export { default as AdminEditOnboardingTaskPage } from './editPages/adminOnboardingTaskPage/AdminEditOnboardingTaskPage';
-export { default as AdminOnboardingTasks } from './editPages/adminOnboardingTaskPage/AdminOnboardingTasks';
+export { default as AdminEditUserReportPage } from './editPages/adminUserReportsPage/AdminEditUserReportPage';
+export { default as AdminEditOnboardingTaskPage } from './editPages/adminOnboardingTaskPage/adminEditOnboardingTask/AdminEditOnboardingTaskPage';
+export { default as AdminOnboardingTasks } from './editPages/adminOnboardingTaskPage/adminOnboardingTask/AdminOnboardingTasks';

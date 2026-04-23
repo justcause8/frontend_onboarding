@@ -13,7 +13,7 @@ import reports from '@/assets/sidebar/reports.png';
 import test from '@/assets/sidebar/test.png';
 import request from '@/assets/sidebar/request.png';
 import materials from '@/assets/icons/fileIcon.svg';
-import task from '@/assets/icons/task.png';
+import task from '@/assets/sidebar/task.png';
 
 const ALLOWED_ROLES = ['HrAdmin', 'Mentor', 'SuperAdmin'];
 

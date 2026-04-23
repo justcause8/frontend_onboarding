@@ -2,16 +2,16 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import nextRight from '@/assets/icons/next-right.png';
 import nextLeft from '@/assets/icons/next-left.png';
-import { userService, type TotalReportsResponse, type EmployeeReportDetail } from '../../services/user.service';
-import { usePageTitle } from '../../contexts/PageTitleContext';
-import LoadingSpinner from '../../components/loading/LoadingSpinner';
-import ErrorState from '../../components/error/ErrorState';
+import { userService, type TotalReportsResponse, type EmployeeReportDetail } from '../../../services/user.service';
+import { usePageTitle } from '../../../contexts/PageTitleContext';
+import LoadingSpinner from '../../../components/loading/LoadingSpinner';
+import ErrorState from '../../../components/error/ErrorState';
 import searchIcon from '@/assets/icons/search.svg';
-import { StatCard, StatDonutCard, StatCardsGrid } from '../../components/statCard/StatCard';
-import '../editPages/adminMaterialsPage/AdminEditMaterialsPage.css';
+import { StatCard, StatDonutCard, StatCardsGrid } from '../../../components/statCard/StatCard';
+import '../../editPages/adminMaterialsPage/AdminEditMaterialsPage.css';
 import './AdminEditTotalReportsPage.css';
-import '../../components/adminTable/AdminTable.css';
-import '../employeesPage/EmployeesPage.css';
+import '../../../components/adminTable/AdminTable.css';
+import '../../employeesPage/EmployeesPage.css';
 
 const STATUS_LABELS: Record<string, string> = {
     completed: 'Завершена',

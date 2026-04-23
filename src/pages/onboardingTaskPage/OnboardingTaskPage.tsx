@@ -241,11 +241,6 @@ const OnboardingTaskPage = () => {
           ) : (
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Комментарий не оставлен</p>
           )}
-          <div style={{ marginTop: '12px' }}>
-            <span className={statusBadgeClass(submission.status)}>
-              {STATUS_LABELS[submission.status] ?? submission.status}
-            </span>
-          </div>
         </div>
       )}
 

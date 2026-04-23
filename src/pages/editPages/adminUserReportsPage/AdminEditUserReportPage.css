@@ -133,6 +133,7 @@
     text-align: left;
     width: 100%;
     min-width: 0;
+    margin-bottom: 5px;
 }
 
 .task-attempt-btn:hover {
