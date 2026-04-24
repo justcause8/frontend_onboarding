@@ -38,6 +38,10 @@
     font-weight: 600;
 }
 
+.review-tab--active:hover {
+    color: #ffffff;
+}
+
 .review-tab-count {
     font-size: 11px;
     padding: 1px 7px;

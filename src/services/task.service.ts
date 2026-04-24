@@ -21,6 +21,7 @@ export interface TaskSubmission {
   mentorComment: string | null;
   createdAt?: string;
   updatedAt?: string;
+  reviewedAt?: string | null;
 }
 
 export const taskService = {
@@ -37,6 +38,11 @@ export const taskService = {
   async getTasksByStage(stageId: number): Promise<OnboardingTask[]> {
     const res = await api.get<OnboardingTask[]>(`/onboarding/stage/${stageId}/tasks`);
     return res.data;
+  },
+
+  async getTasksByStageAdmin(stageId: number): Promise<OnboardingTask[]> {
+    const res = await api.get<OnboardingTask[]>('/onboarding/tasks/all');
+    return res.data.filter(t => t.fkOnboardingStageId === stageId);
   },
 
   async getTask(taskId: number): Promise<OnboardingTask> {

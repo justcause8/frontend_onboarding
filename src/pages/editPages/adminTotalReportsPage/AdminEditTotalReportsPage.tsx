@@ -51,25 +51,35 @@ const TotalReportsPage = () => {
             setLoading(true);
             setError(null);
 
-            // Загружаем сводку и список пользователей параллельно
-            const [totalReport, users] = await Promise.all([
-                userService.getTotalReport(),
-                userService.getAllUsers(),
-            ]);
+            const totalReport = await userService.recalcAndGetTotalReport();
             setSummary(totalReport);
 
-            // Запрашиваем отчёт только для пользователей с ролью User
-            const onboardingUsers = users.filter(u => u.role === 'User');
+            const uids = totalReport.userUids ?? [];
             const reports = await Promise.allSettled(
-                onboardingUsers.map(u =>
-                    userService.getEmployeeReport(u.id).then(r => ({ ...r, userUid: u.id }))
-                )
+                uids.map(uid => userService.recalcAndGetEmployeeReport(uid).then(r => ({ ...r, userUid: uid })))
             );
 
             const details: EmployeeReportDetail[] = reports
                 .filter((r): r is PromiseFulfilledResult<EmployeeReportDetail> => r.status === 'fulfilled')
                 .map(r => r.value);
 
+            // Пересчитываем сводку на основе актуальных данных сотрудников
+            const passedCount = details.filter(e => e.status === 'completed').length;
+            const inProgressCount = details.filter(e => e.status === 'in_progress' || e.status === 'in_process').length;
+            const avgTestScore = details.length > 0
+                ? Math.round(details.reduce((s, e) => s + e.avgTestScore, 0) / details.length * 10) / 10
+                : 0;
+            const avgCoursesProgress = details.length > 0
+                ? Math.round(details.reduce((s, e) => s + e.completionPercent, 0) / details.length)
+                : 0;
+
+            setSummary({
+                ...totalReport,
+                passedCount,
+                inProgressCount,
+                avgTestScore,
+                avgCoursesProgress,
+            });
             setEmployees(details);
         } catch {
             setError('Не удалось загрузить отчёт. Попробуйте позже.');
@@ -171,9 +181,9 @@ const TotalReportsPage = () => {
                     <table className="admin-table reports-table">
                         <thead>
                             <tr>
-                                <th>ФИО</th>
-                                <th>Отдел</th>
-                                <th>План адаптации</th>
+                                <th className="col-name">ФИО</th>
+                                <th className="col-dept">Отдел</th>
+                                <th className="col-route">План адаптации</th>
                                 <th className="col-status">Статус</th>
                                 <th>Прогресс</th>
                             </tr>
@@ -187,9 +197,9 @@ const TotalReportsPage = () => {
                                 </tr>
                             ) : filtered.map(emp => (
                                 <tr key={emp.userId} className="table-row-clickable" onClick={() => navigate(`/edit/total-reports/${emp.userUid}`)}>
-                                    <td><div className="main-text">{emp.fullName}</div></td>
-                                    <td><span className="sub-text">{emp.department || '—'}</span></td>
-                                    <td><span className="sub-text">{emp.routeTitle || '—'}</span></td>
+                                    <td className="col-name"><div className="main-text">{emp.fullName}</div></td>
+                                    <td className="col-dept"><span className="sub-text">{emp.department || '—'}</span></td>
+                                    <td className="col-route"><span className="sub-text">{emp.routeTitle || '—'}</span></td>
                                     <td className="col-status">
                                         <span className={`badge ${emp.status === 'completed' ? 'badge--success' : emp.status === 'failed' ? 'badge--danger' : emp.status === 'in_progress' || emp.status === 'in_process' ? 'badge--warning' : 'badge--neutral'}`}>
                                             {STATUS_LABELS[emp.status] ?? emp.status}

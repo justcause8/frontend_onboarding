@@ -120,7 +120,7 @@ const AdaptationPage = () => {
       await userService.recalcStatuses();
       navigate(`/courses/course/${courseId}`);
     } catch (err) {
-      console.error('Ошибка при открытии курса', err);
+      console.error('Ошибка при открытии модуля', err);
     } finally {
       setLoadingCourseId(null);
     }
@@ -156,7 +156,7 @@ const AdaptationPage = () => {
           />
           <StatDonutCard
             value={`${percent}%`}
-            label="Прогресс по курсам"
+            label="Прогресс по модулям"
             sublabel={`${progress.completedCourses} / ${progress.totalCourses}`}
           />
           <StatProgressCard percent={percentStages} label="Прогресс обучения" />

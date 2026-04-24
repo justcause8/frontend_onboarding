@@ -199,11 +199,12 @@ const AdminEditUserReportPage = () => {
 
     useEffect(() => {
         if (!activeStageId || !report) return;
-        taskService.getTasksByStage(activeStageId)
+        taskService.getTasksByStageAdmin(activeStageId)
             .then(data => {
                 const visible = data.filter(t =>
                     t.status === 'active' &&
-                    (t.taskType === 'general' || t.fkUserId === report.userId)
+                    // eslint-disable-next-line eqeqeq
+                    (t.taskType === 'general' || t.fkUserId == report.userId)
                 );
                 setStageTasks(visible);
                 setActiveTask(null);
@@ -217,8 +218,9 @@ const AdminEditUserReportPage = () => {
             stageTasks.map(t =>
                 taskService.getSubmissionsByTask(t.id)
                     .then(subs => {
-                        const userSubs = subs.filter(s => s.fkUserId === report.userId);
-                        return [t.id, userSubs.length > 0 ? userSubs[userSubs.length - 1] : null] as const;
+                        // eslint-disable-next-line eqeqeq
+                        const byUser = subs.filter(s => s.fkUserId == report.userId);
+                        return [t.id, byUser.length > 0 ? byUser[byUser.length - 1] : null] as const;
                     })
                     .catch(() => [t.id, null] as const)
             )
@@ -277,7 +279,7 @@ const AdminEditUserReportPage = () => {
                     </div>
                     <div className="emp-metric-box">
                         <span className="emp-metric-label">Завершение адаптации</span>
-                        <span className="emp-metric-value">{formatDate(report.endDate)}</span>
+                        <span className="emp-metric-value">{report.status === 'completed' ? formatDate(report.endDate) : '—'}</span>
                     </div>
                     <div className="emp-progress-block">
                         <div className="emp-progress-row">
@@ -347,7 +349,7 @@ const AdminEditUserReportPage = () => {
                     <div className="department-tabs-wrapper">
                         {canScrollLeft && (
                             <button className="dept-scroll-btn" onClick={() => scrollTabs('left')}>
-                                <img src={nextLeft} alt="←" />
+                                <img src={nextLeft} alt="<-" />
                             </button>
                         )}
                         <div className="department-tabs" ref={tabsRef}>
@@ -365,7 +367,7 @@ const AdminEditUserReportPage = () => {
                         </div>
                         {canScrollRight && (
                             <button className="dept-scroll-btn" onClick={() => scrollTabs('right')}>
-                                <img src={nextRight} alt="→" />
+                                <img src={nextRight} alt="->" />
                             </button>
                         )}
                     </div>
@@ -541,8 +543,11 @@ const AdminEditUserReportPage = () => {
                                             <div>
                                                 <h4 className="answers-test-title">{stripMarkdown(activeTask.description)}</h4>
                                                 <div className="task-accordion-meta">
-                                                    {sub?.updatedAt && (
-                                                        <span className="text-info">Изменено: {formatDateTime(sub.updatedAt)}</span>
+                                                    {sub?.createdAt && (
+                                                        <span className="text-info">Ответ отправлен: {formatDateTime(sub.createdAt)}</span>
+                                                    )}
+                                                    {sub?.reviewedAt && (
+                                                        <span className="text-info">Проверено: {formatDateTime(sub.reviewedAt)}</span>
                                                     )}
                                                 </div>
                                             </div>

@@ -43,6 +43,7 @@ export interface TotalReportsResponse {
   avgDaysToComplete: number;
   avgCoursesProgress: number;
   departments: string[];
+  userUids?: string[];
 }
 
 export interface EmployeeReportDetail {
@@ -101,6 +102,18 @@ export const userService = {
   /** Получить сводный отчет (агрегаты + отделы) */
   async getTotalReport(): Promise<TotalReportsResponse> {
     const res = await api.get<TotalReportsResponse>('/onboarding/reports/total');
+    return res.data;
+  },
+
+  /** Пересчитать статусы всех сотрудников и получить актуальную сводку */
+  async recalcAndGetTotalReport(): Promise<TotalReportsResponse> {
+    const res = await api.post<TotalReportsResponse>('/onboarding/recalculate-statuses/all');
+    return res.data;
+  },
+
+  /** Получить актуальный отчёт по сотруднику после пересчёта */
+  async recalcAndGetEmployeeReport(userUid: string): Promise<EmployeeReportDetail> {
+    const res = await api.get<EmployeeReportDetail>(`/onboarding/reports/user/${userUid}`);
     return res.data;
   },
 
