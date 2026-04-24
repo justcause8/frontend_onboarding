@@ -8,6 +8,7 @@ import './OnboardingTaskPage.css';
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'На проверке',
+  submitted: 'На проверке',
   approved: 'Принято',
   rejected: 'Не принято',
 };
@@ -114,6 +115,7 @@ const OnboardingTaskPage = () => {
 
   if (loading) return <LoadingSpinner />;
   if (error || !task) return <ErrorState message={error ?? 'Нет данных'} onRetry={load} />;
+  if (task.status !== 'active') return <ErrorState message="Это задание недоступно" onRetry={() => navigate(-1)} />;
 
   return (
     <div className="text">
@@ -233,7 +235,7 @@ const OnboardingTaskPage = () => {
       </div>
 
       {/* Комментарий проверяющего */}
-      {submission && (submission.mentorComment || submission.status !== 'pending') && (
+      {submission && (submission.mentorComment || submission.status !== 'submitted') && (
         <div className="card task-feedback-card">
           <h2>Комментарий проверяющего</h2>
           {submission.mentorComment ? (

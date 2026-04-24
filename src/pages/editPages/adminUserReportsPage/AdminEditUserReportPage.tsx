@@ -198,25 +198,32 @@ const AdminEditUserReportPage = () => {
     }, [showTasks, report]);
 
     useEffect(() => {
-        if (!activeStageId) return;
+        if (!activeStageId || !report) return;
         taskService.getTasksByStage(activeStageId)
             .then(data => {
-                setStageTasks(data);
+                const visible = data.filter(t =>
+                    t.status === 'active' &&
+                    (t.taskType === 'general' || t.fkUserId === report.userId)
+                );
+                setStageTasks(visible);
                 setActiveTask(null);
             })
             .catch(() => setStageTasks([]));
-    }, [activeStageId]);
+    }, [activeStageId, report]);
 
     useEffect(() => {
-        if (stageTasks.length === 0) return;
+        if (stageTasks.length === 0 || !report) return;
         Promise.all(
             stageTasks.map(t =>
                 taskService.getSubmissionsByTask(t.id)
-                    .then(subs => [t.id, subs.length > 0 ? subs[subs.length - 1] : null] as const)
+                    .then(subs => {
+                        const userSubs = subs.filter(s => s.fkUserId === report.userId);
+                        return [t.id, userSubs.length > 0 ? userSubs[userSubs.length - 1] : null] as const;
+                    })
                     .catch(() => [t.id, null] as const)
             )
         ).then(entries => setTaskSubmissions(Object.fromEntries(entries)));
-    }, [stageTasks]);
+    }, [stageTasks, report]);
 
     useEffect(() => {
         if (!activeTestId || !userId) return;
@@ -308,13 +315,13 @@ const AdminEditUserReportPage = () => {
 
                 <div className="emp-report-actions">
                     <button
-                        className={`btn ${showAnswers ? 'btn-secondary' : 'btn-primary'}`}
+                        className={`btn ${showAnswers ? 'btn-primary' : 'btn-secondary'}`}
                         onClick={() => setShowAnswers(v => !v)}
                     >
                         Ответы тестов
                     </button>
                     <button
-                        className={`btn ${showTasks ? 'btn-secondary' : 'btn-primary'}`}
+                        className={`btn ${showTasks ? 'btn-primary' : 'btn-secondary'}`}
                         onClick={() => setShowTasks(v => !v)}
                     >
                         Задания
@@ -323,7 +330,7 @@ const AdminEditUserReportPage = () => {
             </div>
 
             {showAnswers && (
-                <div className="card answers-card">
+                <div className="card answers-card page-section">
                     <div className="section-header">
                         <h2>Ответы по тестам</h2>
                         <div className="input-search-wrapper">
@@ -440,7 +447,7 @@ const AdminEditUserReportPage = () => {
             )}
 
             {showTasks && (
-                <div className="card answers-card">
+                <div className="card answers-card page-section">
                     <div className="section-header">
                         <h2>Задания</h2>
                         <div className="input-search-wrapper">
@@ -460,7 +467,7 @@ const AdminEditUserReportPage = () => {
                         <div className="department-tabs-wrapper">
                             {canScrollLeftTasks && (
                                 <button className="dept-scroll-btn" onClick={() => scrollTasksTabs('left')}>
-                                    <img src={nextLeft} alt="←" />
+                                    <img src={nextLeft} alt="<-" />
                                 </button>
                             )}
                             <div className="department-tabs" ref={tabsTasksRef}>
@@ -479,7 +486,7 @@ const AdminEditUserReportPage = () => {
                             </div>
                             {canScrollRightTasks && (
                                 <button className="dept-scroll-btn" onClick={() => scrollTasksTabs('right')}>
-                                    <img src={nextRight} alt="→" />
+                                    <img src={nextRight} alt="->" />
                                 </button>
                             )}
                         </div>
@@ -598,7 +605,7 @@ const AdminEditUserReportPage = () => {
                                             </>
                                         )}
 
-                                        {sub && sub.status === 'pending' && (
+                                        {sub && sub.status === 'submitted' && (
                                             <>
                                                 <hr className="task-divider" />
                                                 <div className="task-review-actions">

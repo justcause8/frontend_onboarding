@@ -161,7 +161,7 @@ const CoursePage = () => {
   if (course.status === 'archived') {
     return (
       <>
-        <section className="card text course-section">
+        <section className="card text page-section">
           <h2>Курс недоступен</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
             Этот курс был закрыт администратором и больше не доступен для прохождения.
@@ -179,7 +179,7 @@ const CoursePage = () => {
   return (
     <>
     <div className="text">
-      <section className="card course-section">
+      <section className="card page-section">
         <h2>Основная информация</h2>
         {course.description
           ? <MarkdownViewer content={course.description} />
@@ -188,7 +188,7 @@ const CoursePage = () => {
       </section>
 
       {course.materials.length > 0 && (
-        <section className="card course-section">
+        <section className="card page-section">
           <h2>Дополнительная информация</h2>
           <div className="card-item-list">
             {course.materials.map((material: Material, index: number) => {
@@ -215,7 +215,7 @@ const CoursePage = () => {
       )}
 
       {course.tests.length > 0 && (
-        <section className="card course-section">
+        <section className="card page-section">
           <h2>Тесты по курсу</h2>
           <div className="card-item-list">
             {course.tests.map((test: TestShort) => {

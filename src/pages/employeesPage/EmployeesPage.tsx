@@ -115,7 +115,7 @@ const EmployeesPage = () => {
   return (
     <div className="text">
       {allDepartments.length > 0 && (
-        <section className="card employees-section">
+        <section className="card page-section employees-section">
           <div className="section-header">
             <h2>Отделы</h2>
             <div className="input-search-wrapper dept-search">
@@ -159,7 +159,7 @@ const EmployeesPage = () => {
         </section>
       )}
 
-      <section className="card employees-section">
+      <section className="card page-section employees-section">
         <div className="section-header">
           <h2>Сотрудники</h2>
           <div className="input-search-wrapper dept-search">

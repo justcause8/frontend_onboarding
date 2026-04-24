@@ -220,7 +220,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
 
     return (
         <div className="admin-edit-container">            
-            <section className="card text">
+            <section className="card text page-section">
                 <h2>Добавить новый материал</h2>
                 <div className="add-controls-grid">
                     <div className="input-item">
@@ -279,7 +279,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                 </div>
             </section>
 
-            <section className="card text">
+            <section className="card text page-section">
                 <h2>Управление категориями</h2>
                 <div className="category-manage-list">
                     {(() => {

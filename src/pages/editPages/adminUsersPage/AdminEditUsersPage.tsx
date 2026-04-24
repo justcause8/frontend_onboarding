@@ -129,7 +129,7 @@ const AdminEditUsersPage = () => {
         <div className="text">
 
             {/* Добавление пользователя из RIMS */}
-            <section className="card">
+            <section className="card page-section">
                 <h2>Добавить сотрудника из RIMS</h2>
                 <div className="input-with-button mt-8">
                     <div className="input-search-wrapper" style={{ flex: 1 }}>
@@ -200,7 +200,7 @@ const AdminEditUsersPage = () => {
             </section>
 
             {/* Таблица пользователей */}
-            <section className="card employees-section">
+            <section className="card page-section employees-section">
                 <div className="section-header">
                     <h2>Пользователи</h2>
                     <div className="input-search-wrapper dept-search">

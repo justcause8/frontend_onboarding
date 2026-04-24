@@ -232,7 +232,7 @@ export const AdminEditTest: React.FC = () => {
 
   return (
     <>
-      <section className="card text">
+      <section className="card text page-section">
         <h2>{isEditMode ? 'Редактирование теста' : 'Новый тест'}</h2>
         <div className="input-item">
           <h4>Название теста</h4>
@@ -268,7 +268,7 @@ export const AdminEditTest: React.FC = () => {
         </div>
       </section>
 
-      <section className="card text">
+      <section className="card text page-section">
         <h2>Вопросы теста</h2>
         <div className="stages-list">
           {questions.map((q, index) => (

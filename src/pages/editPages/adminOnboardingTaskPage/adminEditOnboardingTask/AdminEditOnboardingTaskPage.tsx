@@ -145,7 +145,11 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
         try {
             setSaving(true);
             if (isEditMode) {
-                await taskService.updateTask(Number(taskId), { description, taskType });
+                await taskService.updateTask(Number(taskId), {
+                    description,
+                    taskType,
+                    fkUserId: taskType === 'individual' ? (selectedUser ? (selectedUser.numericId ?? Number(selectedUser.id)) : null) : null,
+                });
             } else {
                 await taskService.createTask({
                     fkOnboardingStageId: selectedStage.id,
@@ -166,7 +170,7 @@ const AdminEditOnboardingTaskPage: React.FC = () => {
 
     return (
         <>
-            <section className="card text">
+            <section className="card text page-section">
                 <h2>{isEditMode ? 'Редактирование задания' : 'Новое задание'}</h2>
 
                 {/* Выбор маршрута */}

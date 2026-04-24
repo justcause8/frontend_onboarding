@@ -108,7 +108,7 @@ const TotalReportsPage = () => {
     return (
         <div className="text">
             {/* Сводная статистика */}
-            <section className="card">
+            <section className="card page-section">
                 <h2>Общая статистика</h2>
                 <StatCardsGrid>
                     <StatCard label="Сотрудников на адаптации" value={summary.totalEmployees} />
@@ -121,7 +121,7 @@ const TotalReportsPage = () => {
             </section>
 
             {/* Таблица сотрудников */}
-            <section className="card employees-section">
+            <section className="card page-section employees-section">
                 <div className="section-header">
                     <h2>Сотрудники</h2>
                     <div className="input-search-wrapper dept-search">

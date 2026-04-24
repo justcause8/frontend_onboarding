@@ -427,7 +427,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
 
   return (
     <>
-      <section className="card text">
+      <section className="card text page-section">
         <h2>{isEditMode ? 'Редактирование плана' : 'Информация о плане'}</h2>
         <div className="input-item">
           <h4>Название плана адаптации</h4>
@@ -453,7 +453,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
         </div>
       </section>
 
-      <section className="card text">
+      <section className="card text page-section">
         <h2>Назначение сотрудников</h2>
         <div className="assignment-row">
 
@@ -624,7 +624,7 @@ export const AdminEditAdaptationRoute: React.FC = () => {
         </div>
       </section>
 
-      <section className="card text">
+      <section className="card text page-section">
         <h2>Этапы плана адаптации</h2>
         <div className="stages-list">
           {stages.map((stage, index) => (

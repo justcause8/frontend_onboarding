@@ -452,7 +452,18 @@ select.input-field:disabled {
   white-space: nowrap;
 }
 
-/* --- Контейнеры вкладок с прокруткой (переиспользуемые) --- */
+/* --- Секция с подчёркнутым заголовком --- */
+.page-section {
+  margin-bottom: 32px;
+}
+
+.page-section > h2,
+.page-section > .section-header {
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* --- Контейнеры вкладок с прокруткой --- */
 .department-tabs-wrapper {
   display: flex;
   align-items: center;

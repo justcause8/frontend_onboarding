@@ -226,7 +226,7 @@ export const AdminEditCourse: React.FC = () => {
 
     return (
         <div className="admin-edit-container">
-            <section className="card text">
+            <section className="card text page-section">
                 <h2>{isEditMode ? 'Редактирование модуля' : 'Информация о модуле'}</h2>
                 
                 <div className="input-item">
@@ -250,7 +250,7 @@ export const AdminEditCourse: React.FC = () => {
                 </div>
             </section>
 
-            <section className="card text">
+            <section className="card text page-section">
                 <h2>Материалы и тестирование</h2>
                 
                 <div className="input-item">

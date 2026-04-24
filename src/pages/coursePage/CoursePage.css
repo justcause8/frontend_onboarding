@@ -1,11 +1,3 @@
-.course-section {
-  margin-bottom: 32px;
-}
-
-.course-section > h2 {
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--primary-color);
-}
 
 .card-item.material-item:hover {
   color: var(--primary-color);

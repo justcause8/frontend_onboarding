@@ -65,7 +65,7 @@ const ContactsPage = () => {
     <div className="text">
 
       {/* Ключевые контакты */}
-      <section className="card">
+      <section className="card page-section">
         <h2>Ключевые контакты</h2>
         {keyContacts.length === 0 ? (
           <p>Ключевые контакты не назначены</p>
@@ -95,7 +95,7 @@ const ContactsPage = () => {
       </section>
 
       {/* К кому обратиться */}
-      <section className="card">
+      <section className="card page-section">
         <div className="section-header">
           <h2>К кому обратиться за помощью?</h2>
           <div className="input-search-wrapper">

@@ -12,6 +12,7 @@ import { getFileIcon, extractFileNameFromUrl } from '../../../../utils/fileUtils
 import searchIcon from '@/assets/icons/search.svg';
 import downIcon from '@/assets/editMode/DownIcon.png';
 import '../../AdminUserReportsPage/AdminEditUserReportPage.css';
+import '../../../materialsPage/MaterialsPage.css';
 import './AdminOnboardingTasks.css';
 
 type Tab = 'list' | 'review';
@@ -72,7 +73,7 @@ const AdminOnboardingTasks = () => {
     const [activeSubmission, setActiveSubmission] = useState<SubmissionWithTask | null>(null);
     const [reviewComment, setReviewComment] = useState('');
     const [reviewSaving, setReviewSaving] = useState(false);
-    const [filterStatus, setFilterStatus] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
+    const [filterStatus, setFilterStatus] = useState<'submitted' | 'approved' | 'rejected' | 'all'>('submitted');
     const [userSearch, setUserSearch] = useState('');
 
     useEffect(() => {
@@ -155,7 +156,7 @@ const AdminOnboardingTasks = () => {
                         setExpandedDepts(new Set([dept.department]));
                         setSelectedUserId(targetId);
                         // Выбрать первый pending ответ этого пользователя
-                        const pending = found.submissions.find(s => s.status === 'pending') ?? found.submissions[0] ?? null;
+                        const pending = found.submissions.find(s => s.status === 'submitted') ?? found.submissions[0] ?? null;
                         if (pending) setActiveSubmission(pending);
                         break;
                     }
@@ -252,7 +253,7 @@ const AdminOnboardingTasks = () => {
         { header: '', width: '10%' },
     ];
 
-    const pendingCount = departments.flatMap(d => d.users.flatMap(u => u.submissions)).filter(s => s.status === 'pending').length;
+    const pendingCount = departments.flatMap(d => d.users.flatMap(u => u.submissions)).filter(s => s.status === 'submitted').length;
 
     // Получить ответы выбранного пользователя с фильтром
     const selectedUserSubs: SubmissionWithTask[] = selectedUserId
@@ -277,7 +278,7 @@ const AdminOnboardingTasks = () => {
                 >
                     Проверка ответов
                     {pendingCount > 0 && (
-                        <span className="review-tab-badge">{pendingCount}</span>
+                        <span className="count-badge review-tab-count">{pendingCount}</span>
                     )}
                 </button>
             </div>
@@ -340,13 +341,13 @@ const AdminOnboardingTasks = () => {
                     {/* Фильтр по статусу */}
                     <div className="department-tabs-wrapper" style={{ marginBottom: '16px' }}>
                         <div className="department-tabs">
-                            {(['pending', 'approved', 'rejected', 'all'] as const).map(s => (
+                            {(['submitted', 'approved', 'rejected', 'all'] as const).map(s => (
                                 <button
                                     key={s}
                                     className={`dept-tab${filterStatus === s ? ' dept-tab--active' : ''}`}
                                     onClick={() => { setFilterStatus(s); setActiveSubmission(null); setSelectedUserId(null); }}
                                 >
-                                    {s === 'pending' ? 'На проверке' : s === 'approved' ? 'Принято' : s === 'rejected' ? 'Не принято' : 'Все'}
+                                    {s === 'submitted' ? 'На проверке' : s === 'approved' ? 'Принято' : s === 'rejected' ? 'Не принято' : 'Все'}
                                 </button>
                             ))}
                         </div>
@@ -409,7 +410,7 @@ const AdminOnboardingTasks = () => {
                                                     const uid = u.user.numericId ?? Number(u.user.id);
                                                     const isExpanded = selectedUserId === uid;
                                                     const userSubs = u.submissions.filter(s => filterStatus === 'all' || s.status === filterStatus);
-                                                    const pendingCount = u.submissions.filter(s => s.status === 'pending').length;
+                                                    const pendingCount = u.submissions.filter(s => s.status === 'submitted').length;
 
                                                     return (
                                                         <div key={uid} className="review-user-row">
@@ -425,11 +426,8 @@ const AdminOnboardingTasks = () => {
                                                                     )}
                                                                 </div>
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                                                    {pendingCount > 0 && (
-                                                                        <span className="badge badge--warning task-status-badge">{pendingCount} на проверке</span>
-                                                                    )}
+
                                                                     
-                                                                    {/* ИСПРАВЛЕННЫЙ БЛОК ИКОНКИ */}
                                                                     <span className={`search-arrow ${isExpanded ? 'open' : ''}`} style={{ position: 'static', transform: 'none' }}>
                                                                         <img 
                                                                             src={downIcon}

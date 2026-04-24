@@ -20,6 +20,8 @@ export interface UserProgress {
   completedCourses: number;
   totalStages: number;
   completedStages: number;
+  totalTasks: number;
+  completedTasks: number;
   percentCourses: number; 
   percentStages: number; 
   stageProgress: StageProgressItem[];

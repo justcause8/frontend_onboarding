@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adaptationService, type OnboardingRoute } from '../../services/adaptation.service';
 import { userService, type UserProgress } from '../../services/user.service';
@@ -9,6 +9,7 @@ import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import { stripMarkdown } from '../../utils/markdownUtils';
 import ErrorState from '../../components/error/ErrorState';
 import EmptyState from '../../components/empty/EmptyState';
+import { StatDonutCard, StatProgressCard } from '../../components/statCard/StatCard';
 import './AdaptationPage.css';
 import '../../components/statCard/StatCard.css';
 
@@ -20,6 +21,8 @@ const emptyProgress: UserProgress = {
   completedCourses: 0,
   totalStages: 0,
   completedStages: 0,
+  totalTasks: 0,
+  completedTasks: 0,
   percentCourses: 0,
   percentStages: 0,
   stageProgress: [],
@@ -132,6 +135,10 @@ const AdaptationPage = () => {
 
   const percent = progress.percentCourses ?? (progress as any).PercentCourses ?? 0;
   const percentStages = progress.percentStages ?? (progress as any).PercentStages ?? 0;
+  const total = progress.totalTasks ?? 0;
+  const completed = progress.completedTasks ?? 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
 
   const sortedStages = [...route.stages].sort((a, b) => a.orderIndex - b.orderIndex);
   const firstActiveIdx = sortedStages.findIndex(s => getStageStatus(s.id) !== 'completed');
@@ -142,27 +149,24 @@ const AdaptationPage = () => {
       <section className="card text">
         <h2>Мой прогресс</h2>
         <div className="emp-progress-section">
-          <div className="emp-donut-box">
-            <div className="emp-donut" style={{ '--p': percentStages } as React.CSSProperties}>
-              <span>{percentStages}%</span>
-            </div>
-            <span className="emp-donut-label">Прогресс по этапам</span>
-          </div>
-          <div className="emp-donut-box">
-            <div className="emp-donut" style={{ '--p': percent } as React.CSSProperties}>
-              <span>{percent}%</span>
-            </div>
-            <span className="emp-donut-label">Прогресс по курсам</span>
-          </div>
-          <div className="emp-progress-block">
-            <div className="emp-progress-row">
-              <span className="emp-progress-percent">{percentStages} %</span>
-              <div className="emp-progress-track">
-                <div className="emp-progress-fill" style={{ width: `${percentStages}%` }} />
-              </div>
-            </div>
-            <span className="emp-progress-label">Прогресс обучения</span>
-          </div>
+          <StatDonutCard
+            value={`${percentStages}%`}
+            label="Прогресс по этапам"
+            sublabel={`${progress.completedStages} / ${progress.totalStages}`}
+          />
+          <StatDonutCard
+            value={`${percent}%`}
+            label="Прогресс по курсам"
+            sublabel={`${progress.completedCourses} / ${progress.totalCourses}`}
+          />
+          <StatProgressCard percent={percentStages} label="Прогресс обучения" />
+        </div>
+        <div style={{ marginTop: '12px' }}>
+          <StatDonutCard
+            value={`${pct}%`}
+            label="Выполнено заданий"
+            sublabel={`${completed} / ${total}`}
+          />
         </div>
       </section>
 
@@ -206,6 +210,7 @@ const AdaptationPage = () => {
 
                   {sortedCourses.length > 0 && (
                     <div className="course-list">
+                      <div className='subtitle'>Модули</div>
                       {sortedCourses.map(course => {
                         const cs = courseStatuses[course.id] || 'not_started';
                         const btnLabel = loadingCourseId === course.id ? '...'
@@ -220,9 +225,6 @@ const AdaptationPage = () => {
                               <span className="course-row-title">{stripMarkdown(course.title)}</span>
                             </div>
                             <div className="course-row-right">
-                              {/* <span className={`course-chip course-chip--${cs}`}>
-                                {STATUS_LABEL[cs] ?? cs}
-                              </span> */}
                               {isActive && (
                                 <button
                                   className={`btn-go btn-go--${cs}`}
@@ -242,24 +244,26 @@ const AdaptationPage = () => {
                     <p className="step-no-courses">Курсы для этого этапа ещё не назначены</p>
                   )}
 
-                  {(stageTasks[stage.id] ?? []).length > 0 && (
+                  {(stageTasks[stage.id] ?? []).filter(t => t.status === 'active').length > 0 && (
                     <div className="course-list" style={{ marginTop: sortedCourses.length > 0 ? '8px' : '0' }}>
-                      {(stageTasks[stage.id] ?? []).map(task => {
+                      <div className='subtitle'>Задания</div>
+                      {(stageTasks[stage.id] ?? []).filter(t => t.status === 'active').map(task => {
                         const sub = taskSubmissions[task.id];
                         const subStatus = sub?.status ?? 'no_answer';
-                        const dotColor = subStatus === 'approved' ? 'completed' : subStatus === 'rejected' ? 'failed' : subStatus === 'pending' ? 'in_process' : 'not_started';
+                        const dotColor = subStatus === 'approved' ? 'completed' : subStatus === 'rejected' ? 'failed' : subStatus === 'submitted' ? 'in_process' : 'not_started';
+                        const btnLabel = sub ? (subStatus === 'approved' ? 'Просмотр' : 'Изменить') : 'Выполнить';
                         return (
                           <div key={task.id} className={`course-row course-row--${dotColor}`}>
                             <div className="course-row-left">
                               <span className={`course-dot course-dot--${dotColor}`} />
                               <span className="course-row-title">{stripMarkdown(task.description)}</span>
                             </div>
-                            <div className="course-row-right">
+                            <div className="course-row-right" style={{ gap: '8px' }}>
                               <button
-                                className={`btn-go btn-go--${dotColor}`}
+                                className="btn-go"
                                 onClick={() => navigate(`/tasks/${task.id}`)}
                               >
-                                {sub ? (subStatus === 'approved' ? 'Просмотр' : 'Изменить') : 'Выполнить'}
+                                {btnLabel}
                               </button>
                             </div>
                           </div>

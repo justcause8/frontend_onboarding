@@ -17,7 +17,7 @@ export interface TaskSubmission {
   fkUserId?: number;
   answerText: string | null;
   fileUrl: string | null;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'submitted' | 'approved' | 'rejected';
   mentorComment: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -55,7 +55,7 @@ export const taskService = {
     return res.data;
   },
 
-  async updateTask(taskId: number, data: { description?: string; taskType?: string; status?: string }): Promise<void> {
+  async updateTask(taskId: number, data: { description?: string; taskType?: string; status?: string; fkUserId?: number | null }): Promise<void> {
     await api.put(`/onboarding/task/${taskId}`, data);
   },
 
@@ -87,7 +87,7 @@ export const taskService = {
     await api.put(`/onboarding/submission/${submissionId}/answer`, data);
   },
 
-  async reviewSubmission(submissionId: number, data: { mentorComment: string; status: 'approved' | 'rejected' }): Promise<void> {
+  async reviewSubmission(submissionId: number, data: { mentorComment: string; status: 'approved' | 'rejected' | 'submitted' }): Promise<void> {
     await api.put(`/onboarding/submission/${submissionId}/review`, data);
   },
 

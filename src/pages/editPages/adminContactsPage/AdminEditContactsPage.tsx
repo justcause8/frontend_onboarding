@@ -148,7 +148,7 @@ export const AdminEditContactsPage: React.FC = () => {
         <div className="text">
 
             {/* Форма создания */}
-            <section className="card">
+            <section className="card page-section">
                 <h2>Новая категория контактов</h2>
                 <div className="add-controls-column">
                     <div className="input-item">
