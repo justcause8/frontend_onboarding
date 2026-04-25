@@ -110,6 +110,20 @@ button {
   /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); */
 }
 
+/* Кнопка удаления */
+.btn-danger {
+  min-width: 100px;
+  background-color: #ffffff;
+  border-color: var(--red-color);
+  color: var(--red-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--red-color);
+  color: #ffffff;
+}
+
 /* Кнопка без отступа слева (например в карточках) */
 .btn-no-margin {
   margin-left: 0;

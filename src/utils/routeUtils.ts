@@ -1,6 +1,6 @@
 export const PAGE_TITLES: Record<string, string> = {
   '/': 'Мой план адаптации',
-  '/courses': 'Обучение и тестирование',
+  '/courses': 'Модули и тесты',
   '/test': 'Тест',
   '/edit': 'Редактирование',
   '/edit/adaptationRoutes': 'Планы адаптации',

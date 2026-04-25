@@ -45,7 +45,7 @@ const CoursesPage = () => {
 
   useEffect(() => {
     loadData();
-    setDynamicTitle('Мои курсы');
+    setDynamicTitle('Модули и тесты');
     return () => setDynamicTitle('');
   }, [loadData, setDynamicTitle]);
 

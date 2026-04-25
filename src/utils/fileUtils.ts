@@ -28,10 +28,16 @@ export const getFileIcon = (url: string, isExternalLink: boolean): string => {
 
 export const extractFileNameFromUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return 'Документ';
-  
+
   try {
     const isRelative = url.startsWith('/');
     const urlObj = new URL(url, isRelative ? 'http://local.test' : undefined);
+
+    const pathParam = urlObj.searchParams.get('path');
+    if (pathParam) {
+      const segments = pathParam.split(/[/\\]/);
+      return decodeURIComponent(segments[segments.length - 1]) || 'Документ';
+    }
     
     const hostname = urlObj.hostname.replace('www.', '');
     const pathname = urlObj.pathname.replace(/\/$/, '');

@@ -21,10 +21,8 @@ export const AdminEditMaterialsPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [catDropdownOpen, setCatDropdownOpen] = useState(false);
-    const [catSearchQuery, setCatSearchQuery] = useState('');
     const [materials, setMaterials] = useState<Material[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('Общее');
-    const [newCategoryInput, setNewCategoryInput] = useState<string>('');
     const [materialInput, setMaterialInput] = useState('');
 
     // Состояние для модального окна
@@ -139,7 +137,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        const category = newCategoryInput.trim() || selectedCategory;
+        const category = selectedCategory;
 
         try {
             setUploading(true);
@@ -157,8 +155,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
                 isExternalLink: false,
                 category: category
             });
-            
-            setNewCategoryInput('');
+
             await loadData();
         } catch (e) {
             alert("Не удалось загрузить файл");
@@ -170,7 +167,7 @@ export const AdminEditMaterialsPage: React.FC = () => {
 
     const handleAddLink = async () => {
         const url = materialInput.trim();
-        const category = newCategoryInput.trim() || selectedCategory;
+        const category = selectedCategory;
 
         if (url) {
             try {
@@ -181,7 +178,6 @@ export const AdminEditMaterialsPage: React.FC = () => {
                     category: category
                 });
                 setMaterialInput('');
-                setNewCategoryInput('');
                 await loadData();
             } catch (e) {
                 alert("Ошибка при добавлении ссылки");
@@ -228,25 +224,25 @@ export const AdminEditMaterialsPage: React.FC = () => {
                         <div style={{ position: 'relative' }}>
                             <input
                                 className="input-field"
-                                value={catSearchQuery}
-                                onChange={e => { setCatSearchQuery(e.target.value); setCatDropdownOpen(true); }}
+                                value={selectedCategory}
+                                onChange={e => { setSelectedCategory(e.target.value); setCatDropdownOpen(true); }}
                                 onFocus={() => setCatDropdownOpen(true)}
                                 onBlur={() => setTimeout(() => setCatDropdownOpen(false), 150)}
-                                placeholder="Выбрать категорию..."
+                                placeholder="Выбрать или ввести..."
                             />
                             <div className={`search-arrow${catDropdownOpen ? ' open' : ''}`} onClick={() => setCatDropdownOpen(v => !v)}>
                                 <img className="search-dropdown" src={downIcon} alt="" />
                             </div>
-                            {catDropdownOpen && (
+                            {catDropdownOpen && categories.filter(c => c.toLowerCase().includes(selectedCategory.toLowerCase())).length > 0 && (
                                 <div className="search-results">
                                     {categories
-                                        .filter(c => c.toLowerCase().includes(catSearchQuery.toLowerCase()))
+                                        .filter(c => c.toLowerCase().includes(selectedCategory.toLowerCase()))
                                         .map(cat => (
                                             <div
                                                 key={cat}
                                                 className={`search-item${selectedCategory === cat ? ' selected' : ''}`}
                                                 onMouseDown={e => e.preventDefault()}
-                                                onClick={() => { setSelectedCategory(cat); setCatSearchQuery(''); setCatDropdownOpen(false); }}
+                                                onClick={() => { setSelectedCategory(cat); setCatDropdownOpen(false); }}
                                             >
                                                 {cat}
                                             </div>
@@ -255,13 +251,6 @@ export const AdminEditMaterialsPage: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="chips-display-zone" style={{ marginTop: '8px' }}>
-                            <div className="chip department-chip">
-                                {selectedCategory}
-                            </div>
-                        </div>
-                        <div className="assign-divider"><span>или добавить новую</span></div>
-                        <input className="input-field mt-8" placeholder="Добавьте категорию..." value={newCategoryInput} onChange={e => setNewCategoryInput(e.target.value)} />
                     </div>
                     <div className="input-item">
                         <h4>2. Ссылка или файл</h4>

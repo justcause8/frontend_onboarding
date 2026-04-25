@@ -12,6 +12,7 @@ import LoadingSpinner from '../../../components/loading/LoadingSpinner';
 import ErrorState from '../../../components/error/ErrorState';
 import searchIcon from '@/assets/icons/search.svg';
 import { stripMarkdown } from '../../../utils/markdownUtils';
+import { MarkdownViewer } from '../../../components/markdownEditor/MarkdownEditor';
 import { getFileIcon, extractFileNameFromUrl } from '../../../utils/fileUtils';
 import '../../employeesPage/EmployeesPage.css';
 import './AdminEditUserReportPage.css';
@@ -532,16 +533,13 @@ const AdminEditUserReportPage = () => {
 
                             {activeTask && (() => {
                                 const sub = taskSubmissions[activeTask.id];
-                                const mentorFileLine = sub?.mentorComment?.split('\n').find(l => l.startsWith('[Файл от проверяющего]:'));
-                                const mentorFileUrl = mentorFileLine ? mentorFileLine.replace('[Файл от проверяющего]:', '').trim() : null;
-                                const cleanMentorComment = sub?.mentorComment
-                                    ?.split('\n').filter(l => !l.startsWith('[Файл от проверяющего]:')).join('\n').trim() ?? null;
+                                const cleanMentorComment = sub?.mentorComment ?? null;
 
                                 return (
                                     <div className="answers-test-block task-detail-block">
                                         <div className="answers-test-header">
                                             <div>
-                                                <h4 className="answers-test-title">{stripMarkdown(activeTask.description)}</h4>
+                                                <MarkdownViewer content={activeTask.description} className="answers-test-title" />
                                                 <div className="task-accordion-meta">
                                                     {sub?.createdAt && (
                                                         <span className="text-info">Ответ отправлен: {formatDateTime(sub.createdAt)}</span>
@@ -561,12 +559,7 @@ const AdminEditUserReportPage = () => {
                                         {sub?.answerText && (
                                             <div className="input-item">
                                                 <h4>Ответ сотрудника</h4>
-                                                <textarea
-                                                    className="textarea-field task-readonly-textarea"
-                                                    value={sub.answerText}
-                                                    readOnly
-                                                    rows={3}
-                                                />
+                                                <div className="input-field"><MarkdownViewer content={sub.answerText} /></div>
                                             </div>
                                         )}
 
@@ -590,22 +583,12 @@ const AdminEditUserReportPage = () => {
                                             <p className="answers-empty">Ответ пуст</p>
                                         )}
 
-                                        {(cleanMentorComment || mentorFileUrl) && (
+                                        {cleanMentorComment && (
                                             <>
                                                 <hr className="task-divider" />
                                                 <div className="task-mentor-prev">
                                                     <h4>Комментарий проверяющего</h4>
-                                                    {cleanMentorComment && (
-                                                        <p className="task-mentor-comment">{cleanMentorComment}</p>
-                                                    )}
-                                                    {mentorFileUrl && (
-                                                        <a href={mentorFileUrl} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
-                                                            <div className="material-content">
-                                                                <p className="task-file-name">{extractFileNameFromUrl(mentorFileUrl)}</p>
-                                                                <img src={getFileIcon(mentorFileUrl, false)} alt="" />
-                                                            </div>
-                                                        </a>
-                                                    )}
+                                                    <div className="input-field"><MarkdownViewer content={cleanMentorComment} /></div>
                                                 </div>
                                             </>
                                         )}

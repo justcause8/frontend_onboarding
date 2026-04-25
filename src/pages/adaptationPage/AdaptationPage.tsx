@@ -225,7 +225,7 @@ const AdaptationPage = () => {
                               <span className="course-row-title">{stripMarkdown(course.title)}</span>
                             </div>
                             <div className="course-row-right">
-                              {isActive && (
+                              {(isActive || cs === 'completed') && (
                                 <button
                                   className={`btn-go btn-go--${cs}`}
                                   disabled={loadingCourseId === course.id}
@@ -261,7 +261,7 @@ const AdaptationPage = () => {
                             <div className="course-row-right" style={{ gap: '8px' }}>
                               <button
                                 className="btn-go"
-                                onClick={() => navigate(`/tasks/${task.id}`)}
+                                onClick={() => navigate('/tasks', { state: { taskId: task.id } })}
                               >
                                 {btnLabel}
                               </button>

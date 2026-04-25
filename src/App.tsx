@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useUserStore } from './store/useUserStore';
 import { useBackgroundSync } from './hooks/useBackgroundSync';
-import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage, TotalReportsPage, OnboardingTaskPage, UserOnboardingTasksPage } from "./pages";
+import { AdaptationPage, CoursePage, CoursesPage, PassingTestPage, MaterialsPage, EmployeesPage, ContactsPage, TotalReportsPage, UserOnboardingTasksPage } from "./pages";
 import { AdminAdaptationRoute, AdminEditAdaptationRoute, AdminCourses, AdminEditCourse, AdminTests, AdminEditTest, AdminEditMaterialsPage, AdminEditContactsPage, AdminEditUsersPage, AdminEditUserReportPage, AdminEditOnboardingTaskPage, AdminOnboardingTasks } from './pages';
 import MainLayout from './layout/MainLayout';
 import { PageTitleProvider } from './contexts/PageTitleContext';
@@ -31,7 +31,6 @@ export const App = () => {
             <Route path="/employees" element={<EmployeesPage />} />
             <Route path="/contacts" element={<ContactsPage />} />
             <Route path="/tasks" element={<UserOnboardingTasksPage />} />
-            <Route path="/tasks/:taskId" element={<OnboardingTaskPage />} />
             
             {/* Админские роуты */}
             <Route path="/edit/adaptationRoutes" element={<ProtectedRoute><AdminAdaptationRoute /></ProtectedRoute>} />

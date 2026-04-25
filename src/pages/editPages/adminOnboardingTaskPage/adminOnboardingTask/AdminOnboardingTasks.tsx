@@ -65,6 +65,7 @@ const AdminOnboardingTasks = () => {
     const [loading, setLoading] = useState(true);
 
     // --- Проверка ответов ---
+    const [pendingCountInit, setPendingCountInit] = useState(0);
     const [departments, setDepartments] = useState<DepartmentGroup[]>([]);
     const [reviewLoading, setReviewLoading] = useState(false);
     const [reviewLoaded, setReviewLoaded] = useState(false);
@@ -79,7 +80,13 @@ const AdminOnboardingTasks = () => {
     useEffect(() => {
         setDynamicTitle('Задания');
         taskService.getAllTasks()
-            .then(data => setTasks(data))
+            .then(async data => {
+                setTasks(data);
+                const results = await Promise.allSettled(data.map(t => taskService.getSubmissionsByTask(t.id)));
+                let count = 0;
+                results.forEach(r => { if (r.status === 'fulfilled') count += r.value.filter(s => s.status === 'submitted').length; });
+                setPendingCountInit(count);
+            })
             .catch(() => {})
             .finally(() => setLoading(false));
         return () => setDynamicTitle('');
@@ -183,9 +190,7 @@ const AdminOnboardingTasks = () => {
 
     useEffect(() => {
         if (!activeSubmission) return;
-        const clean = activeSubmission.mentorComment
-            ?.split('\n').filter(l => !l.startsWith('[Файл от проверяющего]:')).join('\n').trim() ?? '';
-        setReviewComment(clean);
+        setReviewComment(activeSubmission.mentorComment ?? '');
     }, [activeSubmission]);
 
     const handleStatusChange = async (id: number, currentStatus: string) => {
@@ -253,7 +258,9 @@ const AdminOnboardingTasks = () => {
         { header: '', width: '10%' },
     ];
 
-    const pendingCount = departments.flatMap(d => d.users.flatMap(u => u.submissions)).filter(s => s.status === 'submitted').length;
+    const pendingCount = departments.length > 0
+        ? departments.flatMap(d => d.users.flatMap(u => u.submissions)).filter(s => s.status === 'submitted').length
+        : pendingCountInit;
 
     // Получить ответы выбранного пользователя с фильтром
     const selectedUserSubs: SubmissionWithTask[] = selectedUserId
@@ -472,20 +479,14 @@ const AdminOnboardingTasks = () => {
 
                             {/* Детальная панель выбранного задания */}
                             {activeSubmission && (() => {
-                                            const mentorFileLine = activeSubmission.mentorComment?.split('\n').find(l => l.startsWith('[Файл от проверяющего]:'));
-                                            const mentorFileUrl = mentorFileLine ? mentorFileLine.replace('[Файл от проверяющего]:', '').trim() : null;
-                                            const cleanMentorComment = activeSubmission.mentorComment
-                                                ?.split('\n').filter(l => !l.startsWith('[Файл от проверяющего]:')).join('\n').trim() ?? null;
+                                            const cleanMentorComment = activeSubmission.mentorComment ?? null;
 
                                             return (
                                                 <div className="answers-test-block task-detail-block" style={{ marginTop: '12px' }}>
                                                     <div className="answers-test-header">
                                                         <div>
-                                                            <h4 className="answers-test-title">{stripMarkdown(activeSubmission.task.description)}</h4>
+                                                            <MarkdownViewer content={activeSubmission.task.description} className="answers-test-title" />
                                                             <div className="task-accordion-meta">
-                                                                {activeSubmission.userName && (
-                                                                    <span className="meta-item meta-item--white">{activeSubmission.userName}</span>
-                                                                )}
                                                                 {activeSubmission.createdAt && (
                                                                     <span className="text-info">Отправлено: {formatDateTime(activeSubmission.createdAt)}</span>
                                                                 )}
@@ -502,12 +503,7 @@ const AdminOnboardingTasks = () => {
                                                     {activeSubmission.answerText && (
                                                         <div className="input-item">
                                                             <h4>Ответ сотрудника</h4>
-                                                            <textarea
-                                                                className="textarea-field task-readonly-textarea"
-                                                                value={activeSubmission.answerText}
-                                                                readOnly
-                                                                rows={3}
-                                                            />
+                                                            <div className="input-field"><MarkdownViewer content={activeSubmission.answerText} /></div>
                                                         </div>
                                                     )}
 
@@ -529,23 +525,10 @@ const AdminOnboardingTasks = () => {
 
                                                     <hr className="task-divider" />
 
-                                                    {(cleanMentorComment || mentorFileUrl) && (
+                                                    {cleanMentorComment && (
                                                         <div className="task-mentor-prev">
                                                             <h4>Предыдущий комментарий</h4>
-                                                            {cleanMentorComment && (
-                                                                <MarkdownViewer 
-                                                                    content={cleanMentorComment} 
-                                                                    className="task-mentor-comment" 
-                                                                />
-                                                            )}
-                                                            {mentorFileUrl && (
-                                                                <a href={mentorFileUrl} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
-                                                                    <div className="material-content">
-                                                                        <p className="task-file-name">{extractFileNameFromUrl(mentorFileUrl)}</p>
-                                                                        <img src={getFileIcon(mentorFileUrl, false)} alt="" />
-                                                                    </div>
-                                                                </a>
-                                                            )}
+                                                            <div className="input-field"><MarkdownViewer content={cleanMentorComment} /></div>
                                                         </div>
                                                     )}
 

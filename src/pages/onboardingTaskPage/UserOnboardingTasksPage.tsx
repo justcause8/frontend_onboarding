@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { taskService, type OnboardingTask, type TaskSubmission } from '../../services/task.service';
 import { usePageTitle } from '../../contexts/PageTitleContext';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import EmptyState from '../../components/empty/EmptyState';
 import { stripMarkdown } from '../../utils/markdownUtils';
 import { getFileIcon, extractFileNameFromUrl } from '../../utils/fileUtils';
-import './OnboardingTaskPage.css';
+import { materialService } from '../../services/material.service';
+import { MarkdownEditor, MarkdownViewer } from '../../components/markdownEditor/MarkdownEditor';
+import cross from '@/assets/icons/cross.png';
+import './UserOnboardingTasksPage.css';
 
 const STATUS_LABELS: Record<string, string> = {
     pending: 'На проверке',
+    submitted: 'На проверке',
     approved: 'Принято',
     rejected: 'Не принято',
 };
@@ -28,6 +33,7 @@ const formatDateTime = (dateStr: string | null | undefined): string => {
 
 const UserOnboardingTasksPage = () => {
     const { setDynamicTitle } = usePageTitle();
+    const location = useLocation();
 
     const [tasks, setTasks] = useState<OnboardingTask[]>([]);
     const [submissions, setSubmissions] = useState<Record<number, TaskSubmission | null>>({});
@@ -37,8 +43,18 @@ const UserOnboardingTasksPage = () => {
     // form state
     const [answerText, setAnswerText] = useState('');
     const [fileUrl, setFileUrl] = useState('');
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [editMode, setEditMode] = useState(false);
     const [saving, setSaving] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setPendingFile(file);
+        setFileUrl('');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
     useEffect(() => {
         setDynamicTitle('Задания');
@@ -69,10 +85,19 @@ const UserOnboardingTasksPage = () => {
     useEffect(() => { loadAll(); }, []);
 
     useEffect(() => {
+        const taskId = (location.state as any)?.taskId;
+        if (taskId && tasks.length > 0) {
+            const found = tasks.find(t => t.id === taskId);
+            if (found) setActiveTask(found);
+        }
+    }, [tasks, location.state]);
+
+    useEffect(() => {
         if (!activeTask) return;
         const sub = submissions[activeTask.id];
         setAnswerText(sub?.answerText ?? '');
         setFileUrl(sub?.fileUrl ?? '');
+        setPendingFile(null);
         setEditMode(false);
     }, [activeTask]);
 
@@ -80,17 +105,24 @@ const UserOnboardingTasksPage = () => {
         if (!activeTask) return;
         setSaving(true);
         try {
+            let resolvedFileUrl = fileUrl || null;
+            if (pendingFile) {
+                const res = await materialService.uploadFile(pendingFile, 'Onbording/Tasks');
+                resolvedFileUrl = materialService.getFileUrl(res.relativePath);
+                setPendingFile(null);
+            }
+
             const sub = submissions[activeTask.id];
             if (sub) {
                 await taskService.updateSubmissionAnswer(sub.id, {
                     answerText: answerText || '',
-                    fileUrl: fileUrl || null,
+                    fileUrl: resolvedFileUrl,
                 });
             } else {
                 await taskService.createSubmission({
                     fkTaskId: activeTask.id,
                     answerText: answerText || null,
-                    fileUrl: fileUrl || null,
+                    fileUrl: resolvedFileUrl,
                 });
             }
             setEditMode(false);
@@ -168,97 +200,84 @@ const UserOnboardingTasksPage = () => {
 
     return (
         <div className="text">
-            <div className="card answers-card">
+            <section className="card page-section">
+                <h2>Мои задания</h2>
                 <div className="answers-attempts-list">
                     {activeTasks.map(renderTaskBtn)}
                     {inactiveTasks.length > 0 && activeTasks.length > 0 && (
-                        <p className="answers-empty" style={{ fontSize: '13px', margin: '8px 0 4px' }}>Закрытые задания</p>
+                        <p className="answers-empty tasks-section-label">Закрытые задания</p>
                     )}
                     {inactiveTasks.map(renderTaskBtn)}
                 </div>
+            </section>
 
-                {activeTask && (
-                    <div className="answers-test-block task-detail-block">
+            {activeTask && (
+                <section className="card">
+                    <div className="answers-test-block">
                         <div className="answers-test-header">
                             <div>
-                                <h4 className="answers-test-title">{stripMarkdown(activeTask.description)}</h4>
+                                <MarkdownViewer content={activeTask.description} className="answers-test-title" />
                                 <div className="task-accordion-meta">
+                                    {activeSub?.createdAt && (
+                                        <span className="text-info">Отправлено: {formatDateTime(activeSub.createdAt)}</span>
+                                    )}
                                     {activeSub?.updatedAt && (
                                         <span className="text-info">Изменено: {formatDateTime(activeSub.updatedAt)}</span>
                                     )}
                                 </div>
                             </div>
                             {activeSub && (
-                                <span className={`${statusBadgeClass(activeSub.status)} task-status-badge`}>
+                                <span className={statusBadgeClass(activeSub.status)}>
                                     {STATUS_LABELS[activeSub.status] ?? activeSub.status}
                                 </span>
                             )}
                         </div>
 
-                        {/* Комментарий проверяющего */}
-                        {activeSub && activeSub.mentorComment && (
+                        {activeSub?.mentorComment && (
                             <div className="task-mentor-prev">
                                 <h4>Комментарий проверяющего</h4>
-                                <p className="task-mentor-comment">
-                                    {activeSub.mentorComment.split('\n').filter(l => !l.startsWith('[Файл от проверяющего]:')).join('\n').trim()}
-                                </p>
-                                {(() => {
-                                    const fileLine = activeSub.mentorComment.split('\n').find(l => l.startsWith('[Файл от проверяющего]:'));
-                                    const url = fileLine ? fileLine.replace('[Файл от проверяющего]:', '').trim() : null;
-                                    return url ? (
-                                        <a href={url} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
-                                            <div className="material-content">
-                                                <p className="task-file-name">{extractFileNameFromUrl(url)}</p>
-                                                <img src={getFileIcon(url, false)} alt="" />
-                                            </div>
-                                        </a>
-                                    ) : null;
-                                })()}
+                                <div className="input-field"><MarkdownViewer content={activeSub.mentorComment} /></div>
                             </div>
                         )}
 
                         <hr className="task-divider" />
 
-                        {/* Мой ответ */}
-                        <div className="section-header" style={{ marginBottom: '12px' }}>
-                            <h4>Мой ответ</h4>
-                            {activeSub && !editMode && (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className="btn btn-secondary" onClick={() => setEditMode(true)}>Изменить</button>
-                                    <button className="btn btn-secondary" onClick={handleDelete} disabled={saving}>Удалить</button>
-                                </div>
-                            )}
-                        </div>
-
-                        {!activeSub && !editMode && (
-                            <div className="task-empty-answer">
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '12px' }}>
-                                    Вы ещё не отправили ответ на это задание.
-                                </p>
-                                <button className="btn btn-primary" onClick={() => setEditMode(true)}>Ответить</button>
+                        {activeSub?.answerText && !editMode && (
+                            <div className="input-item">
+                                <h4>Мой ответ</h4>
+                                <div className="input-field"><MarkdownViewer content={activeSub.answerText} /></div>
                             </div>
                         )}
 
-                        {activeSub && !editMode && (
-                            <div className="task-answer-view">
-                                {activeSub.answerText && (
-                                    <div className="task-answer-block">
-                                        <span className="meta-item" style={{ marginBottom: '8px', display: 'inline-block' }}>Текстовый ответ</span>
-                                        <p className="task-answer-text">{activeSub.answerText}</p>
+                        {activeSub?.fileUrl && !editMode && (
+                            <div className="task-file-block">
+                                <h4>Мой ответ</h4>
+                                <a href={activeSub.fileUrl} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
+                                    <div className="material-content">
+                                        <p className="task-file-name">{extractFileNameFromUrl(activeSub.fileUrl)}</p>
+                                        <img src={getFileIcon(activeSub.fileUrl, false)} alt="" />
                                     </div>
-                                )}
-                                {activeSub.fileUrl && (
-                                    <div className="task-file-block">
-                                        <a href={activeSub.fileUrl} target="_blank" rel="noopener noreferrer" download className="card-item material-item">
-                                            <div className="material-content">
-                                                <p className="task-file-name">{extractFileNameFromUrl(activeSub.fileUrl)}</p>
-                                                <img src={getFileIcon(activeSub.fileUrl, false)} alt="" />
-                                            </div>
-                                        </a>
-                                    </div>
-                                )}
-                                {!activeSub.answerText && !activeSub.fileUrl && (
-                                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Ответ пуст</p>
+                                </a>
+                            </div>
+                        )}
+
+                        {!activeSub && !editMode && (
+                            <p className="answers-empty">Вы ещё не отправили ответ на это задание.</p>
+                        )}
+
+                        {activeSub && !activeSub.answerText && !activeSub.fileUrl && !editMode && (
+                            <p className="answers-empty">Ответ пуст</p>
+                        )}
+
+                        {!editMode && (
+                            <div className="task-review-actions task-review-actions--top-gap">
+                                {activeSub ? (
+                                    <>
+                                        <button className="btn btn-secondary" onClick={() => setEditMode(true)}>Изменить</button>
+                                        <button className="btn btn-danger" onClick={handleDelete} disabled={saving}>Удалить</button>
+                                    </>
+                                ) : (
+                                    <button className="btn btn-primary" onClick={() => setEditMode(true)}>Ответить</button>
                                 )}
                             </div>
                         )}
@@ -266,25 +285,41 @@ const UserOnboardingTasksPage = () => {
                         {editMode && (
                             <div className="task-answer-form">
                                 <div className="input-item">
-                                    <h4>Текстовый ответ</h4>
-                                    <textarea
-                                        className="textarea-field"
-                                        placeholder="Введите ваш ответ..."
+                                    <h4>Мой ответ</h4>
+                                    <MarkdownEditor
                                         value={answerText}
-                                        onChange={e => setAnswerText(e.target.value)}
-                                        rows={5}
+                                        onChange={setAnswerText}
+                                        placeholder="Введите ваш ответ..."
+                                        minHeight="120px"
+                                        className="md-editor--white"
                                     />
                                 </div>
                                 <div className="input-item">
-                                    <h4>Ссылка на файл (необязательно)</h4>
-                                    <input
-                                        className="input-field"
-                                        placeholder="https://..."
-                                        value={fileUrl}
-                                        onChange={e => setFileUrl(e.target.value)}
-                                    />
+                                    <h4>Файл (необязательно)</h4>
+                                    <input type="file" ref={fileInputRef} hidden onChange={handleFileSelect} />
+                                    <div className="upload-zone">
+                                        <button className="btn-dashed" onClick={() => fileInputRef.current?.click()}>
+                                            Выбор файла
+                                        </button>
+                                    </div>
+                                    {(pendingFile || fileUrl) && (
+                                        <div className="courses-grid">
+                                            {pendingFile && (
+                                                <div className="course-item-mini course-item-mini--pending">
+                                                    <span className="truncate-text">{pendingFile.name}</span>
+                                                    <img src={cross} className="remove-icon" onClick={() => setPendingFile(null)} alt="remove" />
+                                                </div>
+                                            )}
+                                            {fileUrl && !pendingFile && (
+                                                <div className="course-item-mini">
+                                                    <span className="truncate-text">{extractFileNameFromUrl(fileUrl)}</span>
+                                                    <img src={cross} className="remove-icon" onClick={() => setFileUrl('')} alt="remove" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="task-form-actions">
                                     <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
                                         {saving ? 'Сохранение...' : 'Отправить'}
                                     </button>
@@ -299,8 +334,8 @@ const UserOnboardingTasksPage = () => {
                             </div>
                         )}
                     </div>
-                )}
-            </div>
+                </section>
+            )}
         </div>
     );
 };

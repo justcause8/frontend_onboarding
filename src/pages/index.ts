@@ -6,7 +6,6 @@ export { default as MaterialsPage } from './materialsPage/MaterialsPage';
 export { default as EmployeesPage } from './employeesPage/EmployeesPage';
 export { default as ContactsPage } from './contactsPage/ContactsPage';
 export { default as TotalReportsPage } from './editPages/adminTotalReportsPage/AdminEditTotalReportsPage';
-export { default as OnboardingTaskPage } from './onboardingTaskPage/OnboardingTaskPage';
 export { default as UserOnboardingTasksPage } from './onboardingTaskPage/UserOnboardingTasksPage';
 
 export { default as AdminAdaptationRoute } from './editPages/adminAdaptationPage/adminAdaptationRoutes/AdminAdaptationRoutes';

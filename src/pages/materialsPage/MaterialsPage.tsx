@@ -105,7 +105,6 @@ const MaterialsPage = () => {
     }
   };
 
-  // ИСПРАВЛЕНО: функция теперь имеет тело с фигурными скобками для использования const
   const isLink = (item: Material): boolean =>
     item.isExternalLink ||
     item.urlDocument.startsWith('http://') ||

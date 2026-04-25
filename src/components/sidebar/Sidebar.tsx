@@ -55,7 +55,7 @@ const Sidebar = () => {
             <li>
               <NavLink to="/courses">
                 <img src={education} className='icon' alt="" />
-                Обучение и тестирование
+                Модули и тесты
               </NavLink>
             </li>
             <li>
